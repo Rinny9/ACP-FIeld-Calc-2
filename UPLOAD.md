@@ -11,7 +11,7 @@ Do not upload the ZIP itself. After GitHub Pages deploys, open the site once whi
 
 The Critical tab is a patient-specific high-acuity reference hub. Its first screen now uses six larger categories—Arrest, Unstable rhythm, Airway/breathing, Shock/trauma, Neuro/metabolic, and OB/newborn—then reveals the relevant subpath.
 
-Build 2026.08.31.5 places the tappable ROSC checklist beside Cardiac arrest under Critical ▸ Arrest, so the two views can be switched quickly. It also includes patient-band PDC v5.4 adenosine, amiodarone, synchronized-cardioversion and pulseless defibrillation reference values in Critical ▸ Unstable rhythm ▸ Tachy whenever the entered patient is under 18. The pediatric tachy view is prominently marked as a mandatory BHP patch point and does not present the chart as independent authorization.
+Build 2026.08.31.6 sequences the Critical treatment cards to the ALS PCS 5.4 treatment directions. In Critical ▸ Unstable rhythm ▸ Brady, the order is atropine, indicated fluid bolus, TCP, DOPamine and procedural sedation; the fluid card explicitly states that TCP must not be delayed. Adult tachy now begins with Valsalva before adenosine, and the newborn view begins with the resuscitation sequence before medication cards. The ROSC checklist remains beside Cardiac arrest under Critical ▸ Arrest, and the pediatric tachy view remains a mandatory BHP patch reference.
 
 If this repository already contains the manifest and icon, replacing only `index.html` and `sw.js` is sufficient for this update. The changed service-worker cache name ensures devices fetch the new interface after deployment.
 

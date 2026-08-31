@@ -343,7 +343,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.5</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.6</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -433,7 +433,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.5 · ROSC checklist grouped with Arrest + pediatric tachy patch reference · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.6 · Critical treatment cards sequenced to ALS PCS 5.4 + pediatric tachy patch reference · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1901,6 +1901,10 @@ function critTargets(p,id){
   return[['Shoulder','8-min alarm'],['Breech head','4-min window'],['Oxytocin','After all fetuses']];
 }
 function critMatch(arr,terms){return(arr||[]).filter(r=>terms.some(t=>String(r.name||r.k||'').includes(t)));}
+function critOrder(arr,terms){
+  const rows=arr||[];
+  return terms.flatMap(term=>rows.filter(r=>String(r.name||r.k||'').includes(term)));
+}
 function critUnique(rows){const seen=new Set();return rows.filter(r=>{const k=`${r.name}|${r.dose}|${r.ml}`;if(seen.has(k))return false;seen.add(k);return true;});}
 function critAirRows(p,terms){return critMatch(airway(p),terms).map(r=>({name:r.k,dose:r.v,sub:r.sub,src:r.src,tone:r.tone,needW:r.needW}));}
 function critPedsTachyRows(p){
@@ -1928,16 +1932,16 @@ function critPedsTachyRows(p){
 function critRowsForPath(p,id){
   const d=drugCalcs(p),out={rows:[],equipment:[]};
   if(id==='arrest'){
-    out.rows=critMatch(d.arrest,['Defibrillation','DSED / VCD','EPINEPHrine IV/IO','EPINEPHrine ETT','Amiodarone','Lidocaine','NaCl bolus']);
+    out.rows=critOrder(d.arrest,['Defibrillation','DSED / VCD','EPINEPHrine IV/IO','EPINEPHrine ETT','Amiodarone','Lidocaine','NaCl bolus']);
     out.rows.push({name:'Sodium bicarbonate — indication-specific only',dose:'No standing ALS PCS dose',when:'Specific suspected cause + current BHP direction',sub:'Not routine in undifferentiated arrest. Do not mix with calcium gluconate; verify the indication, order, concentration and dose.',src:'EXT: not an ALS PCS 5.4 standing treatment',tone:'patch'});
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','i-gel size','Vent rate']);
   }else if(id==='rosc'){
     out.rows=(d.rosc||[]).slice();out.equipment=critAirRows(p,['Vent rate','ETT/trach suction pressure']);
   }else if(id==='brady'){
-    out.rows=[...critMatch(d.cardiac,['Atropine','TCP','DOPamine']),...critMatch(d.fluids,['Bolus — hypotension']),...critMatch(d.sedation,['Procedural sedation'])];
+    out.rows=[...critOrder(d.cardiac,['Atropine']),...critOrder(d.fluids,['Bolus — hypotension']).map(r=>({...r,name:'Fluid bolus — if indicated',sub:`${r.sub||''}${r.sub?' · ':''}Do not delay TCP for IV access or fluid administration.`})),...critOrder(d.cardiac,['TCP','DOPamine']),...critOrder(d.sedation,['Procedural sedation'])];
   }else if(id==='tachy'){
     if(p&&p.ageYears!=null&&p.ageYears<18){const ped=critPedsTachyRows(p);out.rows=ped.rows;out.equipment=ped.equipment;out.pedsInfo=ped.pedsInfo;}
-    else out.rows=critMatch(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion']);
+    else out.rows=[{name:'Valsalva maneuver — narrow regular rhythm',dose:'Up to 2 attempts',rep:'10–20 seconds each',when:'≥18 y · unaltered · HR ≥150 · normotension · narrow + regular',contra:'Sinus tachycardia · atrial fibrillation · atrial flutter',sub:'Perform before adenosine when directive conditions are met.',src:'PCS p.132–134',tone:'pcs'},...critOrder(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion'])];
   }else if(id==='airway'){
     out.rows=critMatch(d.sedation,['Procedural sedation']);
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel','suction pressure','Vent rate','Topical lidocaine']);
@@ -1945,14 +1949,14 @@ function critRowsForPath(p,id){
     out.rows=[...(d.resp||[]),...critMatch(d.cardiac,['Nitroglycerin — ACPE'])];
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='neuro'){
-    out.rows=[...(d.neuro||[]),...critMatch(d.metab,['Dextrose','Glucagon','Hypoglycemia threshold','Naloxone','Calcium gluconate','Salbutamol — hyperkalemia','Hydrocortisone'])];
+    out.rows=[...(d.neuro||[]),...critOrder(d.metab,['Hypoglycemia threshold','Dextrose','Glucagon','Naloxone','Calcium gluconate','Salbutamol — hyperkalemia','Hydrocortisone'])];
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='trauma'){
-    out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.47',tone:'pcs'},...critMatch(d.fluids,['Bolus — hypotension','TXA']),...critMatch(d.analgesia,['FentaNYL','Ketamine','Morphine'])];
+    out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.47',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','i-gel size']);
   }else if(id==='newborn'){
-    out.rows=(d.newborn||[]).slice();out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel size']);
-  }else if(id==='ob')out.rows=(d.ob||[]).slice();
+    out.rows=critOrder(d.newborn,['Sequence','Preductal SpO₂','EPINEPHrine IV/IO','EPINEPHrine ETT']);out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel size']);
+  }else if(id==='ob')out.rows=critOrder(d.ob,['Shoulder dystocia','Breech','Oxytocin']);
   out.rows=critUnique(out.rows);out.equipment=critUnique(out.equipment);return out;
 }
 function critSection(title,rows,note){
