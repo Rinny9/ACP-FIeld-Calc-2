@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.08.31.4-rosc-peds-tachy';
+const CACHE = 'acp-field-calc-2026.08.31.5-rosc-under-arrest';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

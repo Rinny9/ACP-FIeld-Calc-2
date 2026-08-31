@@ -343,7 +343,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.4</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.5</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -433,7 +433,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.4 · ROSC checklist + pediatric tachy patch reference · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.5 · ROSC checklist grouped with Arrest + pediatric tachy patch reference · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1838,10 +1838,10 @@ const CRIT_PATHS=[
   {id:'ob',icon:'🤱',label:'Childbirth',title:'Critical childbirth',directives:['ob'],calc:'ob',priorities:['Identify the obstetric emergency and begin the matching manoeuvre sequence immediately.','Track the head-delivery interval during shoulder dystocia or breech delivery.','Treat postpartum hemorrhage and transport according to maternal condition and directive criteria.']}
 ];
 const CRIT_GROUPS=[
-  {id:'arrest',icon:'⚡',label:'Arrest',paths:['arrest']},
+  {id:'arrest',icon:'⚡',label:'Arrest',paths:['arrest','rosc']},
   {id:'rhythm',icon:'💓',label:'Unstable rhythm',paths:['brady','tachy']},
   {id:'airbreath',icon:'🫁',label:'Airway / breathing',paths:['airway','resp']},
-  {id:'shocktrauma',icon:'🚨',label:'Shock / trauma',paths:['rosc','trauma']},
+  {id:'shocktrauma',icon:'🚨',label:'Shock / trauma',paths:['trauma']},
   {id:'neurometab',icon:'🧠',label:'Neuro / metabolic',paths:['neuro']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
 ];
