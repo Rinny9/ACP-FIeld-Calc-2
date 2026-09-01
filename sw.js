@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.08.31.7-arrest-prearrest-hub';
+const CACHE = 'acp-field-calc-2026.08.31.8-arrest-airway-first';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

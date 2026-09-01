@@ -343,7 +343,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.7</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.8</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -433,7 +433,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.7 · Arrest / pre-arrest hub with Arrest, ROSC / check and Hyperkalemia · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.8 · Arrest airway / equipment displayed before patient-specific treatment · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -2018,8 +2018,9 @@ function renderCritGrid(){
   }else{
     const data=critRowsForPath(p,path.id);
     const pedsTachy=path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18;
-    html+=critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='airway'?'Sedation / medication':'Patient-specific treatment',data.rows,'dose → draw volume');
-    html+=critSection(pedsTachy?'Pediatric electrical therapy — BHP patch':'Airway / equipment',data.equipment,pedsTachy?'PDC sequential settings':'verify local stock');
+    const treatmentSection=critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='airway'?'Sedation / medication':'Patient-specific treatment',data.rows,'dose → draw volume');
+    const equipmentSection=critSection(pedsTachy?'Pediatric electrical therapy — BHP patch':'Airway / equipment',data.equipment,pedsTachy?'PDC sequential settings':'verify local stock');
+    html+=path.id==='arrest'?equipmentSection+treatmentSection:treatmentSection+equipmentSection;
     if(!data.rows.length&&!data.equipment.length)html+=`<div class="crit-empty"><b>No authorized calculation available</b>Confirm patient data and use the full directive or BHP pathway.</div>`;
   }
   html+=`<div class="crit-actions"><button type="button" onclick="openCriticalDirective()">Full directive</button><button type="button" onclick="openCriticalCalculations()">All related calculations</button></div>`;
