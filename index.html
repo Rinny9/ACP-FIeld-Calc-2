@@ -343,7 +343,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.6</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.08.31.7</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -433,7 +433,7 @@ nav button.crit.on, nav button.crit:active{color:var(--red)}
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.6 · Critical treatment cards sequenced to ALS PCS 5.4 + pediatric tachy patch reference · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.08.31.7 · Arrest / pre-arrest hub with Arrest, ROSC / check and Hyperkalemia · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1827,18 +1827,19 @@ function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
 let critScenario='arrest',critGroup='arrest';
 const CRIT_PATHS=[
   {id:'arrest',icon:'⚡',label:'Arrest',title:'Medical cardiac arrest',directives:['arrest'],calc:'arrest',priorities:['High-quality CPR in 2-minute cycles; analyze and defibrillate when indicated.','Obtain IV/IO access; reserve the ETT drug route for a ≥5-minute vascular-access delay.','Treat reversible causes and act early on transport, DSED/VCD and TOR decision points.']},
-  {id:'rosc',icon:'🔄',label:'ROSC / shock',title:'ROSC and shock support',directives:['rosc','cshock'],calc:'rosc',priorities:['Control oxygenation and ventilation; avoid hypoxia, hyperoxia and hyperventilation.','Treat hypotension with the applicable fluid pathway, then DOPamine when conditions are met.','Acquire a 12-lead and transport while stabilization continues.']},
+  {id:'rosc',icon:'🔄',label:'ROSC / check',title:'ROSC checklist and shock support',directives:['rosc','cshock'],calc:'rosc',priorities:['Control oxygenation and ventilation; avoid hypoxia, hyperoxia and hyperventilation.','Treat hypotension with the applicable fluid pathway, then DOPamine when conditions are met.','Acquire a 12-lead and transport while stabilization continues.']},
+  {id:'hyperk',icon:'K⁺',label:'Hyperkalemia',title:'Hyperkalemic arrest / pre-arrest',directives:['hyperk'],calc:'hyperk',priorities:['Confirm a high-risk history and cardiac arrest or pre-arrest with ECG changes consistent with hyperkalemia.','Prioritize calcium gluconate for membrane stabilization in the unstable patient.','Give calcium and salbutamol when possible; reassess the ECG and never mix calcium with sodium bicarbonate.']},
   {id:'brady',icon:'🫀',label:'Brady',title:'Unstable bradycardia',directives:['brady'],calc:'brady',priorities:['Confirm hemodynamic instability, obtain rhythm determination and place pads.','Give atropine when appropriate while preparing TCP; do not delay pacing for IV access.','Treat contributory hypovolemia and use DOPamine when the directive conditions are met.']},
   {id:'tachy',icon:'💓',label:'Tachy',title:'Symptomatic tachydysrhythmia',directives:['tachy'],calc:'tachy',priorities:['Decide narrow vs wide, regular vs irregular, and compensatory vs primary tachycardia.','Unstable: prepare synchronized cardioversion and patch without delaying essential care.','Stable regular rhythms: use the pathway-specific vagal, adenosine or antiarrhythmic branch.']},
   {id:'airway',icon:'🫁',label:'Airway',title:'Advanced airway and ventilation',directives:['oti','sga','suction','psed'],calc:'all',priorities:['Optimize basic airway management first and choose the least invasive effective airway.','Limit OTI and SGA insertion attempts to the directive maximum; use waveform ETCO₂ for confirmation.','Reconfirm after every move and apply post-intubation sedation only when its conditions are met.']},
   {id:'resp',icon:'🌬️',label:'Respiratory',title:'High-acuity respiratory care',directives:['bronch','allergy','acpe','cpap','croup'],calc:'resp',priorities:['Identify the phenotype: bronchoconstriction, anaphylaxis, ACPE, croup or ventilatory failure.','Prioritize ventilation and the time-critical first-line treatment for that phenotype.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.']},
-  {id:'neuro',icon:'🧠',label:'Neuro / metab',title:'Seizure, glucose, opioid and hyperkalemia',directives:['seizure','hypogly','opioid','hyperk','adrenal'],calc:'neuro',priorities:['Support airway and ventilation; rapidly check glucose when indicated.','Stop active generalized motor seizure promptly, then reassess for mimics or persistent causes.','For hyperkalemic arrest/pre-arrest, prioritize membrane stabilization and give both authorized agents when possible.']},
+  {id:'neuro',icon:'🧠',label:'Neuro / metab',title:'Seizure, glucose, opioid and adrenal emergencies',directives:['seizure','hypogly','opioid','adrenal'],calc:'neuro',priorities:['Support airway and ventilation; rapidly check glucose when indicated.','Stop active generalized motor seizure promptly, then reassess for mimics or persistent causes.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.']},
   {id:'trauma',icon:'🚨',label:'Trauma',title:'Critical trauma and hemorrhage',directives:['trauma','tension','txa','ivft'],calc:'trauma',priorities:['Control catastrophic hemorrhage, address tension pneumothorax and minimize scene time.','Use airway and fluid interventions only when they do not delay definitive transport.','Apply TXA, analgesia and arrest/TOR pathways only when their exact conditions are met.']},
   {id:'newborn',icon:'👶',label:'Newborn',title:'Newborn resuscitation (<24 h)',directives:['nrp'],calc:'all',priorities:['Warm, position, dry and stimulate; start effective PPV when HR is <100.','If HR remains <60 after effective PPV, coordinate compressions with 100% oxygen.','Give epinephrine only after the ventilation/compression sequence and transport before the third dose when possible.']},
   {id:'ob',icon:'🤱',label:'Childbirth',title:'Critical childbirth',directives:['ob'],calc:'ob',priorities:['Identify the obstetric emergency and begin the matching manoeuvre sequence immediately.','Track the head-delivery interval during shoulder dystocia or breech delivery.','Treat postpartum hemorrhage and transport according to maternal condition and directive criteria.']}
 ];
 const CRIT_GROUPS=[
-  {id:'arrest',icon:'⚡',label:'Arrest',paths:['arrest','rosc']},
+  {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
   {id:'rhythm',icon:'💓',label:'Unstable rhythm',paths:['brady','tachy']},
   {id:'airbreath',icon:'🫁',label:'Airway / breathing',paths:['airway','resp']},
   {id:'shocktrauma',icon:'🚨',label:'Shock / trauma',paths:['trauma']},
@@ -1890,6 +1891,11 @@ function critTargets(p,id){
   const glucose=p&&p.hypoglycemia!=null?`<${p.hypoglycemia.toFixed(1)} mmol/L`:'Age required';
   if(id==='arrest')return[['Rhythm','q2 min'],['Epinephrine','q4 min'],['Vent rate',critVentRate(p)]];
   if(id==='rosc')return[['SpO₂','94–98%'],['ETCO₂','30–40 mmHg'],['DOPamine SBP','90–<110']];
+  if(id==='hyperk'){
+    if(!p||p.ageYears==null)return[['Eligibility','Age required'],['Treatment','Suppressed'],['Directive','≥18 y']];
+    if(p.ageYears<18)return[['Eligibility','Outside directive'],['BHP patch','Required'],['Adult dose','Suppressed']];
+    return[['Eligibility','≥18 y'],['Calcium','1 g q5 min'],['Salbutamol','Max 2']];
+  }
   if(id==='brady')return[['Hypotension',hypo],['Adult HR','<50/min'],['TCP rate','80/min']];
   if(id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18){const info=critPedsBandInfo(p);return[['BHP patch','MANDATORY'],['PDC band',info.band?info.band.w:'Weight needed'],['Chart basis',info.band?`${info.band.calcW} kg`:'Not available']];}
   if(id==='tachy')return[['Wide regular','HR ≥120'],['Narrow regular','HR ≥150'],['Hypotension',hypo]];
@@ -1937,6 +1943,8 @@ function critRowsForPath(p,id){
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','i-gel size','Vent rate']);
   }else if(id==='rosc'){
     out.rows=(d.rosc||[]).slice();out.equipment=critAirRows(p,['Vent rate','ETT/trach suction pressure']);
+  }else if(id==='hyperk'){
+    out.rows=critOrder(d.metab,['Calcium gluconate 10% — hyperkalemia','Salbutamol — hyperkalemia']);
   }else if(id==='brady'){
     out.rows=[...critOrder(d.cardiac,['Atropine']),...critOrder(d.fluids,['Bolus — hypotension']).map(r=>({...r,name:'Fluid bolus — if indicated',sub:`${r.sub||''}${r.sub?' · ':''}Do not delay TCP for IV access or fluid administration.`})),...critOrder(d.cardiac,['TCP','DOPamine']),...critOrder(d.sedation,['Procedural sedation'])];
   }else if(id==='tachy'){
@@ -1949,7 +1957,7 @@ function critRowsForPath(p,id){
     out.rows=[...(d.resp||[]),...critMatch(d.cardiac,['Nitroglycerin — ACPE'])];
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='neuro'){
-    out.rows=[...(d.neuro||[]),...critOrder(d.metab,['Hypoglycemia threshold','Dextrose','Glucagon','Naloxone','Calcium gluconate','Salbutamol — hyperkalemia','Hydrocortisone'])];
+    out.rows=[...(d.neuro||[]),...critOrder(d.metab,['Hypoglycemia threshold','Dextrose','Glucagon','Naloxone','Hydrocortisone'])];
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='trauma'){
     out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.47',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
@@ -1992,6 +2000,7 @@ function critWarnings(p,id){
   if(p&&p.ageYears==null)h+=`<div class="crit-alert red"><b>Age unknown:</b> age-gated directives, thresholds and maximums remain suppressed. Do not infer adult eligibility from weight.</div>`;
   if(p&&p.weightKg==null)h+=`<div class="crit-alert red"><b>Weight required:</b> weight-based doses and draw volumes cannot be safely populated.</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is adult-gated. Use the published pediatric chart only as a BHP reference, not as authorization.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds reference</button></div></div>`;
+  if(p&&p.ageYears!=null&&p.ageYears<18&&id==='hyperk')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing Hyperkalemia Medical Directive is limited to patients ≥18 years old. Patch to a BHP for direction; no adult dose is displayed.</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='tachy'){const info=critPedsBandInfo(p);h+=`<div class="crit-alert patch"><b>MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA:</b> age &lt;18 is outside the standing Tachydysrhythmia Medical Directive. The PDC drug doses and electrical settings below are patch-reference data only; treatment requires a BHP order. Report age, actual weight, rhythm/rate, QRS width/regularity, perfusion/hemodynamic status, IV/IO access and response to prior measures.${info.band?`<div class="crit-band"><b>${esc(info.basis)}</b>${info.note?`<br>${esc(info.note)}`:''} · <a class="rlink" href="${srcHref('PDC',info.band.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${info.band.pg} ↗</a></div>`:info.note?`<div class="crit-band"><b>Chart band unavailable</b><br>${esc(info.note)}</div>`:''}<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open full Peds reference</button></div></div>`;}
   if(id==='newborn'&&p&&p.ageDays!=null&&p.ageDays>=1)h+=`<div class="crit-alert red"><b>Wrong patient pathway:</b> Newborn Resuscitation applies only to a patient &lt;24 hours old.</div>`;
   return h;

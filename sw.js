@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.08.31.6-critical-treatment-order';
+const CACHE = 'acp-field-calc-2026.08.31.7-arrest-prearrest-hub';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
