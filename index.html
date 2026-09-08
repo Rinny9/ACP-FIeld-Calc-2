@@ -368,6 +368,7 @@ details>summary{cursor:pointer;min-height:44px;align-content:center;line-height:
 .sec,.workflow{scroll-margin-top:var(--patient-bar-height,110px)}
 #critical{background:var(--bg);padding:0 12px calc(16px + env(safe-area-inset-bottom));color:var(--text);overscroll-behavior:contain}
 .crit-sticky{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(6px + env(safe-area-inset-top)) 0 5px;border-bottom:1px solid var(--border)}
+.crit-sticky.picker-open{position:static}
 .crit-top{position:static;background:var(--bg);margin:0;padding:0 0 6px;border:0;flex-wrap:wrap}
 .crit-top h2{font-size:16px}.crit-top h2 small{display:none}.crit-close{font-size:14px;padding:8px 10px;min-height:44px}
 .crit-ptcard{background:var(--card);padding:8px 10px;margin-bottom:3px;border-radius:10px}.crit-ptmain .cpw{color:var(--text);font-size:21px}.crit-ptmain .cpa{font-size:calc(13px * var(--clinical-scale));margin-top:2px}
@@ -402,7 +403,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.4</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.08.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -497,7 +498,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.4 · ETT size and depth rounded to nearest 0.5 · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.08.1 · Service stock and Critical category navigation · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -509,9 +510,9 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
     <div class="crit-top"><h2 id="criticalTitle">⬤ CRITICAL<small>ALS PCS 5.4 · patient-specific</small></h2><button class="crit-close" id="critClose" type="button">Back to Calculator</button></div>
     <div class="crit-ptcard" id="critPt"></div>
     <div class="crit-context"><b id="critContext"></b><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths">Change</button></div>
+    <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway"></div>
     <div class="crit-subpaths" id="critSubpaths" role="group" aria-label="High-acuity subpath"></div>
     </div>
-    <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway" hidden></div>
     <div class="crit-profile" id="critProfile"></div>
     <div id="critContent" aria-live="polite"></div>
   </div>
@@ -541,7 +542,7 @@ const CONC = {
   epi110000:   { v: 0.1,  unit: 'mg/mL',  src: 'PCS', label: 'EPINEPHrine 1:10,000' },
   amiodarone:  { v: 50,   unit: 'mg/mL',  src: 'EXT', label: 'amiodarone (150 mg/3 mL)' },
   lidocaine:   { v: 20,   unit: 'mg/mL',  src: 'EXT', label: 'lidocaine 2% (100 mg/5 mL)' },
-  atropine:    { v: 0.1,  unit: 'mg/mL',  src: 'EXT', label: 'atropine preload (1 mg/10 mL)' },
+  atropine:    { v: 0.2,  unit: 'mg/mL',  src: 'EXT', label: 'atropine (1 mg/5 mL — service stock)', fixed: true },
   adenosine:   { v: 3,    unit: 'mg/mL',  src: 'EXT', label: 'adenosine (6 mg/2 mL)' },
   midazolam:   { v: 5,    unit: 'mg/mL',  src: 'EXT', label: 'midazolam' },
   fentanyl:    { v: 50,   unit: 'mcg/mL', src: 'EXT', label: 'fentaNYL' },
@@ -1404,7 +1405,7 @@ function saveFieldProfile(){
 }
 function loadFieldProfile(){
   const data=readFieldProfile();
-  for(const [k,v] of Object.entries(data.concentrations||{}))if(CONC[k]&&CONC[k].src==='EXT'&&Number.isFinite(+v)&&+v>0)CONC[k].v=+v;
+  for(const [k,v] of Object.entries(data.concentrations||{}))if(CONC[k]&&CONC[k].src==='EXT'&&!CONC[k].fixed&&Number.isFinite(+v)&&+v>0)CONC[k].v=+v;
   $('profileName').value=data.name||'My service';
   const day=data.daylight!=null?!!data.daylight:!!(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches);
   document.body.classList.toggle('daylight',day);
@@ -1688,7 +1689,7 @@ const slugSec=t=>t.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const CASES=[
  {id:'all',icon:'▦',label:'All calculations',sections:null},
  {id:'arrest',icon:'⚡',label:'Cardiac arrest',sections:['summary','airway','arrest']},
- {id:'rosc',icon:'🔄',label:'ROSC / post-arrest',sections:['summary','airway','rosc']},
+ {id:'rosc',icon:'🔄',label:'ROSC',sections:['summary','airway','rosc']},
  {id:'brady',icon:'🫀',label:'Bradycardia',sections:['summary','cardiac'],terms:{cardiac:['Atropine','TCP','DOPamine']}},
  {id:'tachy',icon:'💓',label:'Tachydysrhythmia',sections:['summary','cardiac'],terms:{cardiac:['Adenosine','wide regular VT','cardioversion']}},
  {id:'resp',icon:'🌬️',label:'Airway / respiratory',sections:['summary','airway','resp']},
@@ -1909,7 +1910,7 @@ function toolPanel(id){
   if(id==='drip'){return `${back}<div class="toolpanel"><h3>IV Drip Rate</h3><div class="tsrc">Gravity set — count drops against your watch · gtt/min = vol × factor ÷ min</div>
     <div class="fieldrow"><div class="field"><label>Volume (mL)</label><input id="dvol" type="number" inputmode="numeric" placeholder="e.g. 1000" oninput="dripCalc()"></div>
     <div class="field"><label>Time (min)</label><input id="dmin" type="number" inputmode="numeric" placeholder="e.g. 60" oninput="dripCalc()"></div></div>
-    <div class="field"><label>Drop factor</label><select id="dset" onchange="dripCalc()"><option value="10">10 gtt/mL (macro)</option><option value="15">15 gtt/mL</option><option value="20">20 gtt/mL</option><option value="60">60 gtt/mL (micro)</option></select></div>
+    <div class="field"><label>Drop factor</label><select id="dset" onchange="dripCalc()"><option value="10">10 gtt/mL (macro)</option><option value="60">60 gtt/mL (micro)</option></select></div>
     <div class="result"><div class="big num" id="dripOut">—</div><div class="lbl" id="dripLbl">drops per second</div></div></div>`;}
   if(id==='shock'){return `${back}<div class="toolpanel"><h3>Shock Index</h3><div class="tsrc">EXT: SI = HR ÷ SBP · adult; &gt;0.9 associated with transfusion need</div>
     <div class="fieldrow"><div class="field"><label>HR</label><input id="siHR" type="number" inputmode="numeric" oninput="siCalc()"></div>
@@ -1987,7 +1988,7 @@ function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
   const w=S.pt&&S.pt.weightKg;$('parklandOut').innerHTML=(w&&t>0)?rowHTML({name:'Parkland (reference only)',dose:`${Math.round(4*w*t).toLocaleString()} mL LR / 24 h`,sub:`½ (${Math.round(2*w*t).toLocaleString()} mL) in first 8 h from burn time · 4 mL × ${fmt(w)} kg × ${round(t,1)}% · NOT an ALS PCS directive`,src:'EXT: Parkland formula',tone:'ext'}):'';}
 
 // ============ CRITICAL MODE ============
-let critScenario='arrest',critGroup='arrest';
+let critScenario=null,critGroup=null;
 const CRIT_RESP_PRIORITIES=['Prioritize ventilation and the condition-specific treatment.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.'];
 const CRIT_METAB_PRIORITIES=['Support airway and ventilation; rapidly check glucose when indicated.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.'];
 const CRIT_PATHS=[
@@ -2028,7 +2029,7 @@ const ROSC_CHECKLIST=[
 ];
 let roscChecklistState={};
 
-function critPath(){return CRIT_PATHS.find(x=>x.id===critScenario)||CRIT_PATHS[0];}
+function critPath(){return CRIT_PATHS.find(x=>x.id===critScenario)||null;}
 function critAgeLabel(p){
   if(!p||p.ageYears==null)return'Age unknown';
   if(p.ageDays<1)return`${fmt(round(p.ageDays,2))} days`;
@@ -2159,13 +2160,16 @@ function critPriorities(p,path){
 }
 function renderCritPaths(){
   const el=$('critPaths'),sub=$('critSubpaths');if(!el||!sub)return;
-  const group=CRIT_GROUPS.find(x=>x.id===critGroup)||CRIT_GROUPS[0];
-  sub.classList.toggle('many',group.paths.length>3);
-  sub.classList.toggle('resp-paths',group.id==='airbreath');
-  $('critContext').textContent=group.paths.length>1?group.label+' · '+critPath().label:group.label;
+  const group=CRIT_GROUPS.find(x=>x.id===critGroup),path=critPath();
+  if(!path)el.hidden=false;
+  document.querySelector('.crit-sticky').classList.toggle('picker-open',!el.hidden);
+  sub.classList.toggle('many',!!group&&group.paths.length>3);
+  sub.classList.toggle('resp-paths',group?.id==='airbreath');
+  $('critContext').textContent=group&&path?(group.paths.length>1?group.label+' · '+path.label:group.label):'Choose a category';
+  $('critChange').hidden=!path;
   $('critChange').setAttribute('aria-expanded',String(!el.hidden));
-  el.innerHTML=CRIT_GROUPS.map(x=>`<button type="button" class="${x.id===group.id?'on':''}" aria-pressed="${x.id===group.id}" onclick="selectCriticalGroup('${x.id}')"><span aria-hidden="true">${x.icon}</span>${x.label}</button>`).join('');
-  sub.innerHTML=group.paths.length>1?group.paths.map(id=>{const x=CRIT_PATHS.find(p=>p.id===id);return`<button type="button" data-path="${id}" class="${id===critScenario?'on':''}" aria-pressed="${id===critScenario}" onclick="selectCriticalPath('${id}')">${x.icon} ${x.label}</button>`;}).join(''):'';
+  el.innerHTML=CRIT_GROUPS.map(x=>`<button type="button" class="${x.id===group?.id?'on':''}" aria-pressed="${x.id===group?.id}" onclick="selectCriticalGroup('${x.id}')"><span aria-hidden="true">${x.icon}</span>${x.label}</button>`).join('');
+  sub.innerHTML=group&&group.paths.length>1?group.paths.map(id=>{const x=CRIT_PATHS.find(p=>p.id===id);return`<button type="button" data-path="${id}" class="${id===critScenario?'on':''}" aria-pressed="${id===critScenario}" onclick="selectCriticalPath('${id}')">${x.icon} ${x.label}</button>`;}).join(''):'';
 }
 function critPatientCard(p){
   const has=p&&(p.weightKg!=null||p.ageYears!=null);
@@ -2191,6 +2195,7 @@ function renderCritGrid(){
   const p=S.pt,path=critPath();renderCritPaths();
   $('critPt').innerHTML=critPatientCard(p);
   $('critProfile').innerHTML=`<b>${esc($('profileName').value||'My service')}</b> · Verify vial, dose, route and draw volume with your partner.`;
+  if(!path){$('critContent').innerHTML='<div class="crit-empty">Select a category above to open its pathways. No scenario has been selected.</div>';return;}
   const targets=critTargets(p,path.id).map(([k,v])=>`<div class="crit-target"><small>${esc(k)}</small><b class="num">${esc(v)}</b></div>`).join('');
   const priorities=critPriorities(p,path);
   let html=priorities.length||targets?`<div class="crit-overview">${priorities.length?`<ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}${targets?`<div class="crit-targets">${targets}</div>`:''}</div>`:'';
@@ -2224,14 +2229,14 @@ window.resetRoscChecklist=()=>{roscChecklistState={};renderCritGrid();};
 window.criticalEditPatient=()=>{S.entryCollapsed=false;renderEntryState();switchPane('calc');requestAnimationFrame(()=>{window.scrollTo(0,0);$('ageIn').focus({preventScroll:true});});};
 window.openCriticalPeds=()=>{switchPane('peds');};
 window.openCriticalDirective=id=>{
-  const path=critPath();if(!id&&path.directives.length!==1)return;
+  const path=critPath();if(!path||(!id&&path.directives.length!==1))return;
   const dir=DIR.find(x=>x.id===(id||path.directives[0])&&path.directives.includes(x.id));
   if(!dir)return;
   directiveOpen[dir.id]=true;$('dirSearch').value=dir.n;renderDirectives(dir.n);
   switchPane('dir');requestAnimationFrame(()=>window.scrollTo(0,0));
 };
 window.openCriticalCalculations=()=>{
-  const path=critPath();switchPane('calc');selectCase(CASES.some(x=>x.id===path.calc)?path.calc:'all');
+  const path=critPath();if(!path)return;switchPane('calc');selectCase(CASES.some(x=>x.id===path.calc)?path.calc:'all');
   if(path.id==='hyperk'){updateCalcSearch('hyperkalemia');scrollToCalculations();}
 };
 $('critClose').onclick=()=>switchPane('calc');
@@ -2241,9 +2246,9 @@ $('critChange').onclick=()=>{$('critPaths').hidden=!$('critPaths').hidden;render
 function renderConc(){
   $('concList').innerHTML=Object.entries(CONC).filter(([k,c])=>c.src==='EXT').map(([k,c])=>
     `<div class="settingsrow"><div class="sl">${esc(c.label)}<small>${esc(c.unit)} · EXT — verify local stock</small></div>
-     <input class="num" aria-label="${esc(c.label)} concentration" type="number" inputmode="decimal" min="0.001" step="any" value="${c.v}" onchange="setConcentration('${k}',this)"></div>`).join('');
+     ${c.fixed?`<span class="num" aria-label="${esc(c.label)} concentration">${c.v} ${esc(c.unit)} · fixed service stock</span>`:`<input class="num" aria-label="${esc(c.label)} concentration" type="number" inputmode="decimal" min="0.001" step="any" value="${c.v}" onchange="setConcentration('${k}',this)">`}</div>`).join('');
 }
-window.setConcentration=(k,input)=>{const v=+input.value;if(Number.isFinite(v)&&v>0){CONC[k].v=v;saveFieldProfile();recompute();}else{input.value=CONC[k].v;}};
+window.setConcentration=(k,input)=>{if(!CONC[k])return;const v=+input.value;if(!CONC[k].fixed&&Number.isFinite(v)&&v>0){CONC[k].v=v;saveFieldProfile();recompute();}else{input.value=CONC[k].v;}};
 
 // ============ PEDIATRIC DOSING CHARTS — PDC v5.4 ============
 // Source: "Pediatric Dosing Charts v5.4" — Sunnybrook Centre for Prehospital Medicine
@@ -2307,6 +2312,18 @@ function pedFlagBox(fl){
   if(fl.note2)h+=`<div class="pedflag warn">${esc(fl.note2)}</div>`;
   return h;
 }
+// Keep the source transcription intact; expose only the service's atropine row.
+function pedServiceMeds(b){
+  return b.meds.filter(m=>m.d!=='Atropine'||((m.fl?.fix?.conc||m.c)==='0.2 mg/mL')).map(m=>{
+    if(m.d!=='Atropine')return m;
+    const row={...m,role:'service stock'};
+    if(m.fl){
+      // The retained p.66 row formerly pointed to a now-hidden concentration row.
+      row.fl={...m.fl,note:'Source misprint (p.66): the printed concentration is inconsistent with the dose and volume. The retained 0.5 mg and 2.5 mL correspond to service stock 1 mg/5 mL (0.2 mg/mL). Verify the vial and confirm the intended dose with BHP.',note2:b.meds.find(x=>x.d==='Atropine'&&x.fl?.note2)?.fl.note2};
+    }
+    return row;
+  });
+}
 function pedVal(m,f){return (m.fl&&m.fl.fix&&m.fl.fix[f])||m[f==='v'?'v':f==='c'?'c':'b'];}
 function pedRow(m,b){
   const vol=(m.fl&&m.fl.fix&&m.fl.fix.vol)||m.v;
@@ -2319,7 +2336,7 @@ function pedRow(m,b){
     <div class="rname">${esc(m.d)} <span style="color:var(--mut);font-weight:650">${esc(m.r)}</span>${role} ${pedBadges(m)}</div>
     <div class="rdose num">${na?'N/A':esc(vol)}</div>
     <div class="rml num">${totalLine}</div>
-    ${conc?`<div class="rsub">Supplied: ${esc(conc)}${m.fl&&m.fl.fix&&m.fl.fix.conc?' <b style="color:var(--red)">(reconciled — see note)</b>':''}</div>`:''}
+    ${conc?`<div class="rsub">Supplied: ${m.d==='Atropine'?'1 mg/5 mL (0.2 mg/mL)':esc(conc)}${m.fl&&m.fl.fix&&m.fl.fix.conc?' <b style="color:var(--red)">(reconciled — see note)</b>':''}</div>`:''}
     ${pedFlagBox(m.fl)}
     <a class="rsrc rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} ↗</a><span class="rsrc" style="display:inline;margin-left:6px"> — transcribed as printed${m.bhp?' · chart: requires BHP authorization':''}</span>
   </div>`;
@@ -2370,7 +2387,7 @@ const PED_PRESETS=[
 ];
 function pedDrugGroups(b){
   const g=[];const seen={};
-  for(const m of b.meds){const k=m.d+'|'+m.r;if(!seen[k]){seen[k]={key:k,d:m.d,r:m.r,bhp:m.bhp,rows:[]};g.push(seen[k]);}seen[k].rows.push(m);}
+  for(const m of pedServiceMeds(b)){const k=m.d+'|'+m.r;if(!seen[k]){seen[k]={key:k,d:m.d,r:m.r,bhp:m.bhp,rows:[]};g.push(seen[k]);}seen[k].rows.push(m);}
   return g;
 }
 window.pedPreset=(i)=>{PS.sel={};for(const k of PED_PRESETS[i][1])PS.sel[k]=true;renderPeds();};
@@ -2385,12 +2402,11 @@ function pedPatchCard(b){
   let rows='';
   for(const g of groups){
     let shown=g.rows;
-    if(g.d==='Atropine')shown=[g.rows[0]];
     if(g.d==='Hydrocortisone')shown=[g.rows[0]];
     const flagged=g.rows.some(m=>m.fl&&m.fl.sev==='err');
     rows+=`<div class="row pdc${flagged?' warn':''}" style="margin-top:9px"><div class="rname">${esc(g.d)} <span style="color:var(--mut);font-weight:650">${esc(g.r)}</span>${g.bhp?' <span class="badge ext">BHP auth</span>':''}${flagged?' <span class="badge warn">⚠ source</span>':''}</div>
       <div class="rsub" style="font-size:14px;color:var(--text);line-height:1.7">${shown.map(line).join('<br>')}</div>
-      ${g.d==='Atropine'?`<div class="rsub">Preload (0.1 mg/mL) shown — other stock concentrations on the full chart below.</div>`:''}
+      ${g.d==='Atropine'?`<div class="rsub">Service stock only: 1 mg/5 mL (0.2 mg/mL).</div>`:''}
       ${g.d==='Hydrocortisone'?`<div class="rsub">100 mg/2 mL vial shown — 250 mg/2 mL row on the full chart.</div>`:''}
       ${flagged?`<div class="pedflag">⚠ Source-chart misprint on this drug for this band — open the full chart row below for the reconciliation before quoting values.</div>`:''}</div>`;
   }
@@ -2436,7 +2452,7 @@ function renderPeds(){
   if(PS.patch)h+=pedPatchCard(b);
   h+=pedEquip(b);
   for(const[sk,st,si]of PED_SECTIONS){
-    const meds=b.meds.filter(m=>m.s===sk);
+    const meds=pedServiceMeds(b).filter(m=>m.s===sk);
     h+=`<div class="sec open"><div class="sechead"><div class="secicon" style="background:${b.hex}22">${si}</div><h2>${st}</h2><span class="seccount">${meds.length}</span></div><div class="secbody">${meds.map(m=>pedRow(m,b)).join('')}</div></div>`;
   }
   h+=`<div class="disclaimer" style="margin-top:14px">🧒 Values transcribed verbatim from <b>Pediatric Dosing Charts v5.4</b> (Sunnybrook base hospital reference; PDC p.${b.pg}) and arithmetic-validated. Rows marked <b style="color:var(--red)">⚠ source</b> carry confirmed misprints in the published PDF — the internally consistent value is shown and the printed cell is quoted in the note. These charts don\u2019t authorize treatment: ALS PCS conditions and patch points govern; * doses are maximums not to be exceeded without BHP approval.</div>`;
@@ -2513,7 +2529,7 @@ $('resetConc').onclick=()=>{if(!confirm('Restore all editable concentrations to 
 function hasActivePatient(){return S.ageVal!=null||S.wtVal!=null||S.sex||S.ht!=null||S.tool||PS.manual;}
 function newPatient(){
   if(hasActivePatient()&&!confirm('Start a new patient? This clears patient inputs, manual PDC selections and active tools. Your field profile is kept.'))return;
-  stopApgarTimer();critScenario='arrest';critGroup='arrest';roscChecklistState={};
+  stopApgarTimer();critScenario=null;critGroup=null;roscChecklistState={};
   Object.assign(S,{mode:'age',ageVal:null,ageUnit:'y',wtVal:null,wtUnit:'kg',sex:'',ht:null,pt:null,tool:null,caseId:'all',query:'',patientKey:null,validation:[],entryCollapsed:false,advancedOpen:false,pickerOpen:true});
   Object.assign(PS,{band:null,manual:false,patch:false,pickerOpen:false,sel:{},note:''});
   $('ageIn').value='';$('ageUnit').value='y';$('wtIn').value='';$('sexIn').value='';$('htIn').value='';$('calcSearch').value='';
@@ -2522,7 +2538,7 @@ function newPatient(){
   $('toolHome').classList.remove('hide');$('toolView').innerHTML='';switchPane('calc');
   for(const state of [caseOpenState,directiveOpen,cardDetailsOpen,paneScroll,criticalScroll])for(const key of Object.keys(state))delete state[key];
   caseOpenState.all={summary:true};searchOpenState={};preSearchScroll=0;
-  $('dirSearch').value='';$('critPaths').hidden=true;renderDirectives('');renderEntryState();renderCaseChips();recompute();
+  $('dirSearch').value='';$('critPaths').hidden=false;renderDirectives('');renderEntryState();renderCaseChips();recompute();
   requestAnimationFrame(()=>{window.scrollTo(0,0);$('ageIn').focus({preventScroll:true});});
 }
 $('newPtTop').onclick=newPatient;

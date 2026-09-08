@@ -54,6 +54,7 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
       assert.deepEqual(checks.failures,[]);
       await page.locator('#ageIn').fill('5');await page.locator('#wtIn').fill('20');
       await page.locator('nav [data-pane="critical"]').click();
+      await page.locator('#critPaths [onclick="selectCriticalGroup(\'arrest\')"]').click();
       assert.match(await page.locator('#critContent').innerText(),/5\.0 mm/);
       assert.match(await page.locator('#critContent').innerText(),/15\.0 cm at lip/);
       assert.match(await page.locator('#critContent').innerText(),/Depth rounded to nearest 0\.5 cm/);

@@ -33,7 +33,7 @@ const expected={
       const settle=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
       const click=async selector=>{await page.locator(selector).click();await settle();};
       await click('nav [data-pane="critical"]');
-      const group=async id=>{await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
+      const group=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
       await group('airbreath');
       assert.match(await page.locator('#critContext').innerText(),/^Airway \/ Respiratory/);
       assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['airway','bronch','acpe','psed','allergy','croup']);
@@ -104,7 +104,7 @@ const expected={
         }
       }
       await click('#critClose');await click('#newPtTop');
-      assert.equal(await page.evaluate(()=>critScenario),'arrest');assert.equal(await page.locator('#calcSearch').inputValue(),'');
+      assert.equal(await page.evaluate(()=>critScenario),null);assert.equal(await page.locator('#calcSearch').inputValue(),'');
       assert.deepEqual(errors,[]);console.log('PASS '+engine+': Critical subcategories, focused cards/links, phone labels, patient preservation/reset and unchanged source cards.');
     }finally{await browser.close();}
   }

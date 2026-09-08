@@ -1,5 +1,14 @@
 # GitHub upload
 
+Build 2026.09.08.1:
+
+- Atropine uses only service stock 1 mg/5 mL (0.2 mg/mL). Old saved concentration overrides are ignored, and Settings shows the fixed stock. Calculator/Critical draw volumes use this concentration; prescribed doses are unchanged.
+- Peds chart and patch views show only the existing 0.2 mg/mL atropine row. The original PDF/transcription is retained as a source, not a stock selector. The 30–36 kg chart's concentration and dose-discrepancy warnings remain visible and self-contained.
+- Critical opens with six categories and no default scenario for a new encounter. A user-selected pathway is retained when returning during that encounter; New patient clears it. Expanded main categories now appear above subcategories; the expanded picker scrolls on small screens.
+- The Calculator scenario label is ROSC. IV Drip Rate offers only 10 and 60 gtt/mL sets.
+
+Earlier changes are retained:
+
 Upload all four files in this folder to the root of the GitHub Pages repository:
 
 - `index.html`

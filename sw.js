@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.07.4-ett-half-step';
+const CACHE = 'acp-field-calc-2026.09.08.1-service-stock-critical-picker';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
