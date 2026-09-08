@@ -11,7 +11,9 @@ Do not upload the ZIP itself. After GitHub Pages deploys, open the site once whi
 
 The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway/breathing, Shock/trauma, Neuro/metabolic, and OB/newborn—then reveals the relevant subpath.
 
-Build 2026.09.07.1 improves access to treatment cards:
+Build 2026.09.07.2 fixes phone dose readability. Route, dose and draw volume/administration notes each have a full-width line, and numbers/ranges stay together with their units. Repeat-dose panels wrap to the card width, draw-volume labels are smaller than the values, and the patient banner respects the iPhone status-bar inset. Clinical values and instructions are unchanged.
+
+The scenario and navigation improvements from build 2026.09.07.1 are retained:
 
 - Scenario selection opens the matching directive calculations, scrolls to results and collapses the scenario picker. All calculations remains alphabetical.
 - Search shows expanded matches across all calculations, labels their directive and offers Clear to return to the previous scenario.

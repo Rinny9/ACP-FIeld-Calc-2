@@ -14,6 +14,7 @@
 <title>ALS PCS 5.4 — ACP Field Calc</title>
 <style>
 :root{
+  --safe-top:env(safe-area-inset-top,0px);
   --bg:#0A0E17; --surface:#111726; --card:#131B2C; --raise:#182238; --border:#26314A; --border2:#324061;
   --text:#EAF0FB; --mut:#9CA8C1; --dim:#7B88A5;
   --blue:#4C7DFF; --blue-dim:#22304F;
@@ -151,13 +152,13 @@ body.estwt #results .row,body.estwt #critGrid .critcell{border-color:var(--amber
 .rname{font-size:15px;font-weight:750;color:var(--text);letter-spacing:-.1px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .rdose{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-top:4px;line-height:1.25}
 .rml{font-size:15px;font-weight:700;color:var(--teal);margin-top:2px}
-.rmain{display:flex;align-items:flex-start;justify-content:space-between;gap:2px 14px;flex-wrap:wrap;margin-top:4px}
+.rmain{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin-top:4px}
 .rmain .rdose{margin-top:0;font-size:22px}
 .rmain .rml{margin-top:0;font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.25;display:flex;flex-direction:column;align-items:flex-end;text-align:right;margin-left:auto}
 .rmain .rml .ptflag{margin:3px 0 0}
 .rneed{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:7px 11px;border-radius:9px;background:var(--amber-dim);color:var(--amber);font-size:13px;font-weight:800;letter-spacing:.2px}
-.rseq{display:flex;gap:8px;margin-top:4px}
-.rseq .rsv{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:11px;padding:8px 11px}
+.rseq{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.rseq .rsv{flex:1 1 220px;min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:11px;padding:8px 11px}
 body.daylight .rseq .rsv{background:rgba(10,20,40,.04)}
 .rseq .rsv small{display:block;font-size:10px;letter-spacing:.9px;font-weight:800;color:var(--mut);text-transform:uppercase;margin-bottom:1px}
 .rseq .rsv .num{font-size:21px;font-weight:800;letter-spacing:-.4px;line-height:1.2}
@@ -227,7 +228,7 @@ body:not(.reference-view) #results .kv .s{display:none}
 
 /* ---------- structured dose lines + source links ---------- */
 .rlines{margin-top:7px;border:1px solid var(--border);border-radius:9px;overflow:hidden}
-.rline{display:grid;grid-template-columns:minmax(96px,auto) 1fr auto;gap:8px;align-items:baseline;padding:6px 10px}
+.rline{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:9px 10px}
 .rline:nth-child(even){background:rgba(255,255,255,.025)}
 .rline+.rline{border-top:1px solid var(--border)}
 .rlL{font-size:11.5px;font-weight:750;color:var(--mut);letter-spacing:.2px}
@@ -349,16 +350,21 @@ body.daylight nav button{color:var(--mut)}body.daylight nav button.on{color:var(
 .rsub,.rcond,.rcontra,.crit-dosegrid .rsub,.crit-dosegrid .rcond,.crit-dosegrid .rcontra{font-size:calc(14px * var(--clinical-scale))}
 .rcond b,.rcontra b,.rseq .rsv small,.badge{font-size:calc(12px * var(--clinical-scale));letter-spacing:.25px}
 .rmain .rdose,.rmain .rml,.rseq .rsv .num,.crit-dosegrid .rdose,.crit-dosegrid .rml{font-size:calc(23px * var(--clinical-scale))}
-.rseq .rsml,.rlM,.rlL,.rrep{font-size:calc(14px * var(--clinical-scale))}.rlD{font-size:calc(17px * var(--clinical-scale))}
+.rseq .rsml,.rlL,.rrep{font-size:calc(14px * var(--clinical-scale))}
+.rlD{font-size:calc(22px * var(--clinical-scale));line-height:1.25}
+.rlM{font-size:calc(16px * var(--clinical-scale));line-height:1.4}.rlM:empty{display:none}
 .rrep{display:block}
 .rdirective{font-size:calc(13px * var(--clinical-scale));color:var(--mut);margin-top:4px}
-.draw-label{font-weight:750}.card-details{margin-top:8px;border-top:1px solid var(--border);font-size:calc(14px * var(--clinical-scale));color:var(--mut);overflow-wrap:anywhere}
+.draw-label{display:block;font-size:calc(14px * var(--clinical-scale));font-weight:750;letter-spacing:0;line-height:1.4}.dose-amount{white-space:nowrap}
+.card-details{margin-top:8px;border-top:1px solid var(--border);font-size:calc(14px * var(--clinical-scale));color:var(--mut);overflow-wrap:anywhere}
 details>summary{cursor:pointer;min-height:44px;align-content:center;line-height:1.4;font-weight:700}details>summary:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .card-details .rsrc{font-size:inherit}.card-details p{margin:6px 0;line-height:1.5}
-.rmain,.rline,.rseq{min-width:0}.rmain>*,.rline>*{min-width:0;overflow-wrap:anywhere}
-.rseq .rsv{min-width:0}.rseq .rsv .num{overflow-wrap:anywhere}
-.rmain .rml{display:block}.rline .draw-label{display:inline}
-#ptbar{top:0}.ptmeta{font-size:calc(13px * var(--clinical-scale))}.ptw{white-space:nowrap}
+.rmain,.rline,.rseq{min-width:0}.rmain>*,.rline>*{min-width:0;overflow-wrap:normal;word-break:normal}
+.rseq .rsv{min-width:0}.rseq .rsv .num{overflow-wrap:normal;word-break:normal}
+.rmain .rml{display:block;margin-left:0;text-align:left}
+.rmain .rml,.rseq .rsv .rsml.num{font-size:calc(20px * var(--clinical-scale))}
+/* Keep the patient card clear of the status bar in an iPhone home-screen app. */
+#ptbar{top:0;padding-top:calc(6px + var(--safe-top))}.ptmeta{font-size:calc(13px * var(--clinical-scale))}.ptw{white-space:nowrap}
 .sec,.workflow{scroll-margin-top:var(--patient-bar-height,110px)}
 #critical{background:var(--bg);padding:0 12px calc(16px + env(safe-area-inset-bottom));color:var(--text);overscroll-behavior:contain}
 .crit-sticky{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(6px + env(safe-area-inset-top)) 0 5px;border-bottom:1px solid var(--border)}
@@ -384,8 +390,7 @@ body.daylight .crit-alert{color:var(--amber)}body.daylight .crit-alert.red{color
 body.daylight .crit-check.on{background:var(--green-dim);border-color:var(--green)}body.daylight .crit-check.on b{color:var(--green)}body.daylight .crit-check.on .mark{color:#fff}
 body.daylight .crit-band{background:var(--purple-dim);color:var(--purple)}body.daylight .crit-band b{color:var(--purple)}
 body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,body.large-text .dsec p,body.large-text .dsec li{font-size:17px}
-@media(max-width:620px){body.large-text .rseq{flex-direction:column}}
-@media(max-width:380px){.rseq{flex-direction:column}.crit-top h2{font-size:14px}.crit-close{font-size:13px}.crit-ptmain .cpw{font-size:19px}.crit-targets{grid-template-columns:1fr 1fr}.crit-subpaths{gap:4px}.crit-subpaths button{padding:7px 3px;font-size:13px}}
+@media(max-width:380px){.crit-top h2{font-size:14px}.crit-close{font-size:13px}.crit-ptmain .cpw{font-size:19px}.crit-targets{grid-template-columns:1fr 1fr}.crit-subpaths{gap:4px}.crit-subpaths button{padding:7px 3px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -394,7 +399,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.2</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -489,7 +494,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.1 · Direct scenario/search results, encounter navigation memory, daylight Critical and Large text · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.2 · Readable phone dose rows and iPhone status-bar spacing · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1466,6 +1471,18 @@ function concentrationDetails(r){
   return [...new Set([...stocks,...formulations])].join(' · ');
 }
 function drawLabel(value){return /mL\b/i.test(value||'')&&!/mL\/(?:h|hr|min)/i.test(value)?'Draw volume: ':'';}
+// Presentation only: keep each number/range and its unit together. Escaping each
+// untouched text segment preserves the original dose and administration wording.
+function doseTextHTML(value){
+  const text=String(value??''),measurement=/\d[\d,.]*(?:[–−-]\d[\d,.]*)?(?::\d[\d,]*)?(?:\s*(?:mcg|mg|mmol|mEq|mL|mm|cm|Fr|g|L|units?|J)(?:\/(?:kg|min|mL|hr|h|s))*)?/g;
+  let html='',start=0;
+  for(const match of text.matchAll(measurement)){
+    html+=esc(text.slice(start,match.index))+`<span class="dose-amount">${esc(match[0])}</span>`;
+    start=match.index+match[0].length;
+  }
+  return html+esc(text.slice(start));
+}
+function drawHTML(value){return (drawLabel(value)?`<span class="draw-label">${drawLabel(value)}</span>`:'')+doseTextHTML(value);}
 function rowHTML(r){
   const subParts=String(r.sub||'').split(/\s*·\s*/),schedule=[],notes=[];
   for(const part of subParts){
@@ -1477,8 +1494,8 @@ function rowHTML(r){
   return `<div class="row ${r.tone||'pcs'}">
     <div class="rname">${esc(r.name)} ${toneBadge(r.tone)}</div>
     ${r.directive?`<div class="rdirective">${esc(r.directive)}</div>`:''}
-    ${r.needW?`<div class="rneed">⚖ Weight required for dose</div>`:r.d2?`<div class="rseq"><div class="rsv"><small>1st</small><div class="num">${esc(r.dose)}</div>${r.ml?`<div class="rsml num">${drawLabel(r.ml)}${esc(r.ml)}</div>`:''}</div><div class="rsv"><small>then</small><div class="num">${esc(r.d2)}</div>${r.ml2?`<div class="rsml num">${drawLabel(r.ml2)}${esc(r.ml2)}</div>`:''}</div></div>`:r.dose||r.ml?`<div class="rmain">${r.dose?`<div class="rdose num">${esc(r.dose)}</div>`:''}${r.ml?`<div class="rml"><span class="num">${drawLabel(r.ml)}${esc(r.ml)}</span></div>`:''}</div>`:''}
-    ${r.lines?`<div class="rlines">${r.lines.map(l=>`<div class="rline"><span class="rlL">${esc(l.l)}</span><span class="rlD num">${esc(l.d)}</span><span class="rlM num">${l.m?drawLabel(l.m)+esc(l.m):''}</span></div>`).join('')}</div>`:''}
+    ${r.needW?`<div class="rneed">⚖ Weight required for dose</div>`:r.d2?`<div class="rseq"><div class="rsv"><small>1st</small><div class="num">${doseTextHTML(r.dose)}</div>${r.ml?`<div class="rsml num">${drawHTML(r.ml)}</div>`:''}</div><div class="rsv"><small>then</small><div class="num">${doseTextHTML(r.d2)}</div>${r.ml2?`<div class="rsml num">${drawHTML(r.ml2)}</div>`:''}</div></div>`:r.dose||r.ml?`<div class="rmain">${r.dose?`<div class="rdose num">${doseTextHTML(r.dose)}</div>`:''}${r.ml?`<div class="rml"><span class="num">${drawHTML(r.ml)}</span></div>`:''}</div>`:''}
+    ${r.lines?`<div class="rlines">${r.lines.map(l=>`<div class="rline"><span class="rlL">${esc(l.l)}</span><span class="rlD num">${doseTextHTML(l.d)}</span><span class="rlM num">${l.m?drawHTML(l.m):''}</span></div>`).join('')}</div>`:''}
     ${repeat?`<div class="rrep" aria-label="Repeat interval and maximum">${esc(repeat)}</div>`:''}
     ${r.when?criteriaHTML(r.when,'✓ Conditions','rcond'):''}
     ${r.contra?criteriaHTML(r.contra,'✗ Contraindications','rcontra'):''}

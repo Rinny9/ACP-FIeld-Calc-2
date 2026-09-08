@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.07.1-encounter-ux';
+const CACHE = 'acp-field-calc-2026.09.07.2-readable-phone-doses';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
