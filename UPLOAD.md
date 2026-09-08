@@ -11,7 +11,16 @@ Do not upload the ZIP itself. After GitHub Pages deploys, open the site once whi
 
 The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway/breathing, Shock/trauma, Neuro/metabolic, and OB/newborn—then reveals the relevant subpath.
 
-Build 2026.08.31.8 displays Airway / equipment before Patient-specific treatment in Critical ▸ Arrest. Other Critical pathways retain their existing content order. The Arrest / pre-arrest category continues to contain Arrest, ROSC / check and Hyperkalemia as sibling tabs.
+Build 2026.09.07.1 improves access to treatment cards:
+
+- Scenario selection opens the matching directive calculations, scrolls to results and collapses the scenario picker. All calculations remains alphabetical.
+- Search shows expanded matches across all calculations, labels their directive and offers Clear to return to the previous scenario.
+- Medication cards label draw volumes, keep conditions and cautions visible, and provide expandable concentration/reference details.
+- Tab scroll positions, open sections, search and Critical pathway state are retained during an encounter and cleared with New patient.
+- Critical has a persistent patient/pathway header, Back to Calculator and a directive chooser for multi-directive pathways. Arrest still shows Airway / equipment first.
+- Daylight mode applies to Critical, the selected Field/Reference control has improved contrast, and Settings includes a persistent Large text option.
+
+Clinical calculation formulas, doses, electrical settings and source directive data are unchanged in this interface update.
 
 If this repository already contains the manifest and icon, replacing only `index.html` and `sw.js` is sufficient for this update. The changed service-worker cache name ensures devices fetch the new interface after deployment.
 
