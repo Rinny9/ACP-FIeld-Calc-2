@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.07.3-focused-critical-paths';
+const CACHE = 'acp-field-calc-2026.09.07.4-ett-half-step';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

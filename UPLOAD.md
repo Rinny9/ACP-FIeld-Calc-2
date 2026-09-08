@@ -11,6 +11,8 @@ Do not upload the ZIP itself. After GitHub Pages deploys, open the site once whi
 
 The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway / Respiratory, Trauma, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
 
+Build 2026.09.07.4 rounds calculated ETT sizes to the nearest 0.5 mm and oral insertion depths to the nearest 0.5 cm throughout Calculator and Critical. Exact halfway values round up. For age ≥1 year, the existing 3 × ETT ID depth convention uses the rounded tube size; suction sizing also stays consistent with that tube. Infant depth retains the weight + 6 cm formula before rounding. Printed pediatric chart equipment values are unchanged. No medication doses are changed.
+
 Build 2026.09.07.3 adds focused Critical subcategories:
 
 - Airway / Respiratory: Airway, Bronchoconstriction, ACPE, Procedural Sedation, Anaphylaxis and Croup.
@@ -30,7 +32,7 @@ The scenario and navigation improvements from build 2026.09.07.1 are retained:
 - Critical has a persistent patient/pathway header, Back to Calculator and a directive chooser for multi-directive pathways. Arrest still shows Airway / equipment first.
 - Daylight mode applies to Critical, the selected Field/Reference control has improved contrast, and Settings includes a persistent Large text option.
 
-Clinical calculation formulas, doses, electrical settings and source directive data are unchanged in this interface update.
+Medication doses, electrical settings and source directive data are unchanged. The ETT rounding update is described above.
 
 If this repository already contains the manifest and icon, replacing only `index.html` and `sw.js` is sufficient for this update. The changed service-worker cache name ensures devices fetch the new interface after deployment.
 

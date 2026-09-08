@@ -402,7 +402,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.3</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.4</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -497,7 +497,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.3 · Focused Critical respiratory and neuro/metabolic subcategories · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.4 · ETT size and depth rounded to nearest 0.5 · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -702,9 +702,10 @@ function airway(p) {
   let ettC = null, ettU = null;
   if (a != null) {
     if (a >= 1 && a <= 12) {
-      ettC = round(3.5 + a / 4, 1);
-      ettU = round(4 + a / 4, 1);
-      rows.push({ k: 'ETT — cuffed', v: `${ettC.toFixed(1)} mm`, src: 'CD p.39 — 3.5 + (age ÷ 4)', tone: 'pcs' });
+      // Use the selected half-mm tube size for downstream depth and equipment.
+      ettC = stepRound(3.5 + a / 4, 0.5);
+      ettU = stepRound(4 + a / 4, 0.5);
+      rows.push({ k: 'ETT — cuffed', v: `${ettC.toFixed(1)} mm`, sub: 'Size rounded to nearest 0.5 mm', src: 'CD p.39 — 3.5 + (age ÷ 4)', tone: 'pcs' });
     } else if (a < 1) {
       const m = p.ageMonths;
       if (w != null && w < 1) { ettU = 2.5; }
@@ -720,9 +721,9 @@ function airway(p) {
     const ref = ettC || ettU;
     if (ref) {
       let depth;
-      if (a < 1) depth = w != null ? `${round(w + 6, 1)} cm at lip` : '—';
-      else depth = `${round(ref * 3, 1)} cm at lip`;
-      rows.push({ k: 'Oral insertion depth', v: depth, src: a < 1 ? 'EXT: NRP — weight (kg) + 6 cm' : 'EXT: 3 × ETT ID', tone: 'ext' });
+      if (a < 1) depth = w != null ? `${stepRound(w + 6, 0.5).toFixed(1)} cm at lip` : '—';
+      else depth = `${stepRound(ref * 3, 0.5).toFixed(1)} cm at lip`;
+      rows.push({ k: 'Oral insertion depth', v: depth, sub: depth === '—' ? undefined : 'Depth rounded to nearest 0.5 cm', src: a < 1 ? 'EXT: NRP — weight (kg) + 6 cm' : 'EXT: 3 × ETT ID', tone: 'ext' });
       const fr2 = Math.round(ref * 2);
       rows.push({ k: 'Suction catheter', v: `${fr2 % 2 === 0 ? fr2 : fr2 - 1} Fr`, sub: 'Confirm against local stock and lumen-occlusion guidance', src: 'EXT: Fr ≈ 2 × ETT ID · CD p.65', tone: 'ext' });
     }
