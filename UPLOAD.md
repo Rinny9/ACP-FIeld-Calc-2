@@ -9,7 +9,15 @@ Upload all four files in this folder to the root of the GitHub Pages repository:
 
 Do not upload the ZIP itself. After GitHub Pages deploys, open the site once while connected, hard-refresh, and wait for **Offline pack ready** before testing airplane mode.
 
-The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway/breathing, Shock/trauma, Neuro/metabolic, and OB/newborn—then reveals the relevant subpath.
+The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway / Respiratory, Trauma, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
+
+Build 2026.09.07.3 adds focused Critical subcategories:
+
+- Airway / Respiratory: Airway, Bronchoconstriction, ACPE, Procedural Sedation, Anaphylaxis and Croup.
+- Neuro / Metabolic: Seizure, Hypoglycemia, Opioid Overdose and Adrenal Crisis.
+- Shock / trauma is renamed Trauma.
+
+Each subcategory opens its own existing treatment cards and relevant directive links. Related Calculator links use exact directive filters, and the main Calculator scenario menu remains unchanged. Existing dose values, conditions, contraindications and cautions are preserved.
 
 Build 2026.09.07.2 fixes phone dose readability. Route, dose and draw volume/administration notes each have a full-width line, and numbers/ranges stay together with their units. Repeat-dose panels wrap to the card width, draw-volume labels are smaller than the values, and the patient banner respects the iPhone status-bar inset. Clinical values and instructions are unchanged.
 

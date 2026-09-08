@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.07.2-readable-phone-doses';
+const CACHE = 'acp-field-calc-2026.09.07.3-focused-critical-paths';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

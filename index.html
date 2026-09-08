@@ -376,6 +376,8 @@ details>summary{cursor:pointer;min-height:44px;align-content:center;line-height:
 .crit-context button{min-height:44px;padding:6px 10px;font-size:14px;color:var(--blue);font-weight:750;flex:none}
 .crit-subpaths{margin:0}.crit-subpaths button{font-size:14px;min-width:0;overflow-wrap:anywhere;background:var(--surface);padding:8px}
 .crit-subpaths button[data-path="hyperk"]{flex-grow:1.4}
+.crit-subpaths.many{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+.crit-subpaths.many button{overflow-wrap:normal;word-break:normal;line-height:1.3}
 .crit-paths{margin-top:8px}.crit-paths button{color:var(--mut);font-size:14px;min-height:48px}
 .crit-paths button.on,.crit-subpaths button.on{color:var(--red);border-color:var(--red)}
 .crit-overview,.crit-profile,.crit-checklist,.crit-empty,.crit-dosegrid .row{background:var(--card)}
@@ -391,6 +393,7 @@ body.daylight .crit-check.on{background:var(--green-dim);border-color:var(--gree
 body.daylight .crit-band{background:var(--purple-dim);color:var(--purple)}body.daylight .crit-band b{color:var(--purple)}
 body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,body.large-text .dsec p,body.large-text .dsec li{font-size:17px}
 @media(max-width:380px){.crit-top h2{font-size:14px}.crit-close{font-size:13px}.crit-ptmain .cpw{font-size:19px}.crit-targets{grid-template-columns:1fr 1fr}.crit-subpaths{gap:4px}.crit-subpaths button{padding:7px 3px;font-size:13px}}
+@media(max-width:360px){.crit-subpaths.resp-paths{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}}
 </style>
 </head>
 <body>
@@ -399,7 +402,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.2</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.07.3</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -494,7 +497,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.2 · Readable phone dose rows and iPhone status-bar spacing · install the offline pack before field use</div>
+      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.07.3 · Focused Critical respiratory and neuro/metabolic subcategories · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1692,6 +1695,21 @@ const CASES=[
  {id:'trauma',icon:'🚨',label:'Shock / trauma / pain',sections:['summary','airway','fluids','analgesia']},
  {id:'ob',icon:'👶',label:'OB / newborn',sections:['summary','ob','newborn']}
 ];
+// Focused Calculator destinations used by Critical; the main scenario picker
+// retains its existing choices. Directive names are matched exactly, not searched
+// in contraindications or unrelated medication text.
+CASES.push(
+ {id:'crit-airway',label:'Airway',sections:['summary','airway'],hidden:true},
+ {id:'crit-bronch',label:'Bronchoconstriction',sections:['resp'],directives:['Bronchoconstriction','CPAP'],hidden:true},
+ {id:'crit-acpe',label:'ACPE',sections:['cardiac','resp'],directives:['Acute Cardiogenic Pulmonary Edema','CPAP'],hidden:true},
+ {id:'crit-psed',label:'Procedural Sedation',sections:['sedation'],directives:['Procedural Sedation'],hidden:true},
+ {id:'crit-allergy',label:'Anaphylaxis',sections:['resp'],directives:['Moderate–Severe Allergic Reaction'],hidden:true},
+ {id:'crit-croup',label:'Croup',sections:['resp'],directives:['Croup'],hidden:true},
+ {id:'crit-seizure',label:'Seizure',sections:['neuro'],directives:['Seizure'],hidden:true},
+ {id:'crit-hypogly',label:'Hypoglycemia',sections:['metab'],directives:['Hypoglycemia'],hidden:true},
+ {id:'crit-opioid',label:'Opioid Overdose',sections:['metab'],directives:['Opioid Toxicity & Withdrawal'],terms:{metab:['Naloxone — opioid toxicity']},hidden:true},
+ {id:'crit-adrenal',label:'Adrenal Crisis',sections:['metab'],directives:['Suspected Adrenal Crisis'],hidden:true}
+);
 const caseOpenState={all:{summary:true}};
 let searchOpenState={},preSearchScroll=0;
 const directiveOpen={};
@@ -1699,7 +1717,7 @@ function calcOpenState(){return S.query.trim()?searchOpenState:(caseOpenState[S.
 const SEARCH_ALIASES={aspirin:'asa',gravol:'dimenhydrinate',ventolin:'salbutamol',narcan:'naloxone',versed:'midazolam',benadryl:'diphenhydramine',zofran:'ondansetron',tylenol:'acetaminophen',advil:'ibuprofen',motrin:'ibuprofen',toradol:'ketorolac','solu-cortef':'hydrocortisone'};
 
 function renderCaseChips(){
-  const ordered=CASES.filter(c=>c.id!=='all').concat(CASES.filter(c=>c.id==='all'));
+  const ordered=CASES.filter(c=>c.id!=='all'&&!c.hidden).concat(CASES.filter(c=>c.id==='all'));
   $('caseChips').innerHTML=ordered.map(c=>`<button type="button" class="casechip${c.id==='all'?' all':''}${S.caseId===c.id?' on':''}" aria-pressed="${S.caseId===c.id}" onclick="selectCase('${c.id}')"><span class="caseicon" aria-hidden="true">${c.icon}</span>${c.label}</button>`).join('');
   renderWorkflow();
 }
@@ -1793,7 +1811,7 @@ function renderResults(){
       if(!q&&S.caseId==='brady')dests=['Symptomatic Bradycardia'];
       if(!q&&S.caseId==='tachy')dests=['Tachydysrhythmia'];
       if(!(rowMatch(r,dests)&&caseMatch(r,secId)))continue;
-      for(const t of dests){if(!groups.has(t))groups.set(t,[]);groups.get(t).push(r);}
+      for(const t of dests){if(!q&&scenario.directives&&!scenario.directives.includes(t))continue;if(!groups.has(t))groups.set(t,[]);groups.get(t).push(r);}
     }
   }
   const groupMeta=new Map(DIR_GROUPS.map(g=>[g.t,g]));
@@ -1969,15 +1987,24 @@ function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
 
 // ============ CRITICAL MODE ============
 let critScenario='arrest',critGroup='arrest';
+const CRIT_RESP_PRIORITIES=['Prioritize ventilation and the condition-specific treatment.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.'];
+const CRIT_METAB_PRIORITIES=['Support airway and ventilation; rapidly check glucose when indicated.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.'];
 const CRIT_PATHS=[
   {id:'arrest',icon:'⚡',label:'Arrest',title:'Medical cardiac arrest',directives:['arrest'],calc:'arrest',priorities:['High-quality CPR in 2-minute cycles; analyze and defibrillate when indicated.','Obtain IV/IO access; reserve the ETT drug route for a ≥5-minute vascular-access delay.','Treat reversible causes and act early on transport, DSED/VCD and TOR decision points.']},
   {id:'rosc',icon:'🔄',label:'ROSC / check',title:'ROSC checklist and shock support',directives:['rosc','cshock'],calc:'rosc',priorities:['Control oxygenation and ventilation; avoid hypoxia, hyperoxia and hyperventilation.','Treat hypotension with the applicable fluid pathway, then DOPamine when conditions are met.','Acquire a 12-lead and transport while stabilization continues.']},
   {id:'hyperk',icon:'K⁺',label:'Hyperkalemia',title:'Hyperkalemic arrest / pre-arrest',directives:['hyperk'],calc:'hyperk',priorities:['Confirm a high-risk history and cardiac arrest or pre-arrest with ECG changes consistent with hyperkalemia.','Prioritize calcium gluconate for membrane stabilization in the unstable patient.','Give calcium and salbutamol when possible; reassess the ECG and never mix calcium with sodium bicarbonate.']},
   {id:'brady',icon:'🫀',label:'Brady',title:'Unstable bradycardia',directives:['brady'],calc:'brady',priorities:['Confirm hemodynamic instability, obtain rhythm determination and place pads.','Give atropine when appropriate while preparing TCP; do not delay pacing for IV access.','Treat contributory hypovolemia and use DOPamine when the directive conditions are met.']},
   {id:'tachy',icon:'💓',label:'Tachy',title:'Symptomatic tachydysrhythmia',directives:['tachy'],calc:'tachy',priorities:['Decide narrow vs wide, regular vs irregular, and compensatory vs primary tachycardia.','Unstable: prepare synchronized cardioversion and patch without delaying essential care.','Stable regular rhythms: use the pathway-specific vagal, adenosine or antiarrhythmic branch.']},
-  {id:'airway',icon:'🫁',label:'Airway',title:'Advanced airway and ventilation',directives:['oti','sga','suction','psed'],calc:'all',priorities:['Optimize basic airway management first and choose the least invasive effective airway.','Limit OTI and SGA insertion attempts to the directive maximum; use waveform ETCO₂ for confirmation.','Reconfirm after every move and apply post-intubation sedation only when its conditions are met.']},
-  {id:'resp',icon:'🌬️',label:'Respiratory',title:'High-acuity respiratory care',directives:['bronch','allergy','acpe','cpap','croup'],calc:'resp',priorities:['Identify the phenotype: bronchoconstriction, anaphylaxis, ACPE, croup or ventilatory failure.','Prioritize ventilation and the time-critical first-line treatment for that phenotype.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.']},
-  {id:'neuro',icon:'🧠',label:'Neuro / metab',title:'Seizure, glucose, opioid and adrenal emergencies',directives:['seizure','hypogly','opioid','adrenal'],calc:'neuro',priorities:['Support airway and ventilation; rapidly check glucose when indicated.','Stop active generalized motor seizure promptly, then reassess for mimics or persistent causes.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.']},
+  {id:'airway',icon:'🫁',label:'Airway',title:'Advanced airway and ventilation',directives:['oti','sga','suction'],calc:'crit-airway',priorities:['Optimize basic airway management first and choose the least invasive effective airway.','Limit OTI and SGA insertion attempts to the directive maximum; use waveform ETCO₂ for confirmation.','Reconfirm after every move and apply post-intubation sedation only when its conditions are met.']},
+  {id:'bronch',icon:'🌬️',label:'Bronchoconstriction',title:'Bronchoconstriction',directives:['bronch','cpap'],calc:'crit-bronch',priorities:CRIT_RESP_PRIORITIES},
+  {id:'acpe',icon:'🫁',label:'ACPE',title:'Acute cardiogenic pulmonary edema',directives:['acpe','cpap'],calc:'crit-acpe',priorities:CRIT_RESP_PRIORITIES},
+  {id:'psed',icon:'💤',label:'Procedural Sedation',title:'Procedural sedation after ETT / TCP',directives:['psed'],calc:'crit-psed',priorities:[]},
+  {id:'allergy',icon:'⚠',label:'Anaphylaxis',title:'Allergic reaction / anaphylaxis',directives:['allergy'],calc:'crit-allergy',priorities:CRIT_RESP_PRIORITIES},
+  {id:'croup',icon:'🧒',label:'Croup',title:'Croup',directives:['croup'],calc:'crit-croup',priorities:CRIT_RESP_PRIORITIES},
+  {id:'seizure',icon:'🧠',label:'Seizure',title:'Seizure',directives:['seizure'],calc:'crit-seizure',priorities:[CRIT_METAB_PRIORITIES[0],'Stop active generalized motor seizure promptly, then reassess for mimics or persistent causes.']},
+  {id:'hypogly',icon:'🩸',label:'Hypoglycemia',title:'Hypoglycemia',directives:['hypogly'],calc:'crit-hypogly',priorities:CRIT_METAB_PRIORITIES},
+  {id:'opioid',icon:'💊',label:'Opioid Overdose',title:'Opioid overdose',directives:['opioid'],calc:'crit-opioid',priorities:CRIT_METAB_PRIORITIES},
+  {id:'adrenal',icon:'⚕',label:'Adrenal Crisis',title:'Suspected adrenal crisis',directives:['adrenal'],calc:'crit-adrenal',priorities:CRIT_METAB_PRIORITIES},
   {id:'trauma',icon:'🚨',label:'Trauma',title:'Critical trauma and hemorrhage',directives:['trauma','tension','txa','ivft'],calc:'trauma',priorities:['Control catastrophic hemorrhage, address tension pneumothorax and minimize scene time.','Use airway and fluid interventions only when they do not delay definitive transport.','Apply TXA, analgesia and arrest/TOR pathways only when their exact conditions are met.']},
   {id:'newborn',icon:'👶',label:'Newborn',title:'Newborn resuscitation (<24 h)',directives:['nrp'],calc:'all',priorities:['Warm, position, dry and stimulate; start effective PPV when HR is <100.','If HR remains <60 after effective PPV, coordinate compressions with 100% oxygen.','Give epinephrine only after the ventilation/compression sequence and transport before the third dose when possible.']},
   {id:'ob',icon:'🤱',label:'Childbirth',title:'Critical childbirth',directives:['ob'],calc:'ob',priorities:['Identify the obstetric emergency and begin the matching manoeuvre sequence immediately.','Track the head-delivery interval during shoulder dystocia or breech delivery.','Treat postpartum hemorrhage and transport according to maternal condition and directive criteria.']}
@@ -1985,9 +2012,9 @@ const CRIT_PATHS=[
 const CRIT_GROUPS=[
   {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
   {id:'rhythm',icon:'💓',label:'Unstable rhythm',paths:['brady','tachy']},
-  {id:'airbreath',icon:'🫁',label:'Airway / breathing',paths:['airway','resp']},
-  {id:'shocktrauma',icon:'🚨',label:'Shock / trauma',paths:['trauma']},
-  {id:'neurometab',icon:'🧠',label:'Neuro / metabolic',paths:['neuro']},
+  {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['airway','bronch','acpe','psed','allergy','croup']},
+  {id:'shocktrauma',icon:'🚨',label:'Trauma',paths:['trauma']},
+  {id:'neurometab',icon:'🧠',label:'Neuro / Metabolic',paths:['seizure','hypogly','opioid','adrenal']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
 ];
 const ROSC_CHECKLIST=[
@@ -2044,8 +2071,10 @@ function critTargets(p,id){
   if(id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18){const info=critPedsBandInfo(p);return[['BHP patch','MANDATORY'],['PDC band',info.band?info.band.w:'Weight needed'],['Chart basis',info.band?`${info.band.calcW} kg`:'Not available']];}
   if(id==='tachy')return[['Wide regular','HR ≥120'],['Narrow regular','HR ≥150'],['Hypotension',hypo]];
   if(id==='airway')return[['OTI attempts','Max 2'],['Suction pass','≤10 sec'],['Vent rate',critVentRate(p)]];
-  if(id==='resp')return[['Hypotension',hypo],['Vent rate',critVentRate(p)],['Reassess','Every dose']];
-  if(id==='neuro')return[['Low glucose',glucose],['Midazolam','q5 min'],['Vent rate',critVentRate(p)]];
+  if(['bronch','acpe','allergy','croup'].includes(id))return[['Hypotension',hypo],['Reassess','Every dose']];
+  if(id==='seizure')return[['Low glucose',glucose],['Midazolam','q5 min']];
+  if(id==='hypogly'||id==='adrenal')return[['Low glucose',glucose]];
+  if(id==='opioid'||id==='psed')return[];
   if(id==='trauma')return[['Hypotension',hypo],['TXA window','≤3 h'],['Transport','Minimize delay']];
   if(id==='newborn')return[['Start PPV','HR <100'],['Start CPR','HR <60'],['Reassess','Every 30 sec']];
   return[['Shoulder','8-min alarm'],['Breech head','4-min window'],['Oxytocin','After all fetuses']];
@@ -2095,13 +2124,17 @@ function critRowsForPath(p,id){
     if(p&&p.ageYears!=null&&p.ageYears<18){const ped=critPedsTachyRows(p);out.rows=ped.rows;out.equipment=ped.equipment;out.pedsInfo=ped.pedsInfo;}
     else out.rows=[{name:'Valsalva maneuver — narrow regular rhythm',dose:'Up to 2 attempts',rep:'10–20 seconds each',when:'≥18 y · unaltered · HR ≥150 · normotension · narrow + regular',contra:'Sinus tachycardia · atrial fibrillation · atrial flutter',sub:'Perform before adenosine when directive conditions are met.',src:'PCS p.132–134',tone:'pcs'},...critOrder(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion'])];
   }else if(id==='airway'){
-    out.rows=critMatch(d.sedation,['Procedural sedation']);
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel','suction pressure','Vent rate','Topical lidocaine']);
-  }else if(id==='resp'){
-    out.rows=[...(d.resp||[]),...critMatch(d.cardiac,['Nitroglycerin — ACPE'])];
+  }else if(id==='psed'){
+    out.rows=critMatch(d.sedation,['Procedural sedation']);
+  }else if(['bronch','acpe','allergy','croup'].includes(id)){
+    const names={bronch:['Salbutamol — bronchoconstriction','EPINEPHrine IM — severe asthma','Dexamethasone — bronchoconstriction','CPAP'],acpe:['CPAP'],allergy:['EPINEPHrine IM — anaphylaxis','DiphenhydrAMINE'],croup:['EPINEPHrine NEB — croup','Dexamethasone PO — croup']};
+    out.rows=critMatch(d.resp,names[id]);
+    if(id==='acpe')out.rows.push(...critMatch(d.cardiac,['Nitroglycerin — ACPE']));
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
-  }else if(id==='neuro'){
-    out.rows=[...(d.neuro||[]),...critOrder(d.metab,['Hypoglycemia threshold','Dextrose','Glucagon','Naloxone','Hydrocortisone'])];
+  }else if(['seizure','hypogly','opioid','adrenal'].includes(id)){
+    const names={hypogly:['Hypoglycemia threshold','Dextrose','Glucagon'],opioid:['Naloxone — opioid toxicity'],adrenal:['Hydrocortisone']};
+    out.rows=id==='seizure'?(d.neuro||[]).slice():critOrder(d.metab,names[id]);
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='trauma'){
     out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.47',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
@@ -2126,7 +2159,9 @@ function critPriorities(p,path){
 function renderCritPaths(){
   const el=$('critPaths'),sub=$('critSubpaths');if(!el||!sub)return;
   const group=CRIT_GROUPS.find(x=>x.id===critGroup)||CRIT_GROUPS[0];
-  $('critContext').textContent=group.label+' · '+critPath().label;
+  sub.classList.toggle('many',group.paths.length>3);
+  sub.classList.toggle('resp-paths',group.id==='airbreath');
+  $('critContext').textContent=group.paths.length>1?group.label+' · '+critPath().label:group.label;
   $('critChange').setAttribute('aria-expanded',String(!el.hidden));
   el.innerHTML=CRIT_GROUPS.map(x=>`<button type="button" class="${x.id===group.id?'on':''}" aria-pressed="${x.id===group.id}" onclick="selectCriticalGroup('${x.id}')"><span aria-hidden="true">${x.icon}</span>${x.label}</button>`).join('');
   sub.innerHTML=group.paths.length>1?group.paths.map(id=>{const x=CRIT_PATHS.find(p=>p.id===id);return`<button type="button" data-path="${id}" class="${id===critScenario?'on':''}" aria-pressed="${id===critScenario}" onclick="selectCriticalPath('${id}')">${x.icon} ${x.label}</button>`;}).join(''):'';
@@ -2156,7 +2191,8 @@ function renderCritGrid(){
   $('critPt').innerHTML=critPatientCard(p);
   $('critProfile').innerHTML=`<b>${esc($('profileName').value||'My service')}</b> · Verify vial, dose, route and draw volume with your partner.`;
   const targets=critTargets(p,path.id).map(([k,v])=>`<div class="crit-target"><small>${esc(k)}</small><b class="num">${esc(v)}</b></div>`).join('');
-  let html=`<div class="crit-overview"><ol aria-label="Rapid priorities">${critPriorities(p,path).map(x=>`<li>${esc(x)}</li>`).join('')}</ol><div class="crit-targets">${targets}</div></div>`;
+  const priorities=critPriorities(p,path);
+  let html=priorities.length||targets?`<div class="crit-overview">${priorities.length?`<ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}${targets?`<div class="crit-targets">${targets}</div>`:''}</div>`:'';
   html+=critWarnings(p,path.id);
   if(path.id==='rosc')html+=critRoscChecklist();
   if(!p||(p.weightKg==null&&p.ageYears==null)){
@@ -2164,7 +2200,7 @@ function renderCritGrid(){
   }else{
     const data=critRowsForPath(p,path.id);
     const pedsTachy=path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18;
-    const treatmentSection=critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='airway'?'Sedation / medication':'Patient-specific treatment',data.rows,'dose → draw volume');
+    const treatmentSection=critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='psed'?'Procedural sedation':'Patient-specific treatment',data.rows,'dose → draw volume');
     const equipmentSection=critSection(pedsTachy?'Pediatric electrical therapy — BHP patch':'Airway / equipment',data.equipment,pedsTachy?'PDC sequential settings':'verify local stock');
     html+=path.id==='arrest'?equipmentSection+treatmentSection:treatmentSection+equipmentSection;
     if(!data.rows.length&&!data.equipment.length)html+=`<div class="crit-empty"><b>No authorized calculation available</b>Confirm patient data and use the full directive or BHP pathway.</div>`;
