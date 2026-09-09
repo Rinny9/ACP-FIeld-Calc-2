@@ -1,5 +1,13 @@
 # GitHub upload
 
+Build 2026.09.09.1 audits reference destinations against CD v26.08.27, ALS PCS v5.4 and the PDC v5.4 PDF:
+
+- Companion printed pages now match the current edition (ETT sizing p.58, suction sizing p.21, ROSC p.61). Its PDF pages equal printed pages; PCS PDF pages are printed +12; PDC PDF pages are printed −55.
+- Each cited page in a list/range has its own link. Mixed PCS/CD sources are separately clickable. Directive source ranges, inline Companion notes, patient-summary references and tool references are linked.
+- PDF viewer page numbers are shown when different; some phone PDF viewers ignore page fragments, so users can enter the displayed PDF page manually.
+- Corrected PCS references include estimated weight p.15, ROSC ECG/dopamine p.119 and ACP childbirth pp.175–177. All 34 directive page ranges and all 13 PDC bands were checked.
+- Calculated doses and equipment values are unchanged. Three older directive summaries carry explicit reference-review warnings (tension-pneumothorax needle sizing, ischemia vital-sign restart rule, and D50-to-D10 preparation); the old RED RULE attribution was removed because it was not found in the current Companion Document. This is a citation audit, not clinical certification. See REFERENCE_AUDIT.md.
+
 Build 2026.09.08.2 fixes all shared Companion Document reference links using the supplied v26.08.27 FINAL PDF URL. This is a link repair only: clinical content and printed page citations have not been re-audited against the new document. The cache version is updated so installed apps receive the repaired links when refreshed online.
 
 Build 2026.09.08.1:

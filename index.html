@@ -170,6 +170,7 @@ body.daylight .rrep{border-color:#B8863B}
 .hlr{color:var(--amber);font-weight:800;white-space:nowrap}
 .rsub{font-size:13.5px;color:var(--mut);margin-top:6px;line-height:1.55}
 .rsrc{font-size:12px;color:var(--dim);margin-top:7px;font-weight:650;letter-spacing:.15px}
+.source-page{display:inline;overflow-wrap:anywhere;text-decoration:underline!important;text-underline-offset:2px}.source-page small{font-size:.9em}.source-hint{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.45}
 .badge{font-size:10.5px;font-weight:850;letter-spacing:.6px;padding:3px 7px;border-radius:6px;text-transform:uppercase}
 .badge.pcs{background:var(--blue-dim);color:#7FA3FF}
 .badge.ext{background:var(--amber-dim);color:var(--amber)}
@@ -403,7 +404,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.08.2</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.09.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -498,7 +499,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Built from: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (June 2025) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.08.2 · Companion Document link updated to v26.08.27; existing clinical content and page citations unchanged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.09.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -604,7 +605,7 @@ function buildPatient(inp) {
   } else if (p.ageYears != null && !inp.suppressWeightEstimate) {
     if (p.ageYears >= 1 && p.ageYears < 13) {
       p.weightKg = round((p.ageYears * 2) + 10, 1);
-      p.weightSrc = 'PCS p.14 — (age × 2) + 10';
+      p.weightSrc = 'PCS p.15 — (age × 2) + 10';
     } else if (p.ageYears < 1) {
       // Infant estimate — NOT in ALS PCS
       const m = p.ageMonths;
@@ -631,7 +632,7 @@ function buildPatient(inp) {
   // The reverse estimate is informational only and is never used for age-gated directives.
   p.isPeds = age != null ? age < 18 : null;
 
-  // Vitals thresholds (PCS p.14–15) — peds formula used until it meets/exceeds adult value (CD p.25)
+  // Vitals thresholds (PCS p.14–15) — peds formula used until it meets/exceeds adult value (CD p.43)
   if (age != null && age < 18) {
     p.normoSBP = Math.min(90 + 2 * Math.floor(age), 100);
     p.hypoSBP = Math.min(70 + 2 * Math.floor(age), 90);
@@ -676,7 +677,7 @@ function vitalsBand(age) {
   if (age < 4)  return { label: '1–3 years',  rr: '20–30', hr: '75–130', src: 'PCS p.15' };
   if (age < 8)  return { label: '≈6 years',   rr: '16–24', hr: '70–110', src: 'PCS p.15' };
   if (age < 18) return { label: '≈10 years',  rr: '14–20', hr: '60–90',  src: 'PCS p.15' };
-  return { label: 'Adult', rr: '12–20 (tachypnea ≥28)', hr: '50–99 (brady <50 / tachy ≥100)', src: 'PCS p.14' };
+  return { label: 'Adult', rr: '12–20 (tachypnea ≥28)', hr: '50–99 (brady <50 / tachy ≥100)', src: 'PCS p.14 — threshold definitions; resting RR 12–20 is an EXT convention' };
 }
 
 function broselowColour(w) {
@@ -706,7 +707,7 @@ function airway(p) {
       // Use the selected half-mm tube size for downstream depth and equipment.
       ettC = stepRound(3.5 + a / 4, 0.5);
       ettU = stepRound(4 + a / 4, 0.5);
-      rows.push({ k: 'ETT — cuffed', v: `${ettC.toFixed(1)} mm`, sub: 'Size rounded to nearest 0.5 mm', src: 'CD p.39 — 3.5 + (age ÷ 4)', tone: 'pcs' });
+      rows.push({ k: 'ETT — cuffed', v: `${ettC.toFixed(1)} mm`, sub: 'Size rounded to nearest 0.5 mm', src: 'CD p.58 — 3.5 + (age ÷ 4)', tone: 'pcs' });
     } else if (a < 1) {
       const m = p.ageMonths;
       if (w != null && w < 1) { ettU = 2.5; }
@@ -726,7 +727,7 @@ function airway(p) {
       else depth = `${stepRound(ref * 3, 0.5).toFixed(1)} cm at lip`;
       rows.push({ k: 'Oral insertion depth', v: depth, sub: depth === '—' ? undefined : 'Depth rounded to nearest 0.5 cm', src: a < 1 ? 'EXT: NRP — weight (kg) + 6 cm' : 'EXT: 3 × ETT ID', tone: 'ext' });
       const fr2 = Math.round(ref * 2);
-      rows.push({ k: 'Suction catheter', v: `${fr2 % 2 === 0 ? fr2 : fr2 - 1} Fr`, sub: 'Confirm against local stock and lumen-occlusion guidance', src: 'EXT: Fr ≈ 2 × ETT ID · CD p.65', tone: 'ext' });
+      rows.push({ k: 'Suction catheter', v: `${fr2 % 2 === 0 ? fr2 : fr2 - 1} Fr`, sub: 'Confirm against local stock and lumen-occlusion guidance', src: 'EXT: Fr ≈ 2 × ETT ID · CD p.21', tone: 'ext' });
     }
     rows.push({ k: 'Laryngoscope blade', v: bladeFor(a), src: 'EXT: PALS convention', tone: 'ext' });
   }
@@ -746,7 +747,7 @@ function airway(p) {
   }
   if (a != null) {
     const rate = a >= 18 ? '10 breaths/min (1 q6 s)' : '20 breaths/min (1 q3 s)';
-    rows.push({ k: 'Vent rate — arrest/ROSC (advanced airway)', v: rate, src: 'CD p.28, p.41', tone: 'pcs' });
+    rows.push({ k: 'Vent rate — arrest/ROSC (advanced airway)', v: rate, src: 'CD p.46, 61', tone: 'pcs' });
   }
   if (a != null && a >= 18 && w != null) {
     const maxLido = round(5 * w, 0);
@@ -856,7 +857,7 @@ function drugCalcs(p) {
       } else {
         out.arrest.push({ name: 'NaCl bolus — PEA / hypovolemia', when: 'PEA or suspected hypovolemia', contra: 'Fluid overload', needW: true, rep: `reassess q${a < 12 ? 100 : 250} mL`, sub: `20 mL/kg · max 2,000 mL`, src: 'PCS p.106', tone: 'pcs' });
       }
-      out.arrest.push({ name: 'Medical TOR — mandatory patch', dose: 'Patch to consider TOR', when: '≥16 y · arrest not witnessed by paramedic · no ROSC after 20 min of resuscitation · no defibrillation delivered', contra: 'Pregnancy presumed ≥20 wk · suspected hypothermia · airway obstruction · non-opioid drug overdose/toxicology', sub: 'Patch early if extenuating circumstances or resuscitation appears futile · if patch fails and/or no ROSC after 20 min → initiate transport · BHP may decline TOR (location, EtCO₂, age, bystander witness/CPR, transport time, unusual cause e.g. electrocution, hanging, toxicology)', src: 'PCS p.101, 106', tone: 'patch' });
+      out.arrest.push({ name: 'Medical TOR — mandatory patch', dose: 'Patch to consider TOR', when: '≥16 y · arrest not witnessed by paramedic · no ROSC after 20 min of resuscitation · no defibrillation delivered', contra: 'Pregnancy presumed ≥20 wk · suspected hypothermia · airway obstruction · non-opioid drug overdose/toxicology', sub: 'Patch early if extenuating circumstances or resuscitation appears futile · if patch fails and/or no ROSC after 20 min → initiate transport · BHP may decline TOR (location, EtCO₂, age, bystander witness/CPR, transport time, unusual cause e.g. electrocution, hanging, toxicology)', src: 'PCS p.101–102, 106–107', tone: 'patch' });
     }
   }
 
@@ -878,7 +879,7 @@ function drugCalcs(p) {
 
   // ===== CARDIOLOGY =====
   if (hasA && a >= 18) {
-    out.cardiac.push({ name: 'ASA — cardiac ischemia', dose: '160–162 mg PO chewed', when: '≥18 y · unaltered · able to chew & swallow', contra: 'NSAID allergy · asthmatic without prior ASA use · active bleeding · CVA/TBI in previous 24 h', sub: '×1 · give as if no prior care', src: 'PCS p.122 · CD p.14', tone: 'pcs' });
+    out.cardiac.push({ name: 'ASA — cardiac ischemia', dose: '160–162 mg PO chewed', when: '≥18 y · unaltered · able to chew & swallow', contra: 'NSAID allergy · asthmatic without prior ASA use · active bleeding · CVA/TBI in previous 24 h', sub: '×1 · give as if no prior care', src: 'PCS p.122 · CD p.27', tone: 'pcs' });
     out.cardiac.push({ name: 'Nitroglycerin — ischemia', dose: '0.3–0.4 mg SL', rep: 'q5 min', when: 'HR 60–159 · SBP ≥100 · IV access or prior nitro hx', contra: 'Nitrate allergy · PDE-5 inhibitor in previous 48 h · SBP drops ≥⅓ of initial after nitro · RV MI — do V4R in every inferior STEMI first', sub: 'No STEMI: max 6 · STEMI: max 3', src: 'PCS p.123', tone: 'pcs' });
     out.cardiac.push({ name: 'Morphine — ischemia', contra: 'Allergy · SBP drop ≥⅓ post-dose', dose: '2 mg IV', rep: 'q5 min · max 5 doses', ml: `${fmt(mlRound(2 / CONC.morphine.v))} mL`, when: 'After 3rd nitro OR nitro contraindicated · severe pain · normotension', src: 'PCS p.123', tone: 'pcs' });
     out.cardiac.push({ name: 'Nitroglycerin — ACPE', lines: [
@@ -887,8 +888,8 @@ function drugCalcs(p) {
       { l: 'SBP ≥140 + IV/hx', d: '0.6–0.8 mg', m: 'SL' }
     ], when: 'HR 60–159 · normotension', contra: 'Nitrate allergy · PDE-5 inhibitor in previous 48 h · SBP drops ≥⅓ of initial after nitro', sub: 'q5 min · max 6', src: 'PCS p.125', tone: 'pcs' });
     out.cardiac.push({ name: 'Atropine — symptomatic bradycardia', dose: '1 mg IV', rep: 'q5 min · max 2', ml: `${fmt(mlRound(1 / CONC.atropine.v))} mL @ ${CONC.atropine.v} mg/mL`, when: 'HR <50 + hypotension', contra: 'Allergy · hypothermia · heart transplant', sub: 'Then TCP (don’t delay for IV) → DOPamine', src: 'PCS p.130–131', tone: 'pcs' });
-    out.cardiac.push({ name: 'TCP', dose: 'Rate 80 bpm → ↑ mA to capture', sub: 'Typical capture 80–100 mA · +10% above threshold', src: 'CD p.94–95', tone: 'pcs' });
-    out.cardiac.push({ name: 'Adenosine — SVT (narrow, regular, ≥150)', when: '≥18 y · unaltered · HR ≥150 · normotension · narrow + regular · after ≤2 Valsalva', contra: 'Allergy · sinus tach / AF / flutter · dipyridamole or carbamazepine · bronchoconstriction on exam', dose: '6 mg', ml: `${fmt(mlRound(6 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, d2: '12 mg IV', ml2: `${fmt(mlRound(12 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, sub: 'q2 min · max 2 · rapid push + 20 mL NS flush · after ≤2 Valsalva (10–20 s)', src: 'PCS p.134–135 · CD p.46', tone: 'pcs' });
+    out.cardiac.push({ name: 'TCP', dose: 'Rate 80 bpm → ↑ mA to capture', sub: 'Typical capture 80–100 mA · +10% above threshold', src: 'CD p.65, 144', tone: 'pcs' });
+    out.cardiac.push({ name: 'Adenosine — SVT (narrow, regular, ≥150)', when: '≥18 y · unaltered · HR ≥150 · normotension · narrow + regular · after ≤2 Valsalva', contra: 'Allergy · sinus tach / AF / flutter · dipyridamole or carbamazepine · bronchoconstriction on exam', dose: '6 mg', ml: `${fmt(mlRound(6 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, d2: '12 mg IV', ml2: `${fmt(mlRound(12 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, sub: 'q2 min · max 2 · rapid push + 20 mL NS flush · after ≤2 Valsalva (10–20 s)', src: 'PCS p.134–135 · CD p.68', tone: 'pcs' });
     if (hasW) {
       const lt1 = Math.min(1.5 * w, 150), lt2 = Math.min(0.75 * w, 150);
       out.cardiac.push({ name: 'Amiodarone — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: '150 mg IV over 10 min', ml: `${fmt(mlRound(150 / CONC.amiodarone.v))} mL in infusion`, rep: 'q10 min · max 2', sub: 'BHP patch required', src: 'PCS p.135', tone: 'patch' });
@@ -914,16 +915,16 @@ function drugCalcs(p) {
     out.cardiac.push({ name: 'DOPamine infusion (800 mcg/mL)', needW: true, when: 'Hypotension · ROSC ≥8 y · bradycardia / cardiogenic shock ≥18 y', contra: 'Allergy · tachydysrhythmias (excl. sinus tach) · mechanical shock · pheochromocytoma · hypovolemia (cardiogenic shock)', sub: 'Start 5 mcg/kg/min · +5 q5 min · max 20 · rates are weight-based (mcg/kg/min)', src: 'PCS p.118–120, 128, 131', tone: 'pcs' });
   }
 
-  // ===== POST-ROSC (PCS p.117–120 · CD p.41) =====
-  out.rosc.push({ name: 'Targets — oxygenation & ventilation', dose: 'SpO₂ 94–98% · ETCO₂ 30–40 mmHg', sub: 'Avoid hyperventilation · vent rate with advanced airway on the Airway card above', src: 'PCS p.118 · CD p.41', tone: 'pcs' });
+  // ===== POST-ROSC (PCS p.117–120 · CD p.61) =====
+  out.rosc.push({ name: 'Targets — oxygenation & ventilation', dose: 'SpO₂ 94–98% · ETCO₂ 30–40 mmHg', sub: 'Avoid hyperventilation · vent rate with advanced airway on the Airway card above', src: 'PCS p.118 · CD p.61', tone: 'pcs' });
   if (hasA && a < 2) {
     out.rosc.push({ name: 'NS bolus — age <2 y', dose: 'Outside directive conditions', sub: 'ROSC fluid bolus condition is ≥2 y — BHP patch for direction', src: 'PCS p.117', tone: 'patch' });
   } else if (hasW && hasA) {
-    out.rosc.push({ name: 'NS bolus — hypotension', dose: `${Math.round(Math.min(10 * w, 1000))} mL`, when: '≥2 y · hypotension · chest auscultation is clear', contra: 'Fluid overload', sub: `10 mL/kg · max 1,000 mL · reassess q${hasA && a < 12 ? '100' : '250'} mL · 2 BPs (≥1 manual) before bolus · min ${hasA && a < 12 ? '100' : '250'} mL once started even if normotensive · target SBP ≥90`, src: 'PCS p.117–118 · CD p.26, 41', tone: 'pcs' });
+    out.rosc.push({ name: 'NS bolus — hypotension', dose: `${Math.round(Math.min(10 * w, 1000))} mL`, when: '≥2 y · hypotension · chest auscultation is clear', contra: 'Fluid overload', sub: `10 mL/kg · max 1,000 mL · reassess q${hasA && a < 12 ? '100' : '250'} mL · 2 BPs (≥1 manual) before bolus · min ${hasA && a < 12 ? '100' : '250'} mL once started even if normotensive · target SBP ≥90`, src: 'PCS p.117–118 · CD p.43–44, 61', tone: 'pcs' });
   } else if (hasW && !hasA) {
     out.rosc.push({ name: 'NS bolus — hypotension', dose: 'Age required', sub: 'The ROSC fluid directive is gated ≥2 y; no adult default is applied', src: 'PCS p.117–118', tone: 'warn' });
   } else if (hasA && !hasW) {
-    out.rosc.push({ name: 'NS bolus — hypotension', needW: true, when: '≥2 y · hypotension · chest auscultation is clear', contra: 'Fluid overload', sub: `10 mL/kg · max 1,000 mL · reassess q${a < 12 ? '100' : '250'} mL · 2 BPs (≥1 manual) before bolus · target SBP ≥90`, src: 'PCS p.117–118 · CD p.26, 41', tone: 'pcs' });
+    out.rosc.push({ name: 'NS bolus — hypotension', needW: true, when: '≥2 y · hypotension · chest auscultation is clear', contra: 'Fluid overload', sub: `10 mL/kg · max 1,000 mL · reassess q${a < 12 ? '100' : '250'} mL · 2 BPs (≥1 manual) before bolus · target SBP ≥90`, src: 'PCS p.117–118 · CD p.43–44, 61', tone: 'pcs' });
   }
   if (hasA && a < 8) {
     out.rosc.push({ name: 'DOPamine — age <8 y', dose: 'Outside directive conditions', sub: 'ROSC DOPamine condition is ≥8 y — BHP patch for direction · PDC v5.4 charts do not list DOPamine · Peds tab ▸ 📞 Patch for chart reference values', src: 'PCS p.119', tone: 'patch' });
@@ -935,7 +936,7 @@ function drugCalcs(p) {
   } else {
     out.rosc.push({ name: 'DOPamine infusion', dose: hasW ? 'Enter age' : 'Enter weight', sub: 'Rates are weight-based (mcg/kg/min) and gated ≥8 y', src: 'PCS p.119', tone: 'warn' });
   }
-  out.rosc.push({ name: '12-lead ECG', dose: 'Acquire post-ROSC', sub: 'Directive treatment step alongside targets, fluid and DOPamine', src: 'PCS p.118', tone: 'pcs' });
+  out.rosc.push({ name: '12-lead ECG', dose: 'Acquire post-ROSC', sub: 'Directive treatment step alongside targets, fluid and DOPamine', src: 'PCS p.119', tone: 'pcs' });
 
   // ===== RESPIRATORY =====
   if (hasW) {
@@ -964,14 +965,14 @@ function drugCalcs(p) {
   // Allergic reaction (all ages)
   if (hasW) {
     const epiA = stepRound(Math.min(0.01 * w, 0.5), 0.05);
-    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', dose: `${fmt(epiA)} mg`, ml: `${fmt(mlRound(epiA))} mL of 1:1,000`, sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.31', tone: 'pcs' });
+    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', dose: `${fmt(epiA)} mg`, ml: `${fmt(mlRound(epiA))} mL of 1:1,000`, sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.50', tone: 'pcs' });
     if (w >= 25) {
       out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', dose: w >= 50 ? '50 mg IV/IM' : '25 mg IV/IM', ml: `${fmt(mlRound((w >= 50 ? 50 : 25) / CONC.diphenhydramine.v))} mL`, sub: `${w >= 50 ? '≥50 kg' : '25–49 kg'} · ×1`, src: 'PCS p.91', tone: 'pcs' });
     } else {
       out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', dose: '<25 kg — outside conditions', src: 'PCS p.90', tone: 'warn' });
     }
   } else {
-    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', needW: true, sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.31', tone: 'pcs' });
+    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', needW: true, sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.50', tone: 'pcs' });
     out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', needW: true, sub: '25–49 kg: 25 mg · ≥50 kg: 50 mg IV/IM · ×1 · <25 kg outside conditions', src: 'PCS p.90–91', tone: 'pcs' });
   }
 
@@ -982,9 +983,9 @@ function drugCalcs(p) {
     out.neuro.push({ name: 'Midazolam — active seizure', when: 'Unresponsive · active seizure', contra: 'Midazolam allergy', lines: [
       { l: 'IV/IO (0.1 mg/kg)', d: `${fmt(round(ivMg,1))} mg`, m: `${fmt(mlRound(ivMg / CONC.midazolam.v))} mL` },
       { l: 'IM/IN/buccal (0.2 mg/kg)', d: `${fmt(round(imMg,1))} mg`, m: `${fmt(mlRound(imMg / CONC.midazolam.v))} mL` }
-    ], sub: 'max 5 mg IV / 10 mg IM-IN · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.41', tone: 'pcs' });
+    ], sub: 'max 5 mg IV / 10 mg IM-IN · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.62', tone: 'pcs' });
   } else {
-    out.neuro.push({ name: 'Midazolam — active seizure', when: 'Unresponsive · active seizure', contra: 'Midazolam allergy', needW: true, sub: 'IV/IO 0.1 mg/kg (max 5 mg) · IM/IN/buccal 0.2 mg/kg (max 10 mg) · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.41', tone: 'pcs' });
+    out.neuro.push({ name: 'Midazolam — active seizure', when: 'Unresponsive · active seizure', contra: 'Midazolam allergy', needW: true, sub: 'IV/IO 0.1 mg/kg (max 5 mg) · IM/IN/buccal 0.2 mg/kg (max 10 mg) · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.62', tone: 'pcs' });
   }
 
   // ===== METABOLIC / TOX =====
@@ -993,7 +994,7 @@ function drugCalcs(p) {
       out.metab.push({ name: 'Dextrose', dose: 'Age required', sub: 'D10/D50 concentration, maximum and hypoglycemia threshold are age-gated; no adult default is applied', src: 'PCS p.15, 148', tone: 'warn' });
     } else if (a < 2) {
       const g = Math.min(0.2 * w, 5);
-      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g,1))} g`, ml: `${Math.round(Math.min(2 * w, 50))} mL`, sub: '<2 y · 0.2 g/kg (2 mL/kg) · max 5 g (50 mL) · q10 min · max 2 · over ~3 min, titrate to LOA', src: 'PCS p.148 · CD p.24', tone: 'pcs' });
+      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g,1))} g`, ml: `${Math.round(Math.min(2 * w, 50))} mL`, sub: '<2 y · 0.2 g/kg (2 mL/kg) · max 5 g (50 mL) · q10 min · max 2 · over ~3 min, titrate to LOA', src: 'PCS p.148 · CD p.40–41', tone: 'pcs' });
     } else {
       const g10 = Math.min(0.2 * w, 25);
       out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g10,1))} g`, ml: `${Math.round(Math.min(2 * w, 250))} mL`, sub: '0.2 g/kg (2 mL/kg) · max 25 g (250 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
@@ -1021,7 +1022,7 @@ function drugCalcs(p) {
   }
   // Hyperkalemia
   if (hasA && a >= 18) {
-    out.metab.push({ name: 'Calcium gluconate 10% — hyperkalemia', contra: 'Allergy', dose: '1 g (10 mL) over 2–3 min', when: '≥18 y · suspected hyperK · arrest or pre-arrest with ECG changes', sub: 'q5 min · max 2 (+3rd after 30 min if recurrence) · ensure line runs well — necrosis risk · don’t mix with bicarb', src: 'PCS p.139 · CD p.23', tone: 'pcs' });
+    out.metab.push({ name: 'Calcium gluconate 10% — hyperkalemia', contra: 'Allergy', dose: '1 g (10 mL) over 2–3 min', when: '≥18 y · suspected hyperK · arrest or pre-arrest with ECG changes', sub: 'q5 min · max 2 (+3rd after 30 min if recurrence) · ensure line runs well — necrosis risk · don’t mix with bicarb', src: 'PCS p.139 · CD p.39', tone: 'pcs' });
     out.metab.push({ name: 'Salbutamol — hyperkalemia', when: '≥18 y', lines: [
       { l: 'MDI', d: '1,600 mcg', m: '16 puffs' },
       { l: 'NEB', d: '10 mg', m: 'if MDI not feasible' }
@@ -1059,7 +1060,7 @@ function drugCalcs(p) {
       out.analgesia.push({ name: 'Ketamine — analgesia', lines: [
         { l: 'IV (0.25 mg/kg)', d: `${fmt(round(kIV,1))} mg`, m: `${fmt(mlRound(kIV / CONC.ketamine.v))} mL · over 2–3 min` },
         { l: 'IN (1 mg/kg)', d: `${fmt(round(kIN,0))} mg`, m: `${fmt(mlRound(kIN / CONC.ketamine.v))} mL` }
-      ], when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'max 20 mg IV / 75 mg IN · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.10', tone: 'pcs' });
+      ], when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'max 20 mg IV / 75 mg IN · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.23–24', tone: 'pcs' });
     } else {
       const f = Math.min(1 * w, 75);
       out.analgesia.push({ name: 'FentaNYL IV/IN (1–17 y)', dose: `up to ${fmt(round(f,0))} mcg`, ml: `${fmt(mlRound(f / CONC.fentanyl.v))} mL`, when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `up to 1 mcg/kg · max single 75 mcg · q5 min · cum 200 mcg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
@@ -1076,7 +1077,7 @@ function drugCalcs(p) {
     if (a >= 18) {
       out.analgesia.push({ name: 'FentaNYL IV/IN', dose: '25–75 mcg', ml: `${fmt(mlRound(25 / CONC.fentanyl.v))}–${fmt(mlRound(75 / CONC.fentanyl.v))} mL`, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q5 min · max cumulative 200 mcg · aliquots q3 min for 50–75 mcg', src: 'PCS p.165', tone: 'pcs' });
       out.analgesia.push({ name: 'Morphine IV/SC', dose: '2–10 mg', ml: `${fmt(mlRound(2 / CONC.morphine.v))}–${fmt(mlRound(10 / CONC.morphine.v))} mL`, when: '≥18 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q15 min · max single 10 mg · max cumulative 20 mg', src: 'PCS p.165', tone: 'pcs' });
-      out.analgesia.push({ name: 'Ketamine — analgesia', needW: true, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'IV 0.25 mg/kg (max 20 mg) · IN 1 mg/kg (max 75 mg) · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.10', tone: 'pcs' });
+      out.analgesia.push({ name: 'Ketamine — analgesia', needW: true, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'IV 0.25 mg/kg (max 20 mg) · IN 1 mg/kg (max 75 mg) · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.23–24', tone: 'pcs' });
     } else {
       out.analgesia.push({ name: 'FentaNYL IV/IN (1–17 y)', needW: true, when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `up to 1 mcg/kg · max single 75 mcg · q5 min · cum 200 mcg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
       out.analgesia.push({ name: 'Morphine IV/SC (1–17 y)', needW: true, when: '≥1 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `0.05–0.1 mg/kg · max single 5 mg · q15 min · cum 10 mg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
@@ -1087,45 +1088,45 @@ function drugCalcs(p) {
   // ===== SEDATION =====
   if (hasA && a >= 18 && hasW) {
     const mz = Math.min(0.1 * w, 5);
-    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', dose: `up to ${fmt(round(mz,1))} mg IV/IM/IN`, ml: `${fmt(mlRound(mz / CONC.midazolam.v))} mL`, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.17', tone: 'pcs' });
+    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', dose: `up to ${fmt(round(mz,1))} mg IV/IM/IN`, ml: `${fmt(mlRound(mz / CONC.midazolam.v))} mL`, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
     const kd = a >= 65 ? Math.min(3 * w, 300) : Math.min(5 * w, 500);
-    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: `${fmt(mlRound(kd / CONC.ketamine.v))} mL${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.17', tone: 'pcs' });
+    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: `${fmt(mlRound(kd / CONC.ketamine.v))} mL${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.31', tone: 'pcs' });
     out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', lines: [
       { l: 'FentaNYL IV/IO/CVAD/IN', d: '25–75 mcg', m: 'q5 min · max total 150 mcg' },
       { l: 'Midazolam IV/IO/CVAD/IN', d: `up to ${fmt(round(mz,1))} mg`, m: 'max single 5 · q5 min · max total 10 mg' }
-    ], when: '≥18 y · normotension · RR ≥10 (non-intubated only) · after ETT placed OR pacing initiated', contra: 'Allergy or sensitivity to fentaNYL or midazolam', sub: 'Intent is concurrent administration · corrected hypotension no longer a contraindication (CD p.40) · lower doses if elderly/light · EtCO₂ once sedated', src: 'PCS p.239–240 · CD p.40', tone: 'pcs' });
+    ], when: '≥18 y · normotension · RR ≥10 (non-intubated only) · after ETT placed OR pacing initiated', contra: 'Allergy or sensitivity to fentaNYL or midazolam', sub: 'Intent is concurrent administration · corrected hypotension no longer a contraindication (CD p.60) · lower doses if elderly/light · EtCO₂ once sedated', src: 'PCS p.239–240 · CD p.60', tone: 'pcs' });
   }
   if (hasA && a >= 18 && !hasW) {
-    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', needW: true, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.17', tone: 'pcs' });
-    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', needW: true, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300 mg' : '18–64 y: 5 mg/kg · max 500 mg'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.17', tone: 'pcs' });
-    out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', needW: true, when: '≥18 y · normotension · RR ≥10 (non-intubated only) · after ETT placed OR pacing initiated', contra: 'Allergy or sensitivity to fentaNYL or midazolam', sub: 'FentaNYL 25–75 mcg q5 min (max total 150 mcg) · Midazolam up to 0.1 mg/kg (max single 5 · max total 10 mg) · intent is concurrent administration · EtCO₂ once sedated', src: 'PCS p.239–240 · CD p.40', tone: 'pcs' });
+    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', needW: true, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', needW: true, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300 mg' : '18–64 y: 5 mg/kg · max 500 mg'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', needW: true, when: '≥18 y · normotension · RR ≥10 (non-intubated only) · after ETT placed OR pacing initiated', contra: 'Allergy or sensitivity to fentaNYL or midazolam', sub: 'FentaNYL 25–75 mcg q5 min (max total 150 mcg) · Midazolam up to 0.1 mg/kg (max single 5 · max total 10 mg) · intent is concurrent administration · EtCO₂ once sedated', src: 'PCS p.239–240 · CD p.60', tone: 'pcs' });
   }
 
   // ===== FLUIDS =====
   if (hasW) {
-    out.fluids.push({ name: 'Bolus — hypotension', when: 'Hypotension', contra: 'Fluid overload', dose: `${Math.round(Math.min(20 * w, 2000))} mL`, sub: hasA ? `20 mL/kg · reassess q${a < 12 ? '100' : '250'} mL · max 2,000 mL · 2 BPs (1 manual) before bolus · min ${a < 12 ? '100' : '250'} mL once started even if normotensive` : '20 mL/kg · max 2,000 mL · age required for reassessment/minimum-volume branch', src: 'PCS p.143 · CD p.25–26', tone: hasA ? 'pcs' : 'warn' });
+    out.fluids.push({ name: 'Bolus — hypotension', when: 'Hypotension', contra: 'Fluid overload', dose: `${Math.round(Math.min(20 * w, 2000))} mL`, sub: hasA ? `20 mL/kg · reassess q${a < 12 ? '100' : '250'} mL · max 2,000 mL · 2 BPs (1 manual) before bolus · min ${a < 12 ? '100' : '250'} mL once started even if normotensive` : '20 mL/kg · max 2,000 mL · age required for reassessment/minimum-volume branch', src: 'PCS p.143 · CD p.43–44', tone: hasA ? 'pcs' : 'warn' });
     if (hasA && a < 12) out.fluids.push({ name: 'DKA <12 y — MANDATORY PATCH', dose: 'BHP before any bolus', sub: 'Cerebral edema risk', src: 'PCS p.142', tone: 'patch' });
-    out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.26', tone: hasA ? 'pcs' : 'warn' });
+    out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.43', tone: hasA ? 'pcs' : 'warn' });
     if (hasA && a >= 16) {
-      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.48', tone: 'pcs' });
+      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
     }
     // Parkland (EXT)
     out.fluids.push({ name: 'Parkland (burns) — reference only', dose: `4 mL × kg × %TBSA = ${hasW ? Math.round(4 * w) : '—'} mL × %TBSA /24 h (½ in first 8 h)`, sub: 'NOT an ALS PCS directive — hospital planning reference', src: 'EXT: Parkland formula', tone: 'ext' });
   } else {
-    out.fluids.push({ name: 'Bolus — hypotension', when: 'Hypotension', contra: 'Fluid overload', needW: true, sub: hasA ? `20 mL/kg · reassess q${a < 12 ? '100' : '250'} mL · max 2,000 mL · 2 BPs (1 manual) before bolus · min ${a < 12 ? '100' : '250'} mL once started even if normotensive` : '20 mL/kg · max 2,000 mL · age required for reassessment/minimum-volume branch', src: 'PCS p.143 · CD p.25–26', tone: hasA ? 'pcs' : 'warn' });
-    out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.26', tone: hasA ? 'pcs' : 'warn' });
+    out.fluids.push({ name: 'Bolus — hypotension', when: 'Hypotension', contra: 'Fluid overload', needW: true, sub: hasA ? `20 mL/kg · reassess q${a < 12 ? '100' : '250'} mL · max 2,000 mL · 2 BPs (1 manual) before bolus · min ${a < 12 ? '100' : '250'} mL once started even if normotensive` : '20 mL/kg · max 2,000 mL · age required for reassessment/minimum-volume branch', src: 'PCS p.143 · CD p.43–44', tone: hasA ? 'pcs' : 'warn' });
+    out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.43', tone: hasA ? 'pcs' : 'warn' });
     if (hasA && a >= 16) {
-      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.48', tone: 'pcs' });
+      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
     }
     out.fluids.push({ name: 'Parkland (burns) — reference only', dose: '4 mL × kg × %TBSA per 24 h (½ in first 8 h)', sub: 'NOT an ALS PCS directive — hospital planning reference', src: 'EXT: Parkland formula', tone: 'ext' });
   }
 
   // ===== OB =====
   if (hasA && a >= 14 && a <= 50) {
-    out.ob.push({ name: 'Oxytocin — post-delivery', dose: '10 units IM', ml: `${fmt(mlRound(10 / CONC.oxytocin.v))} mL @ ${CONC.oxytocin.v} units/mL`, when: 'Childbearing years · SBP <160 mmHg · after delivery of all fetuses and/or placenta', contra: 'Allergy · undelivered fetus · suspected/known preeclampsia with current pregnancy · eclampsia (seizures) with current pregnancy · ≥4 h post placental delivery', sub: '×1 · monitor BP (vasoconstriction)', src: 'PCS p.76–78 · CD p.21', tone: 'pcs' });
+    out.ob.push({ name: 'Oxytocin — post-delivery', dose: '10 units IM', ml: `${fmt(mlRound(10 / CONC.oxytocin.v))} mL @ ${CONC.oxytocin.v} units/mL`, when: 'Childbearing years · SBP <160 mmHg · after delivery of all fetuses and/or placenta', contra: 'Allergy · undelivered fetus · suspected/known preeclampsia with current pregnancy · eclampsia (seizures) with current pregnancy · ≥4 h post placental delivery', sub: '×1 · monitor BP (vasoconstriction)', src: 'PCS p.175, 177 · CD p.37', tone: 'pcs' });
   }
-  out.ob.push({ name: 'Shoulder dystocia', dose: 'ALARM — 8 min from head delivery', sub: 'Ask help · Legs (McRoberts) · Adduct (suprapubic) · Roll (Gaskin) · Manual posterior arm', src: 'CD p.55–57', tone: 'pcs' });
-  out.ob.push({ name: 'Breech', dose: 'Hands off to umbilicus · 4 min head window · MSV if >3 min', src: 'CD p.53 · PCS p.76', tone: 'pcs' });
+  out.ob.push({ name: 'Shoulder dystocia', dose: 'ALARM — 8 min from head delivery', sub: 'Ask help · Legs (McRoberts) · Adduct (suprapubic) · Roll (Gaskin) · Manual posterior arm', src: 'CD p.117', tone: 'pcs' });
+  out.ob.push({ name: 'Breech', dose: 'Hands off to umbilicus · 4 min head window · MSV if >3 min', src: 'CD p.111 · PCS p.176', tone: 'pcs' });
 
   for(const arr of Object.values(out))extractRep(arr);
   return out;
@@ -1151,14 +1152,14 @@ const DIR = [
  cond:['Lidocaine spray: for OTI when GCS ≥4','OTI: no vital-sign conditions'],
  contra:['Lidocaine: allergy/sensitivity; unresponsive patient','OTI: age <50 y AND current asthma exacerbation AND not in/near cardiac arrest'],
  tx:['Topical lidocaine 10 mg/spray · max 5 mg/kg · max 20 sprays (hypopharynx)','Intubation ± facilitation devices · max 2 attempts (attempt = blade in mouth)','Confirm: waveform ETCO₂ primary; if unavailable → ≥3 secondary methods · reconfirm after every move'],
- cc:'Cuffed peds ETT: 3.5 + (age ÷ 4) — CD p.39. Start cuff inflation in 1 mL increments (CD p.39).'},
+ cc:'Cuffed peds ETT: 3.5 + (age ÷ 4) — CD p.58. Start cuff inflation in 1 mL increments (CD p.58).'},
 
 {id:'sga',n:'Supraglottic Airway',tag:'core',pg:'p.84–85',
  ind:'Need for ventilatory assistance or airway control AND other airway management ineffective.',
  cond:['Absent gag reflex'],
  contra:['Airway obstructed by foreign object','Known esophageal disease (varices)','Trauma to the oropharynx','Caustic ingestion'],
  tx:['Insert SGA · max 2 attempts total (attempt = insertion into mouth)','Confirm: waveform ETCO₂ primary; else ≥2 secondary'],
- cc:'Withhold if actively vomiting; may insert once airway cleared. Post-ROSC: remove only if gag stimulated or vomiting (CD p.42–43).'},
+ cc:'Withhold if actively vomiting; may insert once airway cleared. Post-ROSC: remove only if gag stimulated or vomiting (CD p.64).'},
 
 {id:'bronch',n:'Bronchoconstriction',tag:'core',pg:'p.86–89',
  ind:'Respiratory distress AND suspected bronchoconstriction.',
@@ -1172,20 +1173,20 @@ const DIR = [
  cond:['EPINEPHrine: anaphylaxis only','DiphenhydrAMINE: weight ≥25 kg'],
  contra:['Allergy to the agent'],
  tx:['EPINEPHrine IM 0.01 mg/kg (max 0.5) 1:1,000 · min q5 min · max 2','DiphenhydrAMINE IV/IM: 25 mg (25–<50 kg) / 50 mg (≥50 kg) · ×1'],
- cc:'Epi takes priority over IV access. Anterolateral thigh preferred (CD p.31). Diphenhydramine does not treat airway edema/hypotension — never in place of epi.'},
+ cc:'Epi takes priority over IV access. Anterolateral thigh preferred (CD p.49–50). Diphenhydramine does not treat airway edema/hypotension — never in place of epi.'},
 
 {id:'croup',n:'Croup',tag:'core',pg:'p.92–93',
  ind:'Current URTI hx AND barking cough (or recent hx of one).',
  cond:['EPINEPHrine: ≥6 mo to <8 y · HR <200 · stridor at rest','Dexamethasone: ≥6 mo to <8 y · unaltered LOA · mild–severe croup'],
  contra:['Dexamethasone: steroid allergy · steroids in last 48 h · unable to tolerate PO'],
  tx:['EPINEPHrine NEB 1:1,000 — <10 kg: 2.5 mg · ≥10 kg: 5 mg · ×1','Dexamethasone 0.5 mg/kg PO · max 8 mg · ×1'],
- cc:'Severe: epi is priority, dex can follow. Mild–moderate: dex only. Adults meeting indications = BHP patch (CD p.18).'},
+ cc:'Severe: epi is priority, dex can follow. Mild–moderate: dex only. Adults meeting indications = BHP patch (PCS p.11, 92).'},
 
 {id:'tension',n:'Tension Pneumothorax',tag:'core',pg:'p.94',
  ind:'Pre-arrest or VSA AND absent/severely diminished breath sounds on affected side(s).',
  cond:['SBP: hypotension or VSA'],contra:['N/A'],
  tx:['Needle thoracostomy — 4th ICS anterior axillary line (preferred) OR 2nd ICS midclavicular'],
- cc:'Peds <13 y or small adolescents: 14–16G 1.5″ at 2nd ICS; adult-size adolescents: ≥14G 2″ at 4th ICS AAL (CD p.47).'},
+ cc:'Peds <13 y or small adolescents: 14–16G 1.5″ at 2nd ICS; adult-size adolescents: ≥14G 2″ at 4th ICS AAL (CD p.69; reference mismatch — see warning).'},
 
 {id:'suction',n:'Adv. Airway & Trach Suction / Reinsertion',tag:'core',pg:'p.95–98',
  ind:'ETT / SGA (gastric port) / trach AND obstruction or increased secretions.',
@@ -1208,14 +1209,14 @@ const DIR = [
  contra:['TOR: <16 y · shock delivered · signs of life since extrication · PEA with ED <30 min · penetrating torso/head/neck with LTH <30 min'],
  tx:['CPR q2 min · defib ×1 if VF/pVT (peds 2 J/kg / adult RBHP)','Needle thoracostomy if suspected tension (consider bilateral)','Address reversibles: hemorrhage control, splint pelvis/fractures, basic airway first'],
  patch:'MANDATORY: patch for Trauma TOR. Patch fails / TOR doesn’t apply → transport after 1st analysis/defib.',
- cc:'No obvious external blunt trauma signs → treat as medical arrest. Fluid bolus only if it doesn’t delay transport. Commotio cordis & hangings = medical arrest (CD p.30).'},
+ cc:'No obvious external blunt trauma signs → treat as medical arrest. Fluid bolus only if it doesn’t delay transport. Commotio cordis & hangings = medical arrest (CD p.48, 71).'},
 
 {id:'nrp',n:'Newborn Resuscitation',tag:'core',pg:'p.113–116',
  ind:'Newborn patient (<24 h).',
  cond:['PPV: HR <100 · CPR: HR <60 after 30 s PPV (room air) · Epi: HR <60 after 30 s PPV + 30 s CPR'],
  contra:['Obviously dead · presumed gestation <20 wk'],
  tx:['30 s: warm, position, dry, stimulate → PPV room air 30 s → CPR + PPV 100% O₂ 30 s','Epi 1:10,000 IV/IO 0.01 mg/kg (0.1 mL/kg) q4 min · min 0.05 mg (0.5 mL)','Epi ETT 0.1 mg/kg (1.0 mL/kg) · max 0.3 mg (3 mL) · single dose, then IV/IO','Transport before 3rd epi if possible'],
- cc:'Preductal SpO₂ (right hand): 1′ 60–65 → 10′ 85–95%. Cardiac monitor = most accurate HR. Only 1:10,000 used, all routes (CD p.36–37). 20–25 wk: resuscitate + transport ASAP; <20 wk futile — warmth + BHP.'},
+ cc:'Preductal SpO₂ (right hand): 1′ 60–65 → 10′ 85–95%. Cardiac monitor = most accurate HR. Only 1:10,000 used, all routes (CD p.53–54). 20–25 wk: resuscitate + transport ASAP; <20 wk futile — warmth + BHP.'},
 
 {id:'rosc',n:'Return of Spontaneous Circulation',tag:'core',pg:'p.117–120',
  ind:'ROSC after resuscitation initiated.',
@@ -1229,14 +1230,14 @@ const DIR = [
  cond:['ASA: ≥18 · unaltered · able to chew/swallow','Nitro: ≥18 · unaltered · HR 60–159 · normotension · prior nitro hx OR IV obtained','Morphine: ≥18 · unaltered · normotension · severe pain'],
  contra:['ASA: NSAID allergy · asthmatic w/o prior ASA use · active bleeding · CVA/TBI in 24 h','Nitro: nitrate allergy · PDE-inhibitor in 48 h · SBP drop ≥⅓ post-dose · 12-lead compatible with RV MI','Morphine: allergy · SBP drop ≥⅓ post-dose'],
  tx:['ASA 160–162 mg PO chewed ×1','12-lead for STEMI (goal <10 min from contact)','Nitro 0.3–0.4 mg SL q5 · no-STEMI max 6 · STEMI max 3','Morphine 2 mg IV q5 · max 5 — after 3rd nitro or nitro contraindicated'],
- cc:'Inferior STEMI → V4R minimum; RV MI (≥1 mm STE in V4R) = no nitro. Pads on once STEMI identified. Apply ASA as if no prior care (CD p.14). Vitals fall outside parameters once → that drug is done even if vitals recover (CD p.15).'},
+ cc:'Inferior STEMI → V4R minimum; RV MI (≥1 mm STE in V4R) = no nitro. Pads on once STEMI identified. Apply ASA as if no prior care (CD p.27). Vitals fall outside parameters once → that drug is done even if vitals recover (legacy summary — not confirmed in current reference; see warning).'},
 
 {id:'acpe',n:'Acute Cardiogenic Pulmonary Edema',tag:'core',pg:'p.124–125',
  ind:'Moderate–severe respiratory distress AND suspected ACPE.',
  cond:['Nitro: ≥18 · HR 60–159 · normotension'],
  contra:['Nitrate allergy · PDE-inhibitor in 48 h · SBP drop ≥⅓ post-dose'],
  tx:['Nitro SL q5 min · max 6: SBP 100–139 + IV/hx → 0.3–0.4 mg · SBP ≥140 without IV/hx → 0.3–0.4 mg · SBP ≥140 + IV/hx → 0.6–0.8 mg','12-lead ECG'],
- cc:'No 12-lead needed before first nitro here (RV infarcts rarely present as ACPE) — acquire ASAP; if STEMI → Cardiac Ischemia nitro schedule (max 3). Bolus permitted despite crackles if nitro-induced hypotension; withhold further nitro (CD p.8). Not both directives’ nitro.'},
+ cc:'No 12-lead needed before first nitro here (RV infarcts rarely present as ACPE) — acquire ASAP; if STEMI → Cardiac Ischemia nitro schedule (max 3). Bolus permitted despite crackles if nitro-induced hypotension; withhold further nitro (CD p.15). Not both directives’ nitro.'},
 
 {id:'cshock',n:'Cardiogenic Shock',tag:'core',pg:'p.126–128',
  ind:'STEMI-positive 12-lead AND cardiogenic shock.',
@@ -1244,28 +1245,28 @@ const DIR = [
  contra:['Fluid: overload · SBP ≥90','DOPamine: allergy · tachydysrhythmias (excl. sinus) · mechanical shock · hypovolemia · pheochromocytoma'],
  tx:['Fluid 10 mL/kg · reassess q250 · max 1,000 (chest clear)','Crackles → skip to DOPamine 5→20 mcg/kg/min · target SBP ≥90–<110'],
  patch:'Contact BHP if patient is bradycardic.',
- cc:'Mechanical shock = tension pneumo, PE, tamponade (CD p.16).'},
+ cc:'Mechanical shock = tension pneumo, PE, tamponade (CD p.29).'},
 
 {id:'brady',n:'Symptomatic Bradycardia',tag:'core',pg:'p.129–131',
  ind:'Bradycardia AND hemodynamic instability.',
  cond:['≥18 y · HR <50 · hypotension (all three agents)'],
  contra:['Atropine: allergy · hypothermia · heart transplant','TCP: hypothermia','DOPamine: allergy · mechanical shock · pheochromocytoma'],
  tx:['Rhythm determination · 12-lead if no delay','Atropine 1 mg IV q5 min · max 2','TCP — do not delay for IV','DOPamine 5→20 mcg/kg/min · target SBP ≥90–<110'],
- cc:'Atropine for sinus/junctional brady, AF, 1° block, 2° type I; single dose OK in 2° II / 3° while preparing pacing (CD p.43). Pace at 80 bpm, ↑mA to capture (80–100 typical), +10%; sedation may be needed as BP improves. Fluid bolus for all if indicated. Hemodynamic instability = SBP <90 needing pharm/electrical intervention (CD p.43).'},
+ cc:'Atropine for sinus/junctional brady, AF, 1° block, 2° type I; single dose OK in 2° II / 3° while preparing pacing (CD p.65). Pace at 80 bpm, ↑mA to capture (80–100 typical), +10%; sedation may be needed as BP improves. Fluid bolus for all if indicated. Hemodynamic instability = SBP <90 needing pharm/electrical intervention (CD p.65).'},
 
 {id:'tachy',n:'Tachydysrhythmia',tag:'core',pg:'p.132–137',
  ind:'Symptomatic tachydysrhythmia.',
  cond:['Valsalva/adenosine: ≥18 · unaltered · HR ≥150 · normotension · narrow + regular','Amio/lido: ≥18 · unaltered · HR ≥120 · normotension · wide + regular','Sync CV: ≥18 · hypotension · HR ≥120 wide / ≥150 narrow · AMS, ongoing CP, other shock signs'],
  contra:['Valsalva: sinus tach / AF / flutter','Adenosine: allergy · sinus tach/AF/flutter · dipyridamole or carbamazepine · bronchoconstriction on exam','Amio/lido: allergy'],
- tx:['Valsalva ×2 (10–20 s) — modified preferred (CD p.82)','Adenosine 6 mg → 12 mg IV q2 min · max 2 · rapid + 20 mL flush','Amiodarone 150 mg IV over 10 min q10 · max 2 OR lidocaine 1.5 → 0.75 mg/kg (max single 150) q10 · max 3','Sync cardioversion ≤3 shocks per BHP · patch-failure energies 100 J → 200 J → max'],
+ tx:['Valsalva ×2 (10–20 s) — modified preferred (CD p.133)','Adenosine 6 mg → 12 mg IV q2 min · max 2 · rapid + 20 mL flush','Amiodarone 150 mg IV over 10 min q10 · max 2 OR lidocaine 1.5 → 0.75 mg/kg (max single 150) q10 · max 3','Sync cardioversion ≤3 shocks per BHP · patch-failure energies 100 J → 200 J → max'],
  patch:'MANDATORY ×2: before amiodarone/lidocaine (or adenosine for monomorphic wide regular) · before synchronized cardioversion.',
- cc:'Compensatory tachycardia (pain, hypovolemia, fever, hypoxia) → treat cause, not this directive. Topical lidocaine counts toward 5 mg/kg total. T&D criteria p.136–137.'},
+ cc:'Compensatory tachycardia (pain, hypovolemia, fever, hypoxia) → treat cause, not this directive. Topical lidocaine counts toward 5 mg/kg total. T&D criteria PCS p.136–137.'},
 
 {id:'hyperk',n:'Hyperkalemia',tag:'core',pg:'p.138–140',
  ind:'High-risk (dialysis / ESRD / crush) AND cardiac arrest OR pre-arrest with hyperK ECG changes.',
  cond:['≥18 y'],contra:['Allergy to agent'],
  tx:['12-lead before & after (non-arrest)','Calcium gluconate 10% — 1 g (10 mL) over 2–3 min · q5 min · max 2 · 3rd dose allowed after 30 min if recurrence','Salbutamol MDI 1,600 mcg (16 puffs) OR NEB 10 mg · immediate · max 2'],
- cc:'Pre-arrest = hypotension, ↓LOA, or symptomatic brady. ECG: peaked T, flat P, long PR, wide/bizarre QRS, sine wave. Give both agents when possible — different mechanisms. Calcium is priority in the unstable patient; arrest drugs may not work until calcium given. Line must run well (necrosis). Never mix with bicarb. Bicarb ineffective — BHP discussion only (CD p.23–24).'},
+ cc:'Pre-arrest = hypotension, ↓LOA, or symptomatic brady. ECG: peaked T, flat P, long PR, wide/bizarre QRS, sine wave. Give both agents when possible — different mechanisms. Calcium is priority in the unstable patient; arrest drugs may not work until calcium given. Line must run well (necrosis). Never mix with bicarb. Bicarb ineffective — BHP discussion only (CD p.39).'},
 
 {id:'ivft',n:'IV & Fluid Therapy',tag:'core',pg:'p.141–143',
  ind:'Actual or potential need for IV medication OR fluid therapy.',
@@ -1273,34 +1274,34 @@ const DIR = [
  contra:['Cannulation: suspected fracture proximal to site','Bolus: fluid overload'],
  tx:['Maintenance <12 y: 15 mL/hr · ≥12 y: 30–60 mL/hr','Bolus 20 mL/kg · reassess q100 mL (<12 y) / q250 mL (≥12 y) · max 2,000 mL'],
  patch:'MANDATORY: BHP before bolus in hypotensive <12 y with suspected DKA (cerebral edema).',
- cc:'ROSC & cardiogenic shock max = 10 mL/kg / 1,000 mL. 2 BPs (≥1 manual) before bolus; once started give min 100/250 mL even if normotensive (CD p.26). Rate control set <12 y. EJ stays in ACP scope, typically arrest only (CD p.26).'},
+ cc:'ROSC & cardiogenic shock max = 10 mL/kg / 1,000 mL. 2 BPs (≥1 manual) before bolus; once started give min 100/250 mL even if normotensive (CD p.43–44). Rate control set <12 y. EJ stays in ACP scope, typically arrest only (CD p.43–44).'},
 
 {id:'pio',n:'Pediatric Intraosseous',tag:'core',pg:'p.144',
  ind:'Need for IV med/fluid AND IV unobtainable AND arrest or pre-arrest.',
  cond:['<12 y'],
  contra:['Fracture/crush proximal · prosthesis proximal'],
  tx:['IO access — proximal tibia typical'],
- cc:'“IV unobtainable” must be considered, not necessarily attempted — document rationale (CD p.40).'},
+ cc:'“IV unobtainable” must be considered, not necessarily attempted — document rationale (CD p.59).'},
 
 {id:'cvad',n:'CVAD Access',tag:'core',pg:'p.145–146',
  ind:'Need for IV med/fluid AND IV unobtainable AND arrest or pre-arrest.',
  cond:['Accessible external lumen'],
  contra:['Can’t confirm patency · can’t flush/aspirate · injury/fracture proximal · limb swelling · bleeding at site'],
  tx:['Access CVAD per skill sheet — aspirate 3–5 mL, flush, meticulous sterility'],
- cc:'Clots on aspiration → stop, try another lumen (embolization risk). Dislodged → firm pressure ≥10 min (CD p.16–17).'},
+ cc:'Clots on aspiration → stop, try another lumen (embolization risk). Dislodged → firm pressure ≥10 min (CD p.30).'},
 
 {id:'hypogly',n:'Hypoglycemia',tag:'core',pg:'p.147–151',
  ind:'Suspected hypoglycemia (<2 y: <3.0 · ≥2 y: <4.0 mmol/L).',
  cond:['Altered LOA (dextrose & glucagon) · IN glucagon ≥4 y'],
  contra:['Dextrose: allergy','Glucagon: allergy · pheochromocytoma'],
  tx:['D10W 0.2 g/kg (2 mL/kg) — max <2 y: 5 g (50 mL) · ≥2 y: 25 g (250 mL) · q10 min · max 2','OR D50W (≥2 y) 0.5 g/kg (1 mL/kg) · max 25 g (50 mL)','Glucagon IM <25 kg: 0.5 mg · ≥25 kg: 1 mg · q20 min · max 2 · IN 3 mg if authorized'],
- cc:'Give over ~3 min, stop when safe to eat (rebound risk). D50→D10: waste 40 mL, replace with sterile water/saline = 5 g/50 mL (CD p.25). Premixed D10 piggybacked. Glucagon then IV later + still hypoglycemic → give dextrose regardless of time. T&D criteria p.150–151; two doses of same agent → transport.'},
+ cc:'Give over ~3 min, stop when safe to eat (rebound risk). D50→D10: waste 40 mL, replace with sterile water/saline = 5 g/50 mL (legacy preparation example — not confirmed in current reference; see warning). Premixed D10 piggybacked. Current hypoglycemia discussion: CD p.40–41. Glucagon then IV later + still hypoglycemic → give dextrose regardless of time. T&D criteria PCS p.150–151; two doses of same agent → transport.'},
 
 {id:'seizure',n:'Seizure',tag:'core',pg:'p.152–154',
  ind:'Active generalized motor seizure.',
  cond:['Unresponsive'],contra:['Midazolam allergy'],
  tx:['Midazolam IV/IO 0.1 mg/kg · max 5 mg — IM/IN/buccal 0.2 mg/kg · max 10 mg · q5 min · max 2'],
- cc:'IV over 1–2 min · IO pre-arrest only · IN split nares (CD p.41–42). Consider arrest & hypoglycemia as mimics; don’t delay midazolam for glucometry unless hypoglycemia suspected; check glucose if no response/return to baseline. T&D p.153–154 (no midazolam given, etc.).'},
+ cc:'IV over 1–2 min · IO pre-arrest only · IN split nares (CD p.62). Consider arrest & hypoglycemia as mimics; don’t delay midazolam for glucometry unless hypoglycemia suspected; check glucose if no response/return to baseline. T&D PCS p.153–154 (no midazolam given, etc.).'},
 
 {id:'opioid',n:'Opioid Toxicity & Withdrawal',tag:'core',pg:'p.155–158',
  ind:'Suspected opioid toxicity.',
@@ -1314,7 +1315,7 @@ const DIR = [
  cond:['Presented with the patient’s hydrocortisone vial AND ≥1 of: age-related hypoglycemia · GI sx · syncope · temp ≥38/fever hx · altered LOA · age-related tachycardia · age-related hypotension'],
  contra:['Hydrocortisone allergy'],
  tx:['Hydrocortisone 2 mg/kg · max 100 mg · IM/IV/IO/CVAD · ×1 · round to nearest 10 mg'],
- cc:'Not carried by paramedics — patient supply only (CD p.42). Transport all.'},
+ cc:'Not carried by paramedics — patient supply only (CD p.63). Transport all.'},
 
 {id:'analgesia',n:'Analgesia',tag:'core',pg:'p.161–166',
  ind:'Pain.',
@@ -1322,21 +1323,21 @@ const DIR = [
  contra:['Acetaminophen: use <4 h · liver disease · vomiting · can’t tolerate PO · ischemic CP','Ibuprofen/ketorolac: NSAID <6 h · ASA/NSAID allergy · anticoagulated · active bleeding · PUD/GI bleed · pregnant · asthmatic w/o prior NSAID · CVA/TBI 24 h · renal impairment · (PO: vomiting) · ischemic CP','Opioids/ketamine: allergy · headache · chronic pain · ischemic CP · active labour · opioids: SBP drop ≥⅓'],
  tx:['Acetaminophen PO 12–17 y: 500–650 mg · ≥18: 960–1,000 mg ·×1','Ibuprofen 400 mg PO ×1 · Ketorolac 10–15 mg IM/IV ×1 (not with ibuprofen)','FentaNYL IV/IN 1–17 y: ≤1 mcg/kg (max 75) · ≥18: 25–75 mcg · q5 · cum 200 mcg','Morphine IV/SC 1–17 y: 0.05–0.1 mg/kg (max 5) · ≥18: 2–10 mg (max 10) · q15 · cum 10/20 mg','Ketamine IV 0.25 mg/kg (max 10 peds/20 adult) · IN 1 mg/kg (max 30/75) · q15 · max 2'],
  patch:'MANDATORY: BHP + dosage verification before morphine/fentaNYL <12 y and before ketamine <18 y.',
- cc:'Opioid ↔ ketamine sequential, never co-administered; obey the last drug’s interval. High IV doses in aliquots q3 min. Ketamine over 2–3 min (laryngospasm/emergence); preferred when hypotensive/hemorrhagic risk (CD p.10). Renal colic: add NSAID (CD p.9).'},
+ cc:'Opioid ↔ ketamine sequential, never co-administered; obey the last drug’s interval. High IV doses in aliquots q3 min. Ketamine over 2–3 min (laryngospasm/emergence); preferred when hypotensive/hemorrhagic risk (CD p.23–24). Renal colic: add NSAID (CD p.22).'},
 
 {id:'combative',n:'Combative Patient',tag:'core',pg:'p.167–169',
  ind:'Combative / violent / agitated behaviour requiring sedation for safety.',
  cond:['≥18 y · ketamine: suspected severe agitation with violent psychosis'],
  contra:['Allergy to agent'],
  tx:['Midazolam IV/IM/IN up to 0.1 mg/kg · max single 5 mg · q5 · max total 10 mg','Ketamine IM 18–<65 y: 5 mg/kg · max 500 mg · ≥65 y: 3 mg/kg · max 300 mg · ×1'],
- cc:'Treat reversible causes first (hypoglycemia, hypoxia, hypovolemia). May use 0.05 mg/kg midazolam if frail/uncertain vitals. Never co-administer midaz + ketamine without BHP. EtCO₂ once sedated; >5 mL IM → split sites (vastus lateralis ≤5 mL) (CD p.17). Emergence reaction → BHP for further sedation. Note: “excited delirium” terminology withdrawn per ACEP/ACMT — directive text retained as written.'},
+ cc:'Treat reversible causes first (hypoglycemia, hypoxia, hypovolemia). May use 0.05 mg/kg midazolam if frail/uncertain vitals. Never co-administer midaz + ketamine without BHP. EtCO₂ once sedated; >5 mL IM → split sites (vastus lateralis ≤5 mL) (CD p.31). Emergence reaction → BHP for further sedation. Note: “excited delirium” terminology withdrawn per ACEP/ACMT — directive text retained as written.'},
 
 {id:'nausea',n:'Nausea / Vomiting',tag:'core',pg:'p.170–171',
  ind:'Nausea OR vomiting.',
  cond:['Both: ≥25 kg · unaltered'],
  contra:['Ondansetron: allergy · known long-QT · apomorphine','DimenhyDRINATE: antihistamine allergy · antihistamine/anticholinergic/TCA overdose · co-admin diphenhydrAMINE'],
  tx:['Ondansetron 4 mg PO ×1','DimenhyDRINATE 25–<50 kg: 25 mg ×1 · ≥50 kg: 25–50 mg q30 · max 2 · cum 50 mg'],
- cc:'Dilute 1:9 with NS/D5W for IV (50 mg/mL); IM undiluted. ≥65 y: consider reduced 25 mg. No relief 30 min → alternative agent. Selection guide CD p.35.'},
+ cc:'Dilute 1:9 with NS/D5W for IV (50 mg/mL); IM undiluted. ≥65 y: consider reduced 25 mg. No relief 30 min → alternative agent. Selection guide CD p.52.'},
 
 {id:'ob',n:'Emergency Childbirth',tag:'core',pg:'p.174–178',
  ind:'Labour / imminent birth (childbearing years ≈14–50 for delivery, cord mgmt, EUM).',
@@ -1350,14 +1351,14 @@ const DIR = [
  cond:['≥18 y · tachypnea · normotension · SpO₂ <90% or accessory muscle use'],
  contra:['Asthma exacerbation · suspected pneumothorax · unprotected/unstable airway · major trauma or burns head/torso · tracheostomy · can’t sit upright · unable to cooperate'],
  tx:['Start 5 cmH₂O · +2.5 q5 min · max 15 · FiO₂ 50–100%, ↑ if SpO₂ <92% despite Rx and/or 10 cmH₂O · confirm by manometer if available'],
- cc:'Additive to bronchoconstriction (COPD) / ACPE directives, not a replacement; pause briefly for nitro (salbutamol via MDI port) (CD p.17). EtCO₂ 50–60 target in COPD/asthma failure with initial >50 (CD p.13).'},
+ cc:'Additive to bronchoconstriction (COPD) / ACPE directives, not a replacement; pause briefly for nitro (salbutamol via MDI port) (CD p.32). EtCO₂ 50–60 target in COPD/asthma failure with initial >50 (CD p.25).'},
 
 {id:'txa',n:'Traumatic Hemorrhage (TXA)',tag:'aux',pg:'p.235–236',
  ind:'Suspected hemorrhage due to trauma AND hemodynamic instability.',
  cond:['≥16 y · HR ≥110 or hypotension'],
  contra:['TXA allergy · >3 h from injury or unknown time · isolated head injury'],
  tx:['Tranexamic acid (TXA) 1,000 mg IV over ≥5 min (1 g in 50 mL NS/D5W, or 10 mL syringe pushed ≥5 min) OR IM · ×1'],
- cc:'Never delays transport or reversible-cause management. Rapid IV push → hypotension. Peds efficacy unproven prehospital (CD p.48).'},
+ cc:'Never delays transport or reversible-cause management. Rapid IV push → hypotension. Peds efficacy unproven prehospital (CD p.72).'},
 
 {id:'nti',n:'Nasotracheal Intubation',tag:'aux',pg:'p.227–230',
  ind:'Need for ventilatory assistance/airway control AND other management ineffective.',
@@ -1371,21 +1372,21 @@ const DIR = [
  cond:['≥12 y · altered'],
  contra:['Suspected fractured larynx · inability to landmark'],
  tx:['Cricothyrotomy · confirm waveform ETCO₂ primary, else ≥2 secondary'],
- cc:'Last resort; low frequency — practice often (CD p.17–18).'},
+ cc:'Last resort; low frequency — practice often (CD p.33).'},
 
 {id:'aio',n:'Adult Intraosseous',tag:'aux',pg:'p.237–238',
  ind:'Need IV med/fluid AND IV unobtainable AND arrest or pre-arrest.',
  cond:['≥12 y'],
  contra:['Fracture/crush proximal · prosthesis immediately proximal'],
  tx:['IO access — 15/25/45 mm needle by habitus; tibia or proximal humerus (RBHP)'],
- cc:'“Unobtainable” = considered, documented — not necessarily attempted (CD p.8).'},
+ cc:'“Unobtainable” = considered, documented — not necessarily attempted (CD p.16).'},
 
 {id:'psed',n:'Procedural Sedation',tag:'aux',pg:'p.239–240',
  ind:'Post-intubation OR transcutaneous pacing.',
  cond:['≥18 y · normotension · RR ≥10 (non-intubated only)'],
  contra:['Allergy to agent'],
  tx:['FentaNYL 25–75 mcg IV/IO/CVAD/IN · q5 · max total 150 mcg','Midazolam up to 0.1 mg/kg IV/IO/CVAD/IN · max single 5 · q5 · max total 10 mg'],
- cc:'Applies only after ETT placed OR pacing initiated; intent is concurrent midaz + fentanyl; corrected hypotension no longer a contraindication (CD p.40). Lower doses elderly/light. EtCO₂ once sedated.'}
+ cc:'Applies only after ETT placed OR pacing initiated; intent is concurrent midaz + fentanyl; corrected hypotension no longer a contraindication (CD p.60). Lower doses elderly/light. EtCO₂ once sedated.'}
 ];
 // ============ APP STATE ============
 const S = { mode:'age', ageVal:null, ageUnit:'y', wtVal:null, wtUnit:'kg', sex:'', ht:null, pt:null, tool:null, caseId:'all', query:'', patientKey:null, validation:[], viewMode:'field', entryCollapsed:false, advancedOpen:false, pickerOpen:true };
@@ -1438,30 +1439,50 @@ function toneBadge(t){
   if(t==='warn') return '<span class="badge warn">N/A</span>';
   return '<span class="badge pcs">PCS</span>';
 }
-// Official source documents. off = (physical PDF page of printed p.1) − 1; when set, citations
-// deep-link with #page= on desktop viewers (iOS Safari ignores the fragment and opens the document).
-// PDC offset verified against the published PDF this build: printed p.56–69 = physical pages 1–14.
+// Verified physical PDF page = printed page + off. Some mobile viewers ignore
+// #page; keep the target PDF page visible so it can also be entered manually.
 const SRC_LINKS={
-  PCS:{url:'https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf',off:12},
-  // PCS off=12 is an ESTIMATE of the unnumbered front matter (cover, notices, document control,
-  // TOC, dividers) before printed p.1 — the printed labels themselves are verified against the
-  // published PDF. Calibrate once on desktop: open any PCS link; if it lands N pages past the
-  // cited page, reduce off by N (short → increase). iOS Safari ignores #page and opens the doc.
-  CD:{url:'https://ontariobasehospitalgroup.ca/wp-content/uploads/2026/09/ALS-PCS-v5.4-Companion-Document-v-26.08.27-FINAL.pdf',off:null},
-  PDC:{url:'https://www.rppeo.ca/images/pdf/Pediatric_Dosing_Charts_v5.4.pdf',off:-55}
+  PCS:{url:'https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf',off:12,min:1,max:294,name:'ALS PCS v5.4'},
+  CD:{url:'https://ontariobasehospitalgroup.ca/wp-content/uploads/2026/09/ALS-PCS-v5.4-Companion-Document-v-26.08.27-FINAL.pdf',off:0,min:1,max:144,name:'Companion Document v26.08.27'},
+  PDC:{url:'https://www.rppeo.ca/images/pdf/Pediatric_Dosing_Charts_v5.4.pdf',off:-55,min:56,max:69,name:'Pediatric Dosing Charts v5.4'}
 };
-function srcHref(k,pg){const c=SRC_LINKS[k];return c.url+(c.off!=null&&pg?`#page=${pg+c.off}`:'');}
+function srcHref(k,pg){const c=SRC_LINKS[k];if(!c)return'';return c.url+(Number.isInteger(+pg)&&+pg>=c.min&&+pg<=c.max?`#page=${+pg+c.off}`:'');}
+function referenceHTML(value,plain=esc){
+  const text=String(value??''),pattern=/\b(PCS|CD|PDC)(?:\s+v?5\.4)?\s+p{1,2}\.?\s*(\d+(?:\s*[–−-]\s*\d+)?(?:\s*,\s*(?:p\.?\s*)?\d+(?:\s*[–−-]\s*\d+)?)*)/gi;
+  let html='',start=0;
+  for(const match of text.matchAll(pattern)){
+    html+=plain(text.slice(start,match.index));
+    const key=match[1].toUpperCase(),doc=SRC_LINKS[key],pages=[];
+    for(const item of match[2].split(',')){
+      const numbers=(item.match(/\d+/g)||[]).map(Number),first=numbers[0],last=numbers[1]??first;
+      if(first>=doc.min&&last<=doc.max&&last>=first&&last-first<20)for(let p=first;p<=last;p++)pages.push(p);
+    }
+    html+=pages.length?[...new Set(pages)].map(p=>{
+      const pdf=p+doc.off,title=`${doc.name} · printed page ${p} · PDF page ${pdf}`;
+      return `<a class="rlink source-page" data-source="${key}" data-page="${p}" href="${srcHref(key,p)}" title="${esc(title)}" aria-label="${esc(title)}" target="_blank" rel="noopener">${key} p.${p}${doc.off?` <small>(PDF ${pdf})</small>`:''}</a>`;
+    }).join(', '):plain(match[0]);
+    start=match.index+match[0].length;
+  }
+  return html+plain(text.slice(start));
+}
 function srcLink(src){
   if(!src)return'';
-  let m=src.match(/PCS p\.?\s*(\d+)/i),k='PCS';
-  if(!m){m=src.match(/PDC v?5\.?4? p\.?\s*(\d+)/i);k='PDC';}
-  if(!m){m=src.match(/CD p\.?\s*(\d+)/i);k='CD';}
-  if(!m)return`<div class="rsrc">${esc(src)}</div>`;
-  return`<a class="rsrc rlink" href="${srcHref(k,+m[1])}" target="_blank" rel="noopener">${esc(src)} ↗</a>`;
+  const html=referenceHTML(src);
+  return `<div class="rsrc">${html}</div>${html.includes('data-source=')?'<div class="source-hint">If the PDF opens at the start, enter the PDF page shown (CD: same as printed page).</div>':''}`;
+}
+function linkReferenceText(root){
+  if(!root)return;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+  while(walker.nextNode())if(!walker.currentNode.parentElement.closest('a,button,script,style,select,option'))nodes.push(walker.currentNode);
+  for(const node of nodes){
+    const html=referenceHTML(node.textContent);
+    if(!html.includes('data-source='))continue;
+    const span=document.createElement('span');span.innerHTML=html;node.replaceWith(span);
+  }
 }
 function criteriaHTML(text,label,kind){
   const items=String(text||'').split(/\s*·\s*/).filter(Boolean);
-  return `<div class="${kind}"><b>${label}</b><ul class="criteria">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  return `<div class="${kind}"><b>${label}</b><ul class="criteria">${items.map(x=>`<li>${referenceHTML(x)}</li>`).join('')}</ul></div>`;
 }
 const cardDetailsOpen={};
 const STOCK_NAMES={amiodarone:'amiodarone',lidocaine:'lidocaine',atropine:'atropine',adenosine:'adenosine',midazolam:'midazolam',fentanyl:'fentanyl',morphine:'morphine',ketamine:'ketamine',naloxone:'naloxone',glucagon:'glucagon',dexamethasone:'dexamethasone',hydrocortisone:'hydrocortisone',ketorolac:'ketorolac',dimenhydrinate:'dimenhydrinate',ondansetron:'ondansetron',txa:'txa',diphenhydramine:'diphenhydramine',oxytocin:'oxytocin',dopamine:'dopamine',d10w:'d10',d50w:'d50'};
@@ -1504,7 +1525,7 @@ function rowHTML(r){
     ${repeat?`<div class="rrep" aria-label="Repeat interval and maximum">${esc(repeat)}</div>`:''}
     ${r.when?criteriaHTML(r.when,'✓ Conditions','rcond'):''}
     ${r.contra?criteriaHTML(r.contra,'✗ Contraindications','rcontra'):''}
-    ${notes.length?`<div class="rsub"><b>Administration / cautions</b><br>${esc(notes.join(' · '))}</div>`:''}
+    ${notes.length?`<div class="rsub"><b>Administration / cautions</b><br>${referenceHTML(notes.join(' · '))}</div>`:''}
     ${r.src||concentration?`<details class="card-details" data-detail-key="${esc(detailKey)}"${cardDetailsOpen[detailKey]?' open':''}><summary>${concentration?'Concentration & reference':'Reference details'}</summary>${concentration?`<div><b>Concentration / formulation used</b><br>${esc(concentration)}</div>`:''}${r.src?srcLink(r.src):''}</details>`:''}
   </div>`;
 }
@@ -1522,7 +1543,7 @@ function calculatorRowHTML(r){
   return rowHTML({...r,concentrationDetails:concentrationDetails(r),ml:calculatorDrawText(r.name,r.ml),ml2:calculatorDrawText(r.name,r.ml2)});
 }
 function kvHTML(k,v,s,cls){
-  return `<div class="kv"><span class="k">${k}</span><span class="v num ${cls||''}">${v}${s?`<span class="s">${s}</span>`:''}</span></div>`;
+  return `<div class="kv"><span class="k">${k}</span><span class="v num ${cls||''}">${v}${s?`<span class="s">${referenceHTML(s)}</span>`:''}</span></div>`;
 }
 
 // ============ INPUT HANDLING ============
@@ -1758,17 +1779,17 @@ function updateCalcSearch(value){
 
 function summaryRows(p){
   let h='';
-  h+=kvHTML('Weight', p.weightKg!=null?`${fmt(p.weightKg)} kg`:'—', p.weightSrc==='entered'?'entered':esc(p.weightSrc||'enter weight'));
+  h+=kvHTML('Weight', p.weightKg!=null?`${fmt(p.weightKg)} kg`:'—', p.weightSrc==='entered'?'entered':p.weightSrc||'enter weight');
   if(p.ageYears==null&&p.ageEstYears!=null) h+=kvHTML('Age (from weight)',`≈ ${p.ageEstYears} y`,'PCS formula inverted — confirm');
-  if(p.vitals) h+=kvHTML(`Normal HR (${p.vitals.label})`,p.vitals.hr,esc(p.vitals.src));
-  if(p.vitals) h+=kvHTML(`Normal RR (${p.vitals.label})`,p.vitals.rr,esc(p.vitals.src));
+  if(p.vitals) h+=kvHTML(`Normal HR (${p.vitals.label})`,p.vitals.hr,p.vitals.src);
+  if(p.vitals) h+=kvHTML(`Normal RR (${p.vitals.label})`,p.vitals.rr,p.vitals.src);
   if(p.normoSBP!=null){
-    h+=kvHTML('Normotension',`SBP ≥ ${p.normoSBP}`, p.isPeds?'90 + (2×age), capped at adult 100 — PCS p.15 · CD p.25':'PCS p.14');
+    h+=kvHTML('Normotension',`SBP ≥ ${p.normoSBP}`, p.isPeds?'90 + (2×age), capped at adult 100 — PCS p.15 · CD p.43':'PCS p.14');
     h+=kvHTML('Hypotension',`SBP &lt; ${p.hypoSBP}`, p.isPeds?'70 + (2×age), capped at adult 90 — PCS p.15':'PCS p.14');
     h+=kvHTML('Hypoglycemia',`&lt; ${p.hypoglycemia.toFixed(1)} mmol/L`, (p.ageYears<2?'<2 y':'≥2 y')+' — PCS p.15');
   }else h+=kvHTML('Age-gated thresholds','Age required','No adult/pediatric default applied');
   if(p.broselow) h+=kvHTML('Broselow zone (approx.)',p.broselow,'EXT: Broselow-Luten — verify with tape','');
-  if(p.ibw!=null&&p.ibwSrc&&p.ibwSrc.startsWith('EXT: Devine')) h+=kvHTML('Ideal body weight',`${fmt(p.ibw)} kg`,esc(p.ibwSrc));
+  if(p.ibw!=null&&p.ibwSrc&&p.ibwSrc.startsWith('EXT: Devine')) h+=kvHTML('Ideal body weight',`${fmt(p.ibw)} kg`,p.ibwSrc);
   return h;
 }
 
@@ -1829,20 +1850,26 @@ window.toggleSec=(id,btn)=>{const el=btn.parentElement;el.classList.toggle('open
 // ============ DIRECTIVES TAB ============
 const HL_RE=/((?:max|cum(?:ulative)?)(?:\s(?:single|total|cumulative|cum))?\s\d[\d,.]*(?:\s?\/\s?\d[\d,.]*)?(?:\s?(?:mg\/kg|mcg\/kg|mL\/kg|mg|mcg|g|mL|units?|J|puffs?|doses?|sprays?|shocks?))?(?![\w])|q\s?\d+(?:[\u2013\u2192-]\d+)?(?:\s?\/\s?\d[\d,.]*)?(?:\s?(?:min|h|s))?(?![\w])|\u00d7\s?\d+|(?:[\u2264\u2265<>~]\s?)?\d[\d,.]*(?:\s?[\u2013\u2192-]\s?\d[\d,.]*)?\s?(?:mcg\/kg\/min|mg\/kg\/min|mcg\/kg|mg\/kg|mL\/kg|g\/kg|J\/kg|mmol\/L|breaths\/min|mL\/hr|gtt\/min|cmH\u2082O|mcg|mg|g|mL|units?|J|puffs?|sprays?|Fr)(?![\w\/]))/g;
 function hlTx(s){return s.replace(HL_RE,m=>`<b class="${/^(?:max|cum|q\s?\d|\u00d7)/.test(m)?'hlr':'hld'}">${m}</b>`);}
+const REFERENCE_REVIEW={
+  tension:'Reference mismatch: the older needle-size summary below is not verified for the current edition. CD p.69 specifies different adult-size catheter length guidance. Do not rely on the older summary; check the current document and local/RBHP equipment guidance.',
+  ischemia:'Reference review needed: the older blanket rule below about never restarting a drug after vital signs recover was not confirmed in current CD p.27–28 or PCS p.121–123. Follow the current directive conditions and BHP direction.',
+  hypogly:'Reference review needed: the older D50-to-D10 preparation example below was not found in current CD p.40–41. PCS p.148 permits dilution but does not give that recipe. Verify preparation against approved local guidance before use.'
+};
 function dirCardHTML(d){
-  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
-  const listT=a=>a&&a.length?`<ul>${a.map(x=>`<li>${hlTx(esc(x))}</li>`).join('')}</ul>`:'';
+  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x)}</li>`).join('')}</ul>`:'';
+  const listT=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x,s=>hlTx(esc(s)))}</li>`).join('')}</ul>`:'';
   return `<div class="dcard${directiveOpen[d.id]?' open':''}" data-id="${d.id}">
     <button class="dhead" aria-expanded="${!!directiveOpen[d.id]}" onclick="toggleDirective(this)">
       <span class="dtag ${d.tag}">${d.tag==='core'?'ACP CORE':'AUXILIARY'}</span><h3>${esc(d.n)}</h3><span class="pg num">${esc(d.pg)}</span>
     </button>
     <div class="dbody">
+      <div class="dsec"><h4>Source pages</h4>${srcLink('PCS '+d.pg)}</div>
       <div class="dsec"><h4 class="ind">Indications</h4><p>${esc(d.ind)}</p></div>
       <div class="dsec"><h4 class="con">Conditions</h4>${list(d.cond)}</div>
       <div class="dsec"><h4 class="contra">Contraindications</h4>${list(d.contra)}</div>
       <div class="dsec"><h4 class="tx">Treatment</h4>${listT(d.tx)}</div>
       ${d.patch?`<div class="dsec"><h4 class="pp">Patch point</h4><div class="patchbox">☎ ${esc(d.patch)}</div></div>`:''}
-      ${d.cc?`<div class="dsec"><h4 class="cc">Companion notes</h4><p>${esc(d.cc)}</p></div>`:''}
+      ${d.cc?`<div class="dsec"><h4 class="cc">Companion notes</h4>${REFERENCE_REVIEW[d.id]?`<div class="warnbanner red">${referenceHTML(REFERENCE_REVIEW[d.id])}</div>`:''}<p>${referenceHTML(d.cc)}</p></div>`:''}
     </div></div>`;
 }
 window.toggleDirective=btn=>{const card=btn.parentElement;card.classList.toggle('open');directiveOpen[card.dataset.id]=card.classList.contains('open');btn.setAttribute('aria-expanded',String(directiveOpen[card.dataset.id]));};
@@ -1884,6 +1911,7 @@ window.openTool=(id,fromChip)=>{
   if(fromChip){switchPane('tools');}
   $('toolHome').classList.add('hide');
   $('toolView').innerHTML=toolPanel(id);
+  linkReferenceText($('toolView'));
   if(id==='gcs') gcsInit(); if(id==='apgar') apgarInit(); if(id==='tbsa') tbsaInit();
 };
 window.closeTool=()=>{S.tool=null;$('toolHome').classList.remove('hide');$('toolView').innerHTML='';stopApgarTimer();};
@@ -1893,7 +1921,7 @@ function toolPanel(id){
   if(id==='pushdose'){const pd=pushDoseEpi();return `${back}<div class="toolpanel"><h3>Push-Dose EPINEPHrine</h3><div class="tsrc">${esc(pd.src)}</div>
     <div class="warnbanner red">⚠ <b>Not an ALS PCS 5.4 treatment.</b> In Ontario this requires a BHP order. Reference for patch discussion only.</div>
     ${rowHTML({name:'Mix',dose:pd.mix,tone:'ext',src:'EXT: common push-dose preparation'})}
-    ${rowHTML({name:'Dose',dose:pd.dose,sub:'Titrate to effect · discard syringe if unlabeled — RED RULE (CD p.2)',tone:'ext',src:'EXT'})}</div>`;}
+    ${rowHTML({name:'Dose',dose:pd.dose,sub:'Titrate to effect · discard syringe if unlabeled — local medication-labelling safety check; not located in current CD',tone:'ext',src:'EXT'})}</div>`;}
   if(id==='apgar'){return `${back}<div class="toolpanel"><h3>APGAR</h3><div class="tsrc">Standard neonatal score — score at 1 min & 5 min</div>
     <div class="result" style="margin:0 0 14px"><div class="big num" id="apTimer">0:00</div><div class="lbl" id="apTimerLbl">Tap start at delivery — flags at 1:00 & 5:00</div>
     <div class="timerbtns" style="margin-top:10px"><button class="go" id="apStart" onclick="apgarTimerToggle()">▶ Start</button></div></div>
@@ -1921,7 +1949,7 @@ function toolPanel(id){
       rows+=kvHTML(`${d} mcg/kg/min`, r!=null?`${r<1?'calc ':''}${r} mL/hr`:'—', dd?`= ${r} gtt/min · 1 gtt / ${dd.every} s · ${dd.per10} gtt per 10 s`:r!=null&&r<1?'below whole-drop timing — verify pump/local method':'');}
     return `${back}<div class="toolpanel"><h3>DOPamine — single strength</h3><div class="tsrc">PCS p.120 chart · 800 mcg/mL · microdrip 60 gtt/mL: mL/hr = gtt/min — drop counts assume this set</div>
     ${w?`<p class="p" style="margin-bottom:8px">For current patient <b class="num" style="color:var(--text)">${fmt(w)} kg</b>:</p>${rows}`:'<p class="p">Enter a weight on the Calculator tab.</p>'}
-    <p class="p" style="margin-top:10px">Start 5 · titrate +5 q5 min · max 20 mcg/kg/min · target SBP ≥90–&lt;110 (PCS p.118, 128, 131).</p></div>`;}
+    <p class="p" style="margin-top:10px">Start 5 · titrate +5 q5 min · max 20 mcg/kg/min · target SBP ≥90–&lt;110 (PCS p.119, 128, 131).</p></div>`;}
   if(id==='cows'){return `${back}<div class="toolpanel"><h3>COWS — severity bands</h3><div class="tsrc">PCS p.158 · full scale scores 11 items — use service scoring sheet</div>
     ${kvHTML('&lt; 5','No active withdrawal','')}${kvHTML('5–12','Mild','')}${kvHTML('13–24','Moderate','')}${kvHTML('25–36','Moderately severe','')}${kvHTML('&gt; 36','Severe','')}
     <div class="warnbanner" style="margin-top:14px">Score ≥8 (with prior naloxone this episode, ≥16 y, no methadone in 72 h) = indication for buprenorphine/naloxone 16 mg → 8 mg · max 24 mg (PCS p.155–156).</div></div>`;}
@@ -2139,7 +2167,7 @@ function critRowsForPath(p,id){
     out.rows=id==='seizure'?(d.neuro||[]).slice():critOrder(d.metab,names[id]);
     out.equipment=critAirRows(p,['i-gel size','Vent rate']);
   }else if(id==='trauma'){
-    out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.47',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
+    out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.69',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','i-gel size']);
   }else if(id==='newborn'){
     out.rows=critOrder(d.newborn,['Sequence','Preductal SpO₂','EPINEPHrine IV/IO','EPINEPHrine ETT']);out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel size']);
@@ -2152,7 +2180,7 @@ function critSection(title,rows,note){
 }
 function critRoscChecklist(){
   const done=ROSC_CHECKLIST.filter(x=>roscChecklistState[x.id]).length;
-  return`<section class="crit-checklist" aria-labelledby="roscChecklistTitle"><div class="crit-checkhead"><div><h3 id="roscChecklistTitle">ROSC checklist</h3><small>${done}/${ROSC_CHECKLIST.length} complete · resets with New patient</small></div><button type="button" onclick="resetRoscChecklist()">Reset</button></div><div class="crit-checks" role="list">${ROSC_CHECKLIST.map(x=>`<button type="button" role="listitem" class="crit-check${roscChecklistState[x.id]?' on':''}" aria-pressed="${!!roscChecklistState[x.id]}" onclick="toggleRoscCheck('${x.id}')"><span class="mark" aria-hidden="true">✓</span><span><b>${esc(x.title)}</b><small>${esc(x.detail)}</small></span></button>`).join('')}</div><div class="refonly" style="margin-top:9px">${srcLink('PCS p.117–120')} · Companion p.41 · workflow aid; directive conditions and treatment cards below govern</div></section>`;
+  return`<section class="crit-checklist" aria-labelledby="roscChecklistTitle"><div class="crit-checkhead"><div><h3 id="roscChecklistTitle">ROSC checklist</h3><small>${done}/${ROSC_CHECKLIST.length} complete · resets with New patient</small></div><button type="button" onclick="resetRoscChecklist()">Reset</button></div><div class="crit-checks" role="list">${ROSC_CHECKLIST.map(x=>`<button type="button" role="listitem" class="crit-check${roscChecklistState[x.id]?' on':''}" aria-pressed="${!!roscChecklistState[x.id]}" onclick="toggleRoscCheck('${x.id}')"><span class="mark" aria-hidden="true">✓</span><span><b>${esc(x.title)}</b><small>${esc(x.detail)}</small></span></button>`).join('')}</div><div class="refonly" style="margin-top:9px">${srcLink('PCS p.117–120 · CD p.61')} · workflow aid; directive conditions and treatment cards below govern</div></section>`;
 }
 function critPriorities(p,path){
   if(path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18)return['Place pads/monitor, obtain a diagnostic rhythm strip or 12-lead when feasible, and assess perfusion/hemodynamic instability.','Pediatric tachydysrhythmia is outside the adult standing directive: patch BHP before drug therapy or synchronized cardioversion.','Use the PDC band values below for the patch read-back; confirm actual weight, concentration, route and selected joules with your partner.'];
@@ -2187,7 +2215,7 @@ function critWarnings(p,id){
   if(p&&p.weightKg==null)h+=`<div class="crit-alert red"><b>Weight required:</b> weight-based doses and draw volumes cannot be safely populated.</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is adult-gated. Use the published pediatric chart only as a BHP reference, not as authorization.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds reference</button></div></div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='hyperk')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing Hyperkalemia Medical Directive is limited to patients ≥18 years old. Patch to a BHP for direction; no adult dose is displayed.</div>`;
-  if(p&&p.ageYears!=null&&p.ageYears<18&&id==='tachy'){const info=critPedsBandInfo(p);h+=`<div class="crit-alert patch"><b>MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA:</b> age &lt;18 is outside the standing Tachydysrhythmia Medical Directive. The PDC drug doses and electrical settings below are patch-reference data only; treatment requires a BHP order. Report age, actual weight, rhythm/rate, QRS width/regularity, perfusion/hemodynamic status, IV/IO access and response to prior measures.${info.band?`<div class="crit-band"><b>${esc(info.basis)}</b>${info.note?`<br>${esc(info.note)}`:''} · <a class="rlink" href="${srcHref('PDC',info.band.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${info.band.pg} ↗</a></div>`:info.note?`<div class="crit-band"><b>Chart band unavailable</b><br>${esc(info.note)}</div>`:''}<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open full Peds reference</button></div></div>`;}
+  if(p&&p.ageYears!=null&&p.ageYears<18&&id==='tachy'){const info=critPedsBandInfo(p);h+=`<div class="crit-alert patch"><b>MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA:</b> age &lt;18 is outside the standing Tachydysrhythmia Medical Directive. The PDC drug doses and electrical settings below are patch-reference data only; treatment requires a BHP order. Report age, actual weight, rhythm/rate, QRS width/regularity, perfusion/hemodynamic status, IV/IO access and response to prior measures.${info.band?`<div class="crit-band"><b>${esc(info.basis)}</b>${info.note?`<br>${esc(info.note)}`:''} · <a class="rlink" href="${srcHref('PDC',info.band.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${info.band.pg} (PDF ${info.band.pg-55}) ↗</a></div>`:info.note?`<div class="crit-band"><b>Chart band unavailable</b><br>${esc(info.note)}</div>`:''}<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open full Peds reference</button></div></div>`;}
   if(id==='newborn'&&p&&p.ageDays!=null&&p.ageDays>=1)h+=`<div class="crit-alert red"><b>Wrong patient pathway:</b> Newborn Resuscitation applies only to a patient &lt;24 hours old.</div>`;
   return h;
 }
@@ -2308,7 +2336,7 @@ function pedBadges(m){
 }
 function pedFlagBox(fl){
   if(!fl)return'';
-  let h=`<div class="pedflag ${fl.sev==='err'?'':fl.sev}">${fl.sev==='err'?'⚠ ':''}${esc(fl.note)}</div>`;
+  let h=`<div class="pedflag ${fl.sev==='err'?'':fl.sev}">${fl.sev==='err'?'⚠ ':''}${referenceHTML(fl.note.replace(/\(p\.(\d+)\)/g,'(PDC p.$1)'))}</div>`;
   if(fl.note2)h+=`<div class="pedflag warn">${esc(fl.note2)}</div>`;
   return h;
 }
@@ -2338,7 +2366,7 @@ function pedRow(m,b){
     <div class="rml num">${totalLine}</div>
     ${conc?`<div class="rsub">Supplied: ${m.d==='Atropine'?'1 mg/5 mL (0.2 mg/mL)':esc(conc)}${m.fl&&m.fl.fix&&m.fl.fix.conc?' <b style="color:var(--red)">(reconciled — see note)</b>':''}</div>`:''}
     ${pedFlagBox(m.fl)}
-    <a class="rsrc rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} ↗</a><span class="rsrc" style="display:inline;margin-left:6px"> — transcribed as printed${m.bhp?' · chart: requires BHP authorization':''}</span>
+    <a class="rsrc rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} (PDF ${b.pg-55}) ↗</a><span class="rsrc" style="display:inline;margin-left:6px"> — transcribed as printed${m.bhp?' · chart: requires BHP authorization':''}</span>
   </div>`;
 }
 function pedEquip(b){
@@ -2444,7 +2472,7 @@ function renderPeds(){
     <div style="display:flex;align-items:center;gap:11px">
       <span class="pedswatch" style="background:${b.hex}"></span>
       <div style="flex:1"><div class="rsub" style="text-transform:uppercase;letter-spacing:.7px;font-weight:900">PDC reference band</div><b style="font-size:16.5px">${esc(b.w)}</b> <span style="color:var(--mut);font-weight:650">· ${esc(b.color)} · ${esc(b.age)}</span>
-      <div class="rsub" style="margin-top:2px">Doses computed at <b>${b.calcW} kg</b> (median of range) · <a class="rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} ↗</a></div></div>
+      <div class="rsub" style="margin-top:2px">Doses computed at <b>${b.calcW} kg</b> (median of range) · <a class="rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} (PDF ${b.pg-55}) ↗</a></div></div>
       <button class="ptedit" onclick="pedTogglePatch()">${PS.patch?'Chart':'📞 Patch'}</button>
     </div>
     <div class="kv" style="margin-top:8px;border-bottom:none"><span class="k">Normal vitals (printed)</span><span class="v num" style="font-weight:700;font-size:12.5px">HR ${esc(b.vit.hr)} · RR ${esc(b.vit.rr)} · BP ${esc(b.vit.bp)}</span></div>
@@ -2457,6 +2485,7 @@ function renderPeds(){
   }
   h+=`<div class="disclaimer" style="margin-top:14px">🧒 Values transcribed verbatim from <b>Pediatric Dosing Charts v5.4</b> (Sunnybrook base hospital reference; PDC p.${b.pg}) and arithmetic-validated. Rows marked <b style="color:var(--red)">⚠ source</b> carry confirmed misprints in the published PDF — the internally consistent value is shown and the printed cell is quoted in the note. These charts don\u2019t authorize treatment: ALS PCS conditions and patch points govern; * doses are maximums not to be exceeded without BHP approval.</div>`;
   body.innerHTML=h;
+  linkReferenceText(body);
 }
 window.pedSelectBand=(id)=>{PS.band=id;PS.manual=true;PS.pickerOpen=false;renderPeds();};
 window.pedToggleBands=()=>{PS.pickerOpen=!PS.pickerOpen;renderPeds();};
