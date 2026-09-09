@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.09.08.2 fixes all shared Companion Document reference links using the supplied v26.08.27 FINAL PDF URL. This is a link repair only: clinical content and printed page citations have not been re-audited against the new document. The cache version is updated so installed apps receive the repaired links when refreshed online.
+
 Build 2026.09.08.1:
 
 - Atropine uses only service stock 1 mg/5 mL (0.2 mg/mL). Old saved concentration overrides are ignored, and Settings shows the fixed stock. Calculator/Critical draw volumes use this concentration; prescribed doses are unchanged.

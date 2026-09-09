@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.08.1-service-stock-critical-picker';
+const CACHE = 'acp-field-calc-2026.09.08.2-companion-link';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
