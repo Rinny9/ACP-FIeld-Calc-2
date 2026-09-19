@@ -1,5 +1,5 @@
 // Requires Playwright. TEST_WEBKIT=1 adds WebKit; CHROME_PATH may select Chrome.
-// Exercises Critical grouping, shared airway output, age guards and section jumps.
+// Exercises Critical grouping, shared airway output, age guards and shortcut removal.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {execFileSync}=require('node:child_process');
 const {chromium,webkit}=require('playwright');
@@ -91,42 +91,37 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       }
       await page.evaluate(()=>{S.ageVal=28;S.wtVal=80;recompute();switchPane('critical');});await settle();
 
-      // Every rendered section jump is reachable without hiding its title behind
-      // the sticky patient/pathway context, even on narrow phones and Large text.
+      // Removing the shortcut row must preserve section content and the category
+      // tabs, including on narrow phones and with Large text enabled.
+      const noShortcuts=async()=>assert.equal(await page.locator('#critJumps,.crit-jumps,#critical [onclick^="jumpCriticalSection"],#critical button[data-section^="crit-"]').count(),0,'Critical has no section-shortcut row or buttons');
       for(const width of [320,390])for(const large of [false,true]){
         await page.setViewportSize({width,height:844});await page.evaluate(large=>document.body.classList.toggle('large-text',large),large);
         for(const id of allPaths){
           await page.evaluate(id=>selectCriticalPath(id),id);await settle();
+          await noShortcuts();
           assert.equal(await page.locator('#crit-airway').count(),1,id+': a distinct airway section');
-          const jumps=await page.locator('#critJumps [data-section]').evaluateAll(nodes=>nodes.map(el=>el.dataset.section));
-          assert.ok(jumps.includes('crit-airway'));assert.ok(jumps.includes('crit-references'));
-          if(id==='rosc')assert.ok(jumps.includes('crit-checklist'));
-          if(await page.locator('#crit-treatment').count())assert.ok(jumps.includes('crit-treatment'));
+          assert.equal(await page.locator('#crit-references').count(),1,id+': reference controls remain available');
+          if(id==='rosc')assert.equal(await page.locator('#crit-checklist').count(),1,'ROSC checklist remains available');
+          const groupPaths=await page.evaluate(()=>CRIT_GROUPS.find(g=>g.id===critGroup).paths);
+          assert.equal(await page.locator('#critSubpaths button').count(),groupPaths.length>1?groupPaths.length:0,id+': subcategory tabs remain available');
+          const treatment=await page.evaluate(id=>critRowsForPath(S.pt,id).rows.length,id);
+          if(treatment)assert.equal(await page.locator('#crit-treatment .row').count(),treatment,id+': treatment cards remain available');
           const overflow=await page.locator('#critical').evaluate(root=>{
             const bad=[];
             if(root.scrollWidth>root.clientWidth+1)bad.push('Critical horizontal overflow');
-            for(const el of root.querySelectorAll('#critJumps button,#critSubpaths button,.crit-dosegrid .row')){
+            for(const el of root.querySelectorAll('#critSubpaths button,.crit-dosegrid .row')){
               if(!el.getClientRects().length)continue;const r=el.getBoundingClientRect();
               if(r.left<-.5||r.right>innerWidth+.5)bad.push(el.textContent.slice(0,90));
               if(el.matches('button')&&r.height<43.5)bad.push('Small touch target: '+el.textContent);
             }return bad;
           });assert.deepEqual(overflow,[],`${engine} ${width}px large=${large} ${id}`);
-          for(const section of jumps){
-            assert.equal(await page.locator('#'+section).count(),1,'Jump target exists exactly once: '+section);
-            await click(`#critJumps [data-section="${section}"]`);
-            const position=await page.evaluate(section=>{
-              const target=document.getElementById(section).getBoundingClientRect(),sticky=document.querySelector('.crit-sticky').getBoundingClientRect();
-              return {top:target.top,bottom:target.bottom,stickyBottom:sticky.bottom,viewport:innerHeight};
-            },section);
-            assert.ok(position.top>=position.stickyBottom-2,`${id} / ${section}: title is not behind sticky header (${JSON.stringify(position)})`);
-            assert.ok(position.top<position.viewport,`${id} / ${section}: target appears in viewport`);
-          }
         }
       }
-      // Pediatric electrical and airway headings/jumps remain distinct.
+      // Pediatric electrical and airway headings/content remain distinct.
       await page.evaluate(()=>{S.ageVal=5;S.wtVal=20;recompute();selectCriticalPath('tachy');});await settle();
       assert.equal(await page.locator('#crit-electrical').count(),1);assert.equal(await page.locator('#crit-airway').count(),1);
-      assert.equal(await page.locator('#critJumps [data-section="crit-electrical"]').count(),1);
+      await noShortcuts();
+      assert.match(await page.locator('#crit-electrical').innerText(),/Synchronized cardioversion/);
       assert.match(await page.locator('#critContent').innerText(),/MANDATORY BHP PATCH/);
       assert.ok(!(await page.locator('#crit-airway').innerText()).includes('Synchronized cardioversion'));
 
@@ -146,7 +141,12 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
           {name:'cardiac-airway-daylight-large',age:28,weight:80,path:'brady',section:'crit-airway',large:true,day:true},
           {name:'pediatric-electrical',age:5,weight:20,path:'tachy',section:'crit-electrical',large:false,day:false}
         ]){
-          await page.evaluate(shot=>{S.ageVal=shot.age;S.wtVal=shot.weight;document.body.classList.toggle('large-text',shot.large);document.body.classList.toggle('daylight',shot.day);recompute();selectCriticalPath(shot.path);jumpCriticalSection(shot.section);},shot);await settle();
+          await page.evaluate(shot=>{S.ageVal=shot.age;S.wtVal=shot.weight;document.body.classList.toggle('large-text',shot.large);document.body.classList.toggle('daylight',shot.day);recompute();selectCriticalPath(shot.path);},shot);await settle();
+          await page.evaluate(section=>{
+            const container=document.getElementById('critical'),target=document.getElementById(section),sticky=document.querySelector('.crit-sticky');
+            const top=container.scrollTop+target.getBoundingClientRect().top-container.getBoundingClientRect().top-sticky.getBoundingClientRect().height-8;
+            container.scrollTo({top:Math.max(0,top),behavior:'instant'});
+          },shot.section);await settle();
           await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,`${engine}-${shot.name}.png`)});
         }
       }
@@ -154,7 +154,7 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       await click('#critClose');await click('#newPtTop');await click('nav [data-pane="critical"]');
       assert.equal(await page.evaluate(()=>critScenario),null,'New patient clears the chosen pathway');
       await group('rhythm');assert.equal(await page.evaluate(()=>critScenario),'brady','New patient clears Cardiac last-subpath memory');
-      assert.deepEqual(errors,[]);console.log('PASS '+engine+': Cardiac grouping, universal airway, pediatric electrical separation, shock age guards, subpath memory/reset, phone layout and section jumps.');
+      assert.deepEqual(errors,[]);console.log('PASS '+engine+': Cardiac grouping, universal airway, pediatric electrical separation, shock age guards, subpath memory/reset, phone layout and no section-shortcut row.');
     }finally{await browser.close();}
   }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

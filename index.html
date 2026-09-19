@@ -380,7 +380,6 @@ details>summary{cursor:pointer;min-height:44px;align-content:center;line-height:
 .crit-subpaths button[data-path="hyperk"]{flex-grow:1.4}
 .crit-subpaths.many{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 .crit-subpaths.many button{overflow-wrap:normal;word-break:normal;line-height:1.3}
-.crit-jumps{display:flex;gap:4px;margin-top:5px}.crit-jumps:empty{display:none}.crit-jumps button{flex:1;min-width:0;min-height:44px;padding:5px 3px;border:1px solid var(--border2);border-radius:8px;background:var(--blue-dim);color:var(--blue);font-size:13px;font-weight:750;line-height:1.25;overflow-wrap:normal}
 .crit-section:focus,.crit-checklist:focus,#crit-references:focus{outline:2px solid var(--blue);outline-offset:2px}
 .crit-overview summary{color:var(--mut)}
 .crit-paths{margin-top:8px}.crit-paths button{color:var(--mut);font-size:14px;min-height:48px}
@@ -407,7 +406,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.2</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -503,7 +502,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -517,7 +516,6 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
     <div class="crit-context"><b id="critContext"></b><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths">Change</button></div>
     <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway"></div>
     <div class="crit-subpaths" id="critSubpaths" role="group" aria-label="High-acuity subpath"></div>
-    <div class="crit-jumps" id="critJumps" role="group" aria-label="Jump to pathway section"></div>
     </div>
     <div class="crit-profile" id="critProfile"></div>
     <div id="critContent" aria-live="polite"></div>
@@ -2255,7 +2253,6 @@ function renderCritGrid(){
   const p=S.pt,path=critPath();renderCritPaths();
   $('critPt').innerHTML=critPatientCard(p);
   $('critProfile').innerHTML=`<b>${esc($('profileName').value||'My service')}</b> · Verify vial, dose, route and draw volume with your partner.`;
-  $('critJumps').innerHTML='';
   if(!path){$('critContent').innerHTML='<div class="crit-empty">Select a category above to open its pathways. No scenario has been selected.</div>';return;}
   const targets=critTargets(p,path.id).map(([k,v])=>`<div class="crit-target"><small>${esc(k)}</small><b class="num">${esc(v)}</b></div>`).join('');
   const priorities=critPriorities(p,path);
@@ -2276,18 +2273,8 @@ function renderCritGrid(){
   const directiveControl=related.length>1?`<details class="directive-chooser" data-detail-key="directives-${path.id}"${cardDetailsOpen['directives-'+path.id]?' open':''}><summary>Full directives · choose (${related.length})</summary><div>${related.map(d=>`<button type="button" onclick="openCriticalDirective('${d.id}')">${esc(d.n)}</button>`).join('')}</div></details>`:`<button type="button" onclick="openCriticalDirective()">Full directive</button>`;
   html+=`<div class="crit-actions" id="crit-references" tabindex="-1">${directiveControl}<button type="button" onclick="openCriticalCalculations()">All related calculations</button></div>`;
   $('critContent').innerHTML=html;
-  const sections=path.id==='arrest'?[['crit-airway','Airway'],['crit-treatment','Treatment']]:[['crit-checklist','Checklist'],['crit-treatment','Treatment'],['crit-electrical','Electrical'],['crit-airway','Airway']];
-  sections.push(['crit-references','Sources']);
-  $('critJumps').innerHTML=sections.filter(([id])=>$(id)).map(([id,label])=>`<button type="button" data-section="${id}" aria-controls="${id}" onclick="jumpCriticalSection('${id}')">${label}</button>`).join('');
 }
 const criticalScroll={};
-window.jumpCriticalSection=id=>{
-  const target=$(id),panel=$('critical');if(!target||!panel.contains(target))return;
-  $('critPaths').hidden=true;renderCritPaths();
-  const sticky=document.querySelector('.crit-sticky');
-  const top=target.getBoundingClientRect().top-panel.getBoundingClientRect().top+panel.scrollTop-sticky.getBoundingClientRect().height-10;
-  panel.scrollTo({top:Math.max(0,top),behavior:'instant'});target.focus({preventScroll:true});
-};
 window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!group)return;selectCriticalPath(group.paths.includes(criticalGroupSelection[id])?criticalGroupSelection[id]:group.paths[0]);};
 window.selectCriticalPath=id=>{
   if(!CRIT_PATHS.some(x=>x.id===id))return;

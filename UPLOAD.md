@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.09.19.2 removes the extra Critical section-shortcut row (Airway, Treatment, Sources, Electrical and Checklist) from every pathway. Main categories and condition tabs remain, as do all treatment cards, airway equipment, warnings, checklists and reference links. No clinical content or calculation changes.
+
 Build 2026.09.19.1 improves Critical access:
 
 - Cardiac replaces Unstable rhythm, with Brady, Tachy, Cardiogenic shock and ACPE. ACPE moves out of Airway / Respiratory.
