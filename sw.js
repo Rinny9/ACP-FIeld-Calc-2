@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.19.2-critical-less-clutter';
+const CACHE = 'acp-field-calc-2026.09.19.3-shared-critical-airway';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

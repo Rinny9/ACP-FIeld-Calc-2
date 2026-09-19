@@ -11,7 +11,6 @@ if(baseline){
 }
 const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(req.url==='/baseline.html'?baseline:html);});
 const expected={
-  airway:{rows:[]},
   bronch:{rows:['Salbutamol — bronchoconstriction','EPINEPHrine IM — severe asthma','Dexamethasone — bronchoconstriction','CPAP'],calc:['Bronchoconstriction','CPAP']},
   acpe:{rows:['CPAP','Nitroglycerin — ACPE'],calc:['Acute Cardiogenic Pulmonary Edema','CPAP']},
   psed:{rows:['Procedural sedation (post-ETT / TCP)'],calc:['Procedural Sedation']},
@@ -36,7 +35,8 @@ const expected={
       const group=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
       await group('airbreath');
       assert.match(await page.locator('#critContext').innerText(),/^Airway \/ Respiratory/);
-      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['airway','bronch','psed','allergy','croup']);
+      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['bronch','psed','allergy','croup']);
+      assert.equal(await page.evaluate(()=>CRIT_PATHS.some(p=>p.id==='airway')),false,'No standalone Critical Airway pathway remains');
       for(const id of Object.keys(expected)){
         const groupId=id==='acpe'?'rhythm':['seizure','hypogly','opioid','adrenal'].includes(id)?'neurometab':'airbreath';
         if(await page.evaluate(()=>critGroup)!==groupId)await group(groupId);
@@ -76,7 +76,7 @@ const expected={
               const range=document.createRange();range.selectNodeContents(b);
               if([...range.getClientRects()].some(r=>r.left<rect.left-1||r.right>rect.right+1))bad.push(b.textContent+' clipped label');
             }return bad;
-          }),[],engine+' '+width+'px all subcategory buttons visible and readable');
+          }),[],engine+' '+width+'px large='+large+' all subcategory buttons visible and readable');
           assert.ok(await page.locator('.crit-sticky').evaluate(el=>el.getBoundingClientRect().height<innerHeight-200),'Header leaves treatment space');
         }
       }
@@ -91,8 +91,15 @@ const expected={
           }));
         }),{patients,groups});
         const previous=await snapshots(oldPage,{airway:['airway'],resp:['resp'],neuro:['neuro']});
-        const updated=await snapshots(page,{airway:['airway','psed'],resp:['bronch','acpe','allergy','croup'],neuro:['seizure','hypogly','opioid','adrenal']});
-        assert.deepEqual(updated,previous,'Splitting pathways preserves every existing dose, caution, condition and equipment card');await oldPage.close();
+        const updated=await snapshots(page,{airway:['psed'],resp:['bronch','acpe','allergy','croup'],neuro:['seizure','hypogly','opioid','adrenal']});
+        for(let i=0;i<previous.length;i++)for(const key of Object.keys(previous[i])){
+          assert.deepEqual(updated[i][key].rows,previous[i][key].rows,'Splitting pathways preserves every existing treatment card');
+          for(const old of previous[i][key].equipment){
+            const ref=JSON.parse(old),actual=updated[i][key].equipment.map(JSON.parse).find(r=>r.name===ref.name);
+            assert.ok(actual,'Original equipment remains in shared airway: '+ref.name);
+            for(const prop of Object.keys(ref))assert.deepEqual(actual[prop],ref[prop],'Original equipment '+prop+' preserved: '+ref.name);
+          }
+        }await oldPage.close();
       }
       await page.setViewportSize({width:430,height:932});
       await page.evaluate(()=>document.body.classList.remove('large-text'));
@@ -101,6 +108,12 @@ const expected={
         for(const [id,selected] of [['airbreath','bronch'],['neurometab','hypogly']]){
           await group(id);await click(`#critSubpaths [data-path="${selected}"]`);await page.locator('#critical').evaluate(el=>el.scrollTo(0,0));
           await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,engine+'-'+id+'.png')});
+        }
+        await page.setViewportSize({width:320,height:844});
+        for(const large of [false,true]){
+          await page.evaluate(large=>document.body.classList.toggle('large-text',large),large);await group('airbreath');
+          await click('#critSubpaths [data-path="bronch"]');await page.locator('#critical').evaluate(el=>el.scrollTo(0,0));
+          await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,engine+'-airbreath-320'+(large?'-large':'')+'.png')});
         }
       }
       await click('#critClose');await click('#newPtTop');

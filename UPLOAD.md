@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.09.19.3 removes the standalone Airway subcategory from Critical. Airway / Respiratory now contains Bronchoconstriction, Procedural Sedation, Anaphylaxis and Croup. Every Critical pathway shares the complete applicable airway card set (ETT size/depth, suction catheter, blade, i-gel, suction pressure, arrest/ROSC ventilation and topical lidocaine ceiling), with existing age/weight handling and calculations retained. The original airway reminders, target references and OTI/SGA/suction directive links are available under the expandable Airway guidance & directives section. No extra shortcut row is added. Arrest remains airway-first; condition-specific treatment cards and pediatric electrical therapy remain distinct.
+
 Build 2026.09.19.2 removes the extra Critical section-shortcut row (Airway, Treatment, Sources, Electrical and Checklist) from every pathway. Main categories and condition tabs remain, as do all treatment cards, airway equipment, warnings, checklists and reference links. No clinical content or calculation changes.
 
 Build 2026.09.19.1 improves Critical access:

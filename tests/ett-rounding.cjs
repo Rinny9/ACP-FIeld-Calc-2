@@ -40,7 +40,7 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
             const expected=Math.round((a<1?p.weightKg+6:tube*3)*2)/2;
             check(depth.v===expected.toFixed(1)+' cm at lip','Depth formula: '+label);
           }
-          for(const id of ['arrest','airway','trauma','newborn']){
+          for(const id of CRIT_PATHS.map(path=>path.id)){
             const equipment=critRowsForPath(p,id).equipment;
             for(const r of [size,depth]){
               const expected=r.k==='Oral insertion depth'&&r.v==='—'?'Weight required':r.v;

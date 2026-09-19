@@ -27,6 +27,7 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       const groups=await page.evaluate(()=>CRIT_GROUPS);
       assert.deepEqual(groups.find(g=>g.id==='rhythm').paths,['brady','tachy','cshock','acpe']);
       assert.equal(groups.find(g=>g.id==='rhythm').label,'Cardiac');
+      assert.deepEqual(groups.find(g=>g.id==='airbreath').paths,['bronch','psed','allergy','croup']);
       assert.ok(!groups.find(g=>g.id==='airbreath').paths.includes('acpe'),'ACPE belongs to Cardiac, not two groups');
       const memberships=groups.flatMap(g=>g.paths);assert.equal(new Set(memberships).size,memberships.length,'Each pathway has one category');
       const cshockCase=await page.evaluate(()=>CASES.find(c=>c.id==='crit-cshock'));
@@ -34,25 +35,35 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
 
       // The shared display must use exactly the existing Calculator airway values.
       const allPaths=await page.evaluate(()=>CRIT_PATHS.map(p=>p.id));
-      for(const input of [{ageYears:28,weightKg:80},{ageYears:5,weightKg:20},{ageYears:.5,weightKg:8},{ageYears:0,weightKg:3},{ageYears:0,weightKg:.8}]){
+      assert.ok(!allPaths.includes('airway'),'Standalone Critical Airway pathway is removed');
+      for(const input of [{ageYears:28,weightKg:80},{ageYears:5,weightKg:20},{ageYears:.5,weightKg:8},{ageYears:0,weightKg:3},{ageYears:0,weightKg:.8},{ageYears:.1,weightKg:null,suppressWeightEstimate:true},{ageYears:40,weightKg:null}]){
         const results=await page.evaluate(input=>{
-          const p=buildPatient(input),reference=airway(p).filter(r=>/^ETT —/.test(r.k)||['Oral insertion depth','Suction catheter','Laryngoscope blade'].includes(r.k));
-          return {reference:reference.map(r=>({name:r.k,dose:r.v})),paths:CRIT_PATHS.map(path=>({id:path.id,...critRowsForPath(p,path.id)}))};
+          const p=buildPatient(input),reference=airway(p);
+          return {reference:reference.map(r=>({name:r.k,dose:r.k==='Oral insertion depth'&&r.v==='—'?'Weight required':r.v,sub:r.sub,rep:r.rep,src:r.src,tone:r.tone,needW:r.needW})),paths:CRIT_PATHS.map(path=>({id:path.id,...critRowsForPath(p,path.id)}))};
         },input);
-        assert.equal(results.reference.length,4,'One ETT selection plus depth, suction and blade');
+        assert.ok(results.reference.length>=7,'Full applicable airway set, not only the four core equipment cards');
         for(const result of results.paths){
+          assert.equal(result.equipment.length,results.reference.length,`${result.id}: all and only applicable Calculator airway cards`);
           for(const ref of results.reference){
             const matches=result.equipment.filter(r=>r.name===ref.name);
             assert.equal(matches.length,1,`${result.id}: ${ref.name} appears once`);assert.equal(matches[0].dose,ref.dose,`${result.id}: Calculator airway value preserved`);
+            for(const key of ['rep','src','tone'])assert.equal(matches[0][key],ref[key],`${result.id}: ${ref.name} ${key} preserved`);
+            if(ref.dose!=='Weight required')for(const key of ['sub','needW'])assert.equal(matches[0][key],ref[key],`${result.id}: ${ref.name} ${key} preserved`);
           }
           const names=result.equipment.map(r=>r.name);assert.equal(new Set(names).size,names.length,result.id+': no duplicated airway cards');
           assert.ok(!names.some(n=>/cardioversion|defibrillation/i.test(n)),result.id+': electrical therapy is not an airway card');
         }
       }
-      const unknown=await page.evaluate(()=>CRIT_PATHS.map(path=>({id:path.id,...critRowsForPath(buildPatient({ageYears:null,weightKg:20}),path.id)})));
-      for(const result of unknown){
-        for(const name of requiredAirway){const row=result.equipment.find(r=>r.name===name);assert.ok(row,result.id+': '+name+' placeholder');assert.match(row.dose,/age required/i);}
-        assert.ok(result.equipment.some(r=>/^ETT(?: —| size)/.test(r.name)&&/age required/i.test(r.dose)),result.id+': unknown age never assumes an adult ETT');
+      for(const weightKg of [20,null]){
+        const unknown=await page.evaluate(weightKg=>{
+          const p=buildPatient({ageYears:null,weightKg});return {igel:airway(p).find(r=>r.k==='i-gel size'),paths:CRIT_PATHS.map(path=>({id:path.id,...critRowsForPath(p,path.id)}))};
+        },weightKg);
+        for(const result of unknown.paths){
+          assert.equal(result.equipment.length,5,'Unknown age: four age-required placeholders plus weight-specific i-gel');
+          for(const name of requiredAirway){const row=result.equipment.find(r=>r.name===name);assert.ok(row,result.id+': '+name+' placeholder');assert.match(row.dose,/age required/i);}
+          assert.ok(result.equipment.some(r=>/^ETT(?: —| size)/.test(r.name)&&/age required/i.test(r.dose)),result.id+': unknown age never assumes an adult ETT');
+          const igel=result.equipment.find(r=>r.name==='i-gel size');assert.ok(igel);assert.equal(igel.dose,unknown.igel.v);assert.equal(igel.needW,unknown.igel.needW);
+        }
       }
       const shock=await page.evaluate(()=>[28,18,17.99,5,null].map(ageYears=>{
         const p=buildPatient({ageYears,weightKg:80}),data=critRowsForPath(p,'cshock'),d=drugCalcs(p);
@@ -80,6 +91,22 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       await click('#critSubpaths [data-path="cshock"]');await group('airbreath');await group('rhythm');
       assert.equal(await page.evaluate(()=>critScenario),'cshock');
       assert.match(await page.locator('#critContext').innerText(),/Cardiac/);
+      // Every former Airway directive is accessible from another pathway, not
+      // dependent on selecting the now-removed standalone Airway subcategory.
+      for(const id of ['oti','sga','suction']){
+        const guidance=page.locator('#critAirwayGuidance');
+        if(!await guidance.evaluate(el=>el.open))await click('#critAirwayGuidance > summary');
+        const name=await page.evaluate(id=>DIR.find(d=>d.id===id).n,id);
+        await click(`#critAirwayGuidance [onclick="openCriticalDirective('${id}')"]`);
+        assert.equal(await page.locator('#dirSearch').inputValue(),name);
+        assert.ok(await page.locator(`.dcard[data-id="${id}"]`).evaluate(el=>el.classList.contains('open')));
+        await click('nav [data-pane="critical"]');assert.equal(await page.evaluate(()=>critScenario),'cshock');
+      }
+      if(!await page.locator('#critAirwayGuidance').evaluate(el=>el.open))await click('#critAirwayGuidance > summary');
+      await click('#critAirwayGuidance [onclick="openCriticalAirwayCalculations()"]');
+      assert.equal(await page.evaluate(()=>S.caseId),'crit-airway','Shared airway action opens focused Calculator equipment');
+      assert.ok((await page.locator('#results .rname').allTextContents()).some(s=>/^ETT —/.test(s)));
+      await click('nav [data-pane="critical"]');assert.equal(await page.evaluate(()=>critScenario),'cshock');
       await click('#critContent [onclick="openCriticalCalculations()"]');
       assert.equal(await page.evaluate(()=>S.caseId),'crit-cshock');
       assert.equal(await page.locator('#caseChips .casechip').count(),9,'Hidden Critical scenario does not enlarge Calculator menu');
@@ -100,6 +127,14 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
           await page.evaluate(id=>selectCriticalPath(id),id);await settle();
           await noShortcuts();
           assert.equal(await page.locator('#crit-airway').count(),1,id+': a distinct airway section');
+          assert.equal(await page.locator('#critSubpaths [data-path="airway"]').count(),0,'Standalone Airway tab is absent');
+          assert.equal(await page.locator('#critAirwayGuidance').count(),1,id+': shared guidance is present');
+          assert.equal(await page.locator('#critAirwayGuidance > summary').innerText(),'Airway guidance & directives');
+          const guidanceText=await page.locator('#critAirwayGuidance').textContent();
+          for(const reminder of ['Optimize basic airway management first','Limit OTI and SGA insertion attempts','Reconfirm after every move'])assert.ok(guidanceText.includes(reminder),id+': original airway reminder is preserved');
+          assert.match(guidanceText,/Max 2/);assert.match(guidanceText,/≤10\s*(?:sec|s)/);
+          for(const directive of ['oti','sga','suction'])assert.equal(await page.locator(`#critAirwayGuidance [onclick="openCriticalDirective('${directive}')"]`).count(),1,id+': shared '+directive+' directive');
+          assert.equal(await page.locator('#critAirwayGuidance [onclick="openCriticalAirwayCalculations()"]').count(),1);
           assert.equal(await page.locator('#crit-references').count(),1,id+': reference controls remain available');
           if(id==='rosc')assert.equal(await page.locator('#crit-checklist').count(),1,'ROSC checklist remains available');
           const groupPaths=await page.evaluate(()=>CRIT_GROUPS.find(g=>g.id===critGroup).paths);
@@ -154,7 +189,7 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       await click('#critClose');await click('#newPtTop');await click('nav [data-pane="critical"]');
       assert.equal(await page.evaluate(()=>critScenario),null,'New patient clears the chosen pathway');
       await group('rhythm');assert.equal(await page.evaluate(()=>critScenario),'brady','New patient clears Cardiac last-subpath memory');
-      assert.deepEqual(errors,[]);console.log('PASS '+engine+': Cardiac grouping, universal airway, pediatric electrical separation, shock age guards, subpath memory/reset, phone layout and no section-shortcut row.');
+      assert.deepEqual(errors,[]);console.log('PASS '+engine+': Cardiac grouping, full shared airway cards/guidance/directive links, pediatric electrical separation, shock age guards, subpath memory/reset, phone layout and no section-shortcut row.');
     }finally{await browser.close();}
   }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
