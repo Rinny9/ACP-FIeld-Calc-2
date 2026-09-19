@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.19.3-shared-critical-airway';
+const CACHE = 'acp-field-calc-2026.09.19.4-dopamine-tool-rates';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

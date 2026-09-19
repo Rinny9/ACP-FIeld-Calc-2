@@ -16,17 +16,25 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
       const tools=()=>click('nav [data-pane="tools"]');
       const open=id=>click(`#toolHome [onclick="openTool('${id}')"]`);
       const edit=async(field,value)=>{await click('#ptcard .ptedit');await page.locator(field).fill(value);await tools();};
+      const assertDopamineRates=async(weight,flows)=>{
+        const rows=page.locator('#toolView .kv');
+        assert.deepEqual(await rows.locator('.k').allTextContents(),['5 mcg/kg/min','10 mcg/kg/min','15 mcg/kg/min','20 mcg/kg/min']);
+        assert.match(await page.locator('#toolView').innerText(),new RegExp(`${weight} kg`));
+        for(let i=0;i<flows.length;i++){
+          const flow=flows[i],value=await rows.nth(i).locator('.v').innerText();
+          assert.match(value,new RegExp(`^${flow} mL/hr`));
+          assert.match(value,new RegExp(`= ${flow} gtt/min`));
+        }
+      };
       await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');
       await tools();await open('dopa');
-      assert.match(await page.locator('#toolView').innerText(),/80 kg/);
-      assert.match(await page.locator('#toolView').innerText(),/30 mL\/hr/);
+      await assertDopamineRates(80,[30,60,90,120]);
       await edit('#wtIn','40');
       assert.equal(await page.locator('#toolView').innerText(),'');
       assert.match(await page.locator('#toolPatientNotice').innerText(),/Patient updated.*DOPamine Drip/);
       assert.equal(await page.evaluate(()=>S.tool),null);
       await open('dopa');
-      assert.match(await page.locator('#toolView').innerText(),/40 kg/);
-      assert.match(await page.locator('#toolView').innerText(),/15 mL\/hr/);
+      await assertDopamineRates(40,[15,30,45,60]);
       assert.equal(await page.locator('#toolPatientNotice').count(),0);
       await edit('#ageIn','10');
       assert.match(await page.locator('#toolPatientNotice').innerText(),/DOPamine Drip/);
@@ -60,8 +68,12 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
       await click('#newPtTop');await tools();
       assert.equal(await page.locator('#toolPatientNotice').count(),0,'New patient removes old notice');
       assert.equal(await page.locator('#toolView').innerText(),'');
+      await open('dopa');
+      assert.match(await page.locator('#toolView').innerText(),/Enter a weight on the Calculator tab/);
+      assert.equal(await page.locator('#toolView .kv').count(),0,'Missing weight must not display calculated DOPamine rows');
+      assert.doesNotMatch(await page.locator('#toolView').innerText(),/\b2 mcg\/kg\/min|\d+ mL\/hr/);
       assert.deepEqual(errors,[]);
-      console.log(`PASS ${engine}: patient-dependent Tools invalidation, current-weight recalculation, retained independent inputs, TBSA mode and low-rate drip guard.`);
+      console.log(`PASS ${engine}: DOPamine 5/10/15/20-only rates and weight gate, patient-dependent Tools invalidation, current-weight recalculation, retained independent inputs, TBSA mode and low-rate drip guard.`);
     }finally{await browser.close();}
   }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

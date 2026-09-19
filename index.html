@@ -405,7 +405,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.3</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.4</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -501,7 +501,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.3 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.4 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1961,7 +1961,7 @@ function toolPanel(id){
     <div class="field"><label>SBP</label><input id="siBP" type="number" inputmode="numeric" oninput="siCalc()"></div></div>
     <div class="result" id="siBox"><div class="big num" id="siOut">—</div><div class="lbl" id="siLbl">Enter HR & SBP</div></div></div>`;}
   if(id==='dopa'){const w=S.pt&&S.pt.weightKg?S.pt.weightKg:null;
-    let rows='';for(const d of [2,5,10,15,20]){const r=w?dopamineRate(w,d):null;const dd=r>=1?dropDetail(r):null;
+    let rows='';for(const d of [5,10,15,20]){const r=w?dopamineRate(w,d):null;const dd=r>=1?dropDetail(r):null;
       rows+=kvHTML(`${d} mcg/kg/min`, r!=null?`${r<1?'calc ':''}${r} mL/hr`:'—', dd?`= ${r} gtt/min · 1 gtt / ${dd.every} s · ${dd.per10} gtt per 10 s`:r!=null&&r<1?'below whole-drop timing — verify pump/local method':'');}
     return `${back}<div class="toolpanel"><h3>DOPamine — single strength</h3><div class="tsrc">PCS p.120 chart · 800 mcg/mL · microdrip 60 gtt/mL: mL/hr = gtt/min — drop counts assume this set</div>
     ${w?`<p class="p" style="margin-bottom:8px">For current patient <b class="num" style="color:var(--text)">${fmt(w)} kg</b>:</p>${rows}`:'<p class="p">Enter a weight on the Calculator tab.</p>'}
