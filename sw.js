@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.09.1-audited-reference-pages';
+const CACHE = 'acp-field-calc-2026.09.19.1-critical-cardiac';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

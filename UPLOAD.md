@@ -1,5 +1,15 @@
 # GitHub upload
 
+Build 2026.09.19.1 improves Critical access:
+
+- Cardiac replaces Unstable rhythm, with Brady, Tachy, Cardiogenic shock and ACPE. ACPE moves out of Airway / Respiratory.
+- Cardiogenic shock reuses the existing fluid and DOPamine calculations, with explicit adult/STEMI-positive eligibility and BHP bradycardia reminder checked against PCS pp.126–128. Its focused Calculator destination also suppresses treatment when age is unknown or <18.
+- Every Critical pathway includes ETT size, depth, suction catheter and laryngoscope blade from the shared airway calculations. Unknown age/required weight is labelled instead of estimating eligibility; pediatric electrical settings remain a separate section.
+- Persistent Treatment, Airway, Electrical/Checklist (when relevant), and Sources shortcuts avoid long scrolling. General pathway reminders are expandable; patch warnings, medication conditions and contraindications remain visible. Arrest remains airway-first.
+- Each category remembers its last selected subcategory during the encounter; New patient resets all selections.
+- DOPamine/Burn TBSA tools clear stale results after patient edits; reopen them to calculate for the updated patient. Fixed the TBSA age indicator and below-one-drop drip display, and clarified that external PDFs are not part of the offline pack.
+- See USABILITY_REVIEW.md for full-app review coverage, safeguards, verification and remaining limitations. This is a usability update, not clinical certification.
+
 Build 2026.09.09.1 audits reference destinations against CD v26.08.27, ALS PCS v5.4 and the PDC v5.4 PDF:
 
 - Companion printed pages now match the current edition (ETT sizing p.58, suction sizing p.21, ROSC p.61). Its PDF pages equal printed pages; PCS PDF pages are printed +12; PDC PDF pages are printed −55.
@@ -28,7 +38,7 @@ Upload all four files in this folder to the root of the GitHub Pages repository:
 
 Do not upload the ZIP itself. After GitHub Pages deploys, open the site once while connected, hard-refresh, and wait for **Offline pack ready** before testing airplane mode.
 
-The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Unstable rhythm, Airway / Respiratory, Trauma, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
+The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Cardiac, Airway / Respiratory, Trauma, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
 
 Build 2026.09.07.4 rounds calculated ETT sizes to the nearest 0.5 mm and oral insertion depths to the nearest 0.5 cm throughout Calculator and Critical. Exact halfway values round up. For age ≥1 year, the existing 3 × ETT ID depth convention uses the rounded tube size; suction sizing also stays consistent with that tube. Infant depth retains the weight + 6 cm formula before rounding. Printed pediatric chart equipment values are unchanged. No medication doses are changed.
 

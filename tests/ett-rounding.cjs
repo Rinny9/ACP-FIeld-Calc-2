@@ -42,7 +42,10 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
           }
           for(const id of ['arrest','airway','trauma','newborn']){
             const equipment=critRowsForPath(p,id).equipment;
-            for(const r of [size,depth])check(equipment.find(e=>e.name===r.k)?.dose===r.v,'Critical '+id+' matches Calculator: '+label);
+            for(const r of [size,depth]){
+              const expected=r.k==='Oral insertion depth'&&r.v==='—'?'Weight required':r.v;
+              check(equipment.find(e=>e.name===r.k)?.dose===expected,'Critical '+id+' matches Calculator (explicit missing-weight placeholder): '+label);
+            }
           }
         }
         const example=airway(buildPatient({ageYears:5,weightKg:20}));

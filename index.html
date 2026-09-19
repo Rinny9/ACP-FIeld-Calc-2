@@ -380,6 +380,9 @@ details>summary{cursor:pointer;min-height:44px;align-content:center;line-height:
 .crit-subpaths button[data-path="hyperk"]{flex-grow:1.4}
 .crit-subpaths.many{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 .crit-subpaths.many button{overflow-wrap:normal;word-break:normal;line-height:1.3}
+.crit-jumps{display:flex;gap:4px;margin-top:5px}.crit-jumps:empty{display:none}.crit-jumps button{flex:1;min-width:0;min-height:44px;padding:5px 3px;border:1px solid var(--border2);border-radius:8px;background:var(--blue-dim);color:var(--blue);font-size:13px;font-weight:750;line-height:1.25;overflow-wrap:normal}
+.crit-section:focus,.crit-checklist:focus,#crit-references:focus{outline:2px solid var(--blue);outline-offset:2px}
+.crit-overview summary{color:var(--mut)}
 .crit-paths{margin-top:8px}.crit-paths button{color:var(--mut);font-size:14px;min-height:48px}
 .crit-paths button.on,.crit-subpaths button.on{color:var(--red);border-color:var(--red)}
 .crit-overview,.crit-profile,.crit-checklist,.crit-empty,.crit-dosegrid .row{background:var(--card)}
@@ -404,7 +407,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.09.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -498,8 +501,9 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <p class="p" style="margin-bottom:8px">Concentrations below marked EXT are typical supply, not specified by the ALS PCS — set them to your service's stock. They persist on this device; confirm the active profile and the vial in hand before administration.</p>
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
+      <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.09.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -513,6 +517,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
     <div class="crit-context"><b id="critContext"></b><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths">Change</button></div>
     <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway"></div>
     <div class="crit-subpaths" id="critSubpaths" role="group" aria-label="High-acuity subpath"></div>
+    <div class="crit-jumps" id="critJumps" role="group" aria-label="Jump to pathway section"></div>
     </div>
     <div class="crit-profile" id="critProfile"></div>
     <div id="critContent" aria-live="polite"></div>
@@ -1568,10 +1573,12 @@ function recompute(){
   if(S.ht!=null&&(isNaN(S.ht)||S.ht<30||S.ht>250))S.validation.push('Height must be between 30 and 250 cm.');
   const checkedAge=currentAgeYears(),checkedWeight=currentWeightKg();
   if(checkedAge!=null&&checkedWeight!=null&&((checkedAge>=18&&checkedWeight<20)||(checkedAge<1&&checkedWeight>30)||(checkedAge>=2&&checkedAge<18&&checkedWeight<5)))S.validation.push('Age/weight combination is unusual — confirm both entries before using calculations.');
-  const key=patientKey();
-  if(S.patientKey!=null&&key!==S.patientKey){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};}
+  const key=patientKey(),patientChanged=S.patientKey!=null&&key!==S.patientKey;
+  if(S.patientKey==null)$('toolPatientNotice')?.remove();
+  if(patientChanged){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};}
   S.patientKey=key;
   S.pt = buildPatient({ ageYears: currentAgeYears(), weightKg: currentWeightKg(), sex: S.sex||null, heightCm: S.ht, suppressWeightEstimate:S.wtVal!=null&&currentWeightKg()==null });
+  if(patientChanged)invalidatePatientTool();
   document.body.classList.toggle('estwt',!!(S.pt&&S.pt.weightKg!=null&&S.pt.weightSrc&&S.pt.weightSrc!=='entered'));
   renderPtBar(); renderEstNote(); renderResults(); renderCritGrid(); renderPeds();
 }
@@ -1725,6 +1732,7 @@ CASES.push(
  {id:'crit-airway',label:'Airway',sections:['summary','airway'],hidden:true},
  {id:'crit-bronch',label:'Bronchoconstriction',sections:['resp'],directives:['Bronchoconstriction','CPAP'],hidden:true},
  {id:'crit-acpe',label:'ACPE',sections:['cardiac','resp'],directives:['Acute Cardiogenic Pulmonary Edema','CPAP'],hidden:true},
+ {id:'crit-cshock',label:'Cardiogenic shock',sections:['cardiac'],directives:['Cardiogenic Shock'],minAge:18,hidden:true},
  {id:'crit-psed',label:'Procedural Sedation',sections:['sedation'],directives:['Procedural Sedation'],hidden:true},
  {id:'crit-allergy',label:'Anaphylaxis',sections:['resp'],directives:['Moderate–Severe Allergic Reaction'],hidden:true},
  {id:'crit-croup',label:'Croup',sections:['resp'],directives:['Croup'],hidden:true},
@@ -1804,6 +1812,10 @@ function renderResults(){
   if(p.weightSrc&&p.weightSrc!=='entered')html+='<div class="calcnotice warnbanner">⚠ Estimated weight is active. Confirm weight and independently cross-check every dose.</div>';
   else if(p.weightKg==null)html+='<div class="calcnotice warnbanner">⚖ No weight entered — weight-based directives below show “Weight required for dose”. The ALS PCS has no weight-estimation formula for age ≥13 (p.14); enter a measured or reported weight to populate them.</div>';
   html+=`<div class="calcnotice"><b>Stock profile: ${esc($('profileName').value||'My service')}</b> · Verify the vial before draw-up.<span class="refonly"> Volumes use the configured service stock; confirm concentration, route and a measurable syringe volume before administration.</span></div>`;
+  if(!q&&scenario.minAge&&(p.ageYears==null||p.ageYears<scenario.minAge)){
+    box.innerHTML=html+`<div class="calcnotice warnbanner"><b>${esc(scenario.label)}: ${p.ageYears==null?'Age required':`outside the ≥${scenario.minAge} y directive`}.</b> No treatment dose is displayed. Confirm age and use the full directive / BHP direction.</div>`;return;
+  }
+  if(!q&&S.caseId==='crit-cshock')html+=`<div class="calcnotice warnbanner"><b>Cardiogenic shock eligibility:</b> ≥18 y · STEMI-positive 12-lead ECG · cardiogenic shock with hypotension. Contact BHP if bradycardic. ${srcLink('PCS p.126–128')}</div>`;
   const secCard=(id,t,i,c,body,n)=>{
     const state=calcOpenState(),isOpen=state[id]??(!!q||(S.caseId!=='all'&&id!=='summary'));
     const open=isOpen?' open':'';
@@ -1902,11 +1914,18 @@ const TOOLS=[
  {id:'dopa',i:'🧪',n:'DOPamine Drip',d:'800 mcg/mL chart values'},
  {id:'pushdose',i:'💉',n:'Push-Dose Epi BHP',d:'Non-PCS reference — BHP order only'}
 ];
-function renderToolHome(){
-  $('toolHome').innerHTML=`<div class="toolgrid">${TOOLS.map(t=>`<button class="tool" onclick="openTool('${t.id}')"><div class="ti">${t.i}</div><div class="tn">${t.n}</div><div class="td">${t.d}</div></button>`).join('')}</div>`;
+function renderToolHome(message=''){
+  $('toolHome').innerHTML=(message?`<div id="toolPatientNotice" class="warnbanner" role="status" style="margin-bottom:12px">${esc(message)}</div>`:'')+`<div class="toolgrid">${TOOLS.map(t=>`<button class="tool" onclick="openTool('${t.id}')"><div class="ti">${t.i}</div><div class="tn">${t.n}</div><div class="td">${t.d}</div></button>`).join('')}</div>`;
   $('toolView').innerHTML='';
 }
+function invalidatePatientTool(){
+  if(!['dopa','tbsa'].includes(S.tool))return;
+  const name=TOOLS.find(t=>t.id===S.tool).n;
+  S.tool=null;$('toolHome').classList.remove('hide');
+  renderToolHome(`Patient updated — reopen ${name} to recalculate. Previous results have been cleared.`);
+}
 window.openTool=(id,fromChip)=>{
+  $('toolPatientNotice')?.remove();
   S.tool=id;
   if(fromChip){switchPane('tools');}
   $('toolHome').classList.add('hide');
@@ -1926,11 +1945,11 @@ function toolPanel(id){
     <div class="result" style="margin:0 0 14px"><div class="big num" id="apTimer">0:00</div><div class="lbl" id="apTimerLbl">Tap start at delivery — flags at 1:00 & 5:00</div>
     <div class="timerbtns" style="margin-top:10px"><button class="go" id="apStart" onclick="apgarTimerToggle()">▶ Start</button></div></div>
     <div id="apRows"></div><div class="result g"><div class="big num" id="apTotal">—</div><div class="lbl" id="apBand">Select all five</div></div></div>`;}
-  if(id==='gcs'){return `${back}<div class="toolpanel"><h3>Glasgow Coma Scale</h3><div class="tsrc">Standard GCS · pediatric verbal descriptors shown &lt;2 y</div>
+  if(id==='gcs'){return `${back}<div class="toolpanel"><h3>Glasgow Coma Scale</h3><div class="tsrc">Standard GCS · adult and pediatric descriptors shown together</div>
     <div id="gcsRows"></div><div class="result g"><div class="big num" id="gcsTotal">—</div><div class="lbl" id="gcsBand">Select E, V, M</div></div>
     <p class="p" style="margin-top:10px">ALS PCS ties several conditions to LOA (altered / unaltered / unresponsive) rather than a GCS number — chart both.</p></div>`;}
   if(id==='tbsa'){return `${back}<div class="toolpanel"><h3>Burn TBSA — Rule of Nines</h3><div class="tsrc">EXT: rule of nines (adult) / pediatric adjustment — estimate only</div>
-    <div class="seg" id="tbsaAge"><button data-a="adult" class="on">Adult</button><button data-a="child">Child</button></div>
+    <div class="seg" id="tbsaAge"><button data-a="adult" class="${tbsaAge==='adult'?'on':''}">Adult</button><button data-a="child" class="${tbsaAge==='child'?'on':''}">Child</button></div>
     <div id="tbsaRows" class="optgrid"></div>
     <div class="fieldrow" style="margin-top:12px"><div class="field"><label>+ palm-method % (patient palm ≈1%)</label><input id="tbsaExtra" type="number" inputmode="decimal" value="0" min="0"></div></div>
     <div class="result y"><div class="big num" id="tbsaTotal">0%</div><div class="lbl">Estimated TBSA</div></div>
@@ -1957,7 +1976,8 @@ function toolPanel(id){
 }
 // --- drip/shock ---
 window.dripCalc=()=>{const v=+$('dvol').value,m=+$('dmin').value,f=+$('dset').value;
-  if(v>0&&m>0){const g=ivDrip(v,m,f);const dd=dropDetail(g);
+  if(Number.isFinite(v)&&Number.isFinite(m)&&v>0&&m>0){const g=ivDrip(v,m,f);const dd=dropDetail(g);
+    if(!dd){$('dripOut').textContent='Below 1';$('dripLbl').textContent='gtt/min — below whole-drop timing; verify pump/local method.';return;}
     $('dripOut').textContent=dd.gps;
     $('dripLbl').innerHTML=`drops per second${dd.gps>2?' — hard to count: verify by chamber volume':''}`+
       `<br>≈ 1 gtt every <b class="num">${dd.every} s</b> · <b class="num">${dd.per10}</b> gtt per 10 s`+
@@ -2017,6 +2037,7 @@ function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
 
 // ============ CRITICAL MODE ============
 let critScenario=null,critGroup=null;
+const criticalGroupSelection={};
 const CRIT_RESP_PRIORITIES=['Prioritize ventilation and the condition-specific treatment.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.'];
 const CRIT_METAB_PRIORITIES=['Support airway and ventilation; rapidly check glucose when indicated.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.'];
 const CRIT_PATHS=[
@@ -2025,6 +2046,7 @@ const CRIT_PATHS=[
   {id:'hyperk',icon:'K⁺',label:'Hyperkalemia',title:'Hyperkalemic arrest / pre-arrest',directives:['hyperk'],calc:'hyperk',priorities:['Confirm a high-risk history and cardiac arrest or pre-arrest with ECG changes consistent with hyperkalemia.','Prioritize calcium gluconate for membrane stabilization in the unstable patient.','Give calcium and salbutamol when possible; reassess the ECG and never mix calcium with sodium bicarbonate.']},
   {id:'brady',icon:'🫀',label:'Brady',title:'Unstable bradycardia',directives:['brady'],calc:'brady',priorities:['Confirm hemodynamic instability, obtain rhythm determination and place pads.','Give atropine when appropriate while preparing TCP; do not delay pacing for IV access.','Treat contributory hypovolemia and use DOPamine when the directive conditions are met.']},
   {id:'tachy',icon:'💓',label:'Tachy',title:'Symptomatic tachydysrhythmia',directives:['tachy'],calc:'tachy',priorities:['Decide narrow vs wide, regular vs irregular, and compensatory vs primary tachycardia.','Unstable: prepare synchronized cardioversion and patch without delaying essential care.','Stable regular rhythms: use the pathway-specific vagal, adenosine or antiarrhythmic branch.']},
+  {id:'cshock',icon:'🫀',label:'Cardiogenic shock',title:'Cardiogenic shock — STEMI-positive',directives:['cshock'],calc:'crit-cshock',priorities:['Apply the Cardiogenic Shock directive only with a STEMI-positive 12-lead ECG and cardiogenic shock.','Assess the chest before fluid and reassess with each 250 mL. If pulmonary crackles preclude fluid, consider DOPamine using the directive conditions.']},
   {id:'airway',icon:'🫁',label:'Airway',title:'Advanced airway and ventilation',directives:['oti','sga','suction'],calc:'crit-airway',priorities:['Optimize basic airway management first and choose the least invasive effective airway.','Limit OTI and SGA insertion attempts to the directive maximum; use waveform ETCO₂ for confirmation.','Reconfirm after every move and apply post-intubation sedation only when its conditions are met.']},
   {id:'bronch',icon:'🌬️',label:'Bronchoconstriction',title:'Bronchoconstriction',directives:['bronch','cpap'],calc:'crit-bronch',priorities:CRIT_RESP_PRIORITIES},
   {id:'acpe',icon:'🫁',label:'ACPE',title:'Acute cardiogenic pulmonary edema',directives:['acpe','cpap'],calc:'crit-acpe',priorities:CRIT_RESP_PRIORITIES},
@@ -2041,8 +2063,8 @@ const CRIT_PATHS=[
 ];
 const CRIT_GROUPS=[
   {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
-  {id:'rhythm',icon:'💓',label:'Unstable rhythm',paths:['brady','tachy']},
-  {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['airway','bronch','acpe','psed','allergy','croup']},
+  {id:'rhythm',icon:'💓',label:'Cardiac',paths:['brady','tachy','cshock','acpe']},
+  {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['airway','bronch','psed','allergy','croup']},
   {id:'shocktrauma',icon:'🚨',label:'Trauma',paths:['trauma']},
   {id:'neurometab',icon:'🧠',label:'Neuro / Metabolic',paths:['seizure','hypogly','opioid','adrenal']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
@@ -2100,6 +2122,7 @@ function critTargets(p,id){
   if(id==='brady')return[['Hypotension',hypo],['Adult HR','<50/min'],['TCP rate','80/min']];
   if(id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18){const info=critPedsBandInfo(p);return[['BHP patch','MANDATORY'],['PDC band',info.band?info.band.w:'Weight needed'],['Chart basis',info.band?`${info.band.calcW} kg`:'Not available']];}
   if(id==='tachy')return[['Wide regular','HR ≥120'],['Narrow regular','HR ≥150'],['Hypotension',hypo]];
+  if(id==='cshock')return[['Directive','≥18 y · STEMI+'],['Hypotension',hypo]];
   if(id==='airway')return[['OTI attempts','Max 2'],['Suction pass','≤10 sec'],['Vent rate',critVentRate(p)]];
   if(['bronch','acpe','allergy','croup'].includes(id))return[['Hypotension',hypo],['Reassess','Every dose']];
   if(id==='seizure')return[['Low glucose',glucose],['Midazolam','q5 min']];
@@ -2116,6 +2139,11 @@ function critOrder(arr,terms){
 }
 function critUnique(rows){const seen=new Set();return rows.filter(r=>{const k=`${r.name}|${r.dose}|${r.ml}`;if(seen.has(k))return false;seen.add(k);return true;});}
 function critAirRows(p,terms){return critMatch(airway(p),terms).map(r=>({name:r.k,dose:r.v,sub:r.sub,src:r.src,tone:r.tone,needW:r.needW}));}
+function critEssentialAirway(p){
+  const terms=['ETT —','Oral insertion depth','Suction catheter','Laryngoscope'];
+  if(p.ageYears==null)return['ETT size','Oral insertion depth','Suction catheter','Laryngoscope blade'].map(name=>({name,dose:'Age required',sub:'Enter and confirm age; do not infer equipment sizing from weight alone.',tone:'warn'}));
+  return critAirRows(p,terms).map(r=>r.name==='Oral insertion depth'&&r.dose==='—'?{...r,dose:'Weight required',sub:'Infant insertion-depth estimate requires weight.'}:r);
+}
 function critPedsTachyRows(p){
   const info=critPedsBandInfo(p),b=info.band;
   if(!b)return{rows:[],equipment:[],pedsInfo:info};
@@ -2139,7 +2167,7 @@ function critPedsTachyRows(p){
   return{rows,equipment,pedsInfo:info};
 }
 function critRowsForPath(p,id){
-  const d=drugCalcs(p),out={rows:[],equipment:[]};
+  const d=drugCalcs(p),out={rows:[],equipment:[],electrical:[]};
   if(id==='arrest'){
     out.rows=critOrder(d.arrest,['Defibrillation','DSED / VCD','EPINEPHrine IV/IO','EPINEPHrine ETT','Amiodarone','Lidocaine','NaCl bolus']);
     out.rows.push({name:'Sodium bicarbonate — indication-specific only',dose:'No standing ALS PCS dose',when:'Specific suspected cause + current BHP direction',sub:'Not routine in undifferentiated arrest. Do not mix with calcium gluconate; verify the indication, order, concentration and dose.',src:'EXT: not an ALS PCS 5.4 standing treatment',tone:'patch'});
@@ -2151,8 +2179,10 @@ function critRowsForPath(p,id){
   }else if(id==='brady'){
     out.rows=[...critOrder(d.cardiac,['Atropine']),...critOrder(d.fluids,['Bolus — hypotension']).map(r=>({...r,name:'Fluid bolus — if indicated',sub:`${r.sub||''}${r.sub?' · ':''}Do not delay TCP for IV access or fluid administration.`})),...critOrder(d.cardiac,['TCP','DOPamine']),...critOrder(d.sedation,['Procedural sedation'])];
   }else if(id==='tachy'){
-    if(p&&p.ageYears!=null&&p.ageYears<18){const ped=critPedsTachyRows(p);out.rows=ped.rows;out.equipment=ped.equipment;out.pedsInfo=ped.pedsInfo;}
+    if(p&&p.ageYears!=null&&p.ageYears<18){const ped=critPedsTachyRows(p);out.rows=ped.rows;out.electrical=ped.equipment;out.pedsInfo=ped.pedsInfo;}
     else out.rows=[{name:'Valsalva maneuver — narrow regular rhythm',dose:'Up to 2 attempts',rep:'10–20 seconds each',when:'≥18 y · unaltered · HR ≥150 · normotension · narrow + regular',contra:'Sinus tachycardia · atrial fibrillation · atrial flutter',sub:'Perform before adenosine when directive conditions are met.',src:'PCS p.132–134',tone:'pcs'},...critOrder(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion'])];
+  }else if(id==='cshock'){
+    if(p.ageYears!=null&&p.ageYears>=18)out.rows=critOrder(d.cardiac,['Cardiogenic shock (STEMI+) — fluid','DOPamine']).map(r=>({...r,when:`≥18 y · STEMI-positive 12-lead · cardiogenic shock · hypotension${r.name.includes('fluid')?' · chest auscultation clear':''}`,sub:`${r.sub||''} · Contact BHP if bradycardic.`,src:r.name.includes('fluid')?'PCS p.126–127':'PCS p.126–128'}));
   }else if(id==='airway'){
     out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel','suction pressure','Vent rate','Topical lidocaine']);
   }else if(id==='psed'){
@@ -2172,11 +2202,12 @@ function critRowsForPath(p,id){
   }else if(id==='newborn'){
     out.rows=critOrder(d.newborn,['Sequence','Preductal SpO₂','EPINEPHrine IV/IO','EPINEPHrine ETT']);out.equipment=critAirRows(p,['ETT —','Oral insertion depth','Suction catheter','Laryngoscope','i-gel size']);
   }else if(id==='ob')out.rows=critOrder(d.ob,['Shoulder dystocia','Breech','Oxytocin']);
-  out.rows=critUnique(out.rows);out.equipment=critUnique(out.equipment);return out;
+  const essential=critEssentialAirway(p);
+  out.rows=critUnique(out.rows);out.equipment=[...essential,...critUnique(out.equipment).filter(r=>!essential.some(e=>e.name===r.name))];return out;
 }
-function critSection(title,rows,note){
+function critSection(title,rows,note,id){
   if(!rows.length)return'';
-  return`<div class="crit-sectiontitle"><h3>${esc(title)}</h3>${note?`<span>${esc(note)}</span>`:''}</div><div class="crit-dosegrid">${rows.map(rowHTML).join('')}</div>`;
+  return`<section class="crit-section" id="${id}" tabindex="-1" aria-labelledby="${id}-title"><div class="crit-sectiontitle"><h3 id="${id}-title">${esc(title)}</h3>${note?`<span>${esc(note)}</span>`:''}</div><div class="crit-dosegrid">${rows.map(rowHTML).join('')}</div></section>`;
 }
 function critRoscChecklist(){
   const done=ROSC_CHECKLIST.filter(x=>roscChecklistState[x.id]).length;
@@ -2213,6 +2244,7 @@ function critWarnings(p,id){
   if(p&&p.weightSrc&&p.weightSrc!=='entered')h+=`<div class="crit-alert"><b>Estimated weight in use:</b> ${fmt(p.weightKg)} kg from ${esc(p.weightSrc)}. Confirm an actual weight and independently cross-check every dose before administration.</div>`;
   if(p&&p.ageYears==null)h+=`<div class="crit-alert red"><b>Age unknown:</b> age-gated directives, thresholds and maximums remain suppressed. Do not infer adult eligibility from weight.</div>`;
   if(p&&p.weightKg==null)h+=`<div class="crit-alert red"><b>Weight required:</b> weight-based doses and draw volumes cannot be safely populated.</div>`;
+  if(id==='cshock')h+=`<div class="crit-alert patch"><b>Cardiogenic shock eligibility:</b> ≥18 y · STEMI-positive 12-lead ECG · cardiogenic shock with hypotension. Contact BHP if bradycardic.${p&&p.ageYears!=null&&p.ageYears<18?' <b>Outside the adult directive: no treatment dose is displayed. Patch to a BHP for direction.</b>':''} ${srcLink('PCS p.126–128')}</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is adult-gated. Use the published pediatric chart only as a BHP reference, not as authorization.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds reference</button></div></div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='hyperk')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing Hyperkalemia Medical Directive is limited to patients ≥18 years old. Patch to a BHP for direction; no adult dose is displayed.</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='tachy'){const info=critPedsBandInfo(p);h+=`<div class="crit-alert patch"><b>MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA:</b> age &lt;18 is outside the standing Tachydysrhythmia Medical Directive. The PDC drug doses and electrical settings below are patch-reference data only; treatment requires a BHP order. Report age, actual weight, rhythm/rate, QRS width/regularity, perfusion/hemodynamic status, IV/IO access and response to prior measures.${info.band?`<div class="crit-band"><b>${esc(info.basis)}</b>${info.note?`<br>${esc(info.note)}`:''} · <a class="rlink" href="${srcHref('PDC',info.band.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${info.band.pg} (PDF ${info.band.pg-55}) ↗</a></div>`:info.note?`<div class="crit-band"><b>Chart band unavailable</b><br>${esc(info.note)}</div>`:''}<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open full Peds reference</button></div></div>`;}
@@ -2223,33 +2255,44 @@ function renderCritGrid(){
   const p=S.pt,path=critPath();renderCritPaths();
   $('critPt').innerHTML=critPatientCard(p);
   $('critProfile').innerHTML=`<b>${esc($('profileName').value||'My service')}</b> · Verify vial, dose, route and draw volume with your partner.`;
+  $('critJumps').innerHTML='';
   if(!path){$('critContent').innerHTML='<div class="crit-empty">Select a category above to open its pathways. No scenario has been selected.</div>';return;}
   const targets=critTargets(p,path.id).map(([k,v])=>`<div class="crit-target"><small>${esc(k)}</small><b class="num">${esc(v)}</b></div>`).join('');
   const priorities=critPriorities(p,path);
-  let html=priorities.length||targets?`<div class="crit-overview">${priorities.length?`<ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}${targets?`<div class="crit-targets">${targets}</div>`:''}</div>`:'';
-  html+=critWarnings(p,path.id);
-  if(path.id==='rosc')html+=critRoscChecklist();
+  let html=critWarnings(p,path.id);
+  if(priorities.length||targets)html+=`<div class="crit-overview">${targets?`<div class="crit-targets">${targets}</div>`:''}${priorities.length?`<details data-detail-key="priorities-${path.id}"${cardDetailsOpen['priorities-'+path.id]?' open':''}><summary>Pathway reminders</summary><ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`:''}</div>`;
+  if(path.id==='rosc')html+=`<div id="crit-checklist" tabindex="-1">${critRoscChecklist()}</div>`;
   if(!p||(p.weightKg==null&&p.ageYears==null)){
     html+=`<div class="crit-empty"><b>Enter the patient first</b>The hub will then calculate dose, draw-up volume, thresholds and equipment for this pathway.</div>`;
   }else{
     const data=critRowsForPath(p,path.id);
     const pedsTachy=path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18;
-    const treatmentSection=critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='psed'?'Procedural sedation':'Patient-specific treatment',data.rows,'dose → draw volume');
-    const equipmentSection=critSection(pedsTachy?'Pediatric electrical therapy — BHP patch':'Airway / equipment',data.equipment,pedsTachy?'PDC sequential settings':'verify local stock');
-    html+=path.id==='arrest'?equipmentSection+treatmentSection:treatmentSection+equipmentSection;
-    if(!data.rows.length&&!data.equipment.length)html+=`<div class="crit-empty"><b>No authorized calculation available</b>Confirm patient data and use the full directive or BHP pathway.</div>`;
+    const treatmentSection=data.rows.length?critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='psed'?'Procedural sedation':'Patient-specific treatment',data.rows,'dose → draw volume','crit-treatment'):path.id==='airway'?'':`<section class="crit-empty" id="crit-treatment" tabindex="-1"><b>No treatment calculation available for this patient</b>Airway reference values below do not establish treatment eligibility. Confirm patient data and use the full directive / BHP direction.</section>`;
+    const equipmentSection=critSection('Airway / equipment',data.equipment,'reference sizing · verify local stock','crit-airway');
+    const electricalSection=critSection('Pediatric electrical therapy — BHP patch',data.electrical,'PDC sequential settings','crit-electrical');
+    html+=path.id==='arrest'?equipmentSection+treatmentSection:treatmentSection+electricalSection+equipmentSection;
   }
   const related=path.directives.map(id=>DIR.find(d=>d.id===id)).filter(Boolean);
   const directiveControl=related.length>1?`<details class="directive-chooser" data-detail-key="directives-${path.id}"${cardDetailsOpen['directives-'+path.id]?' open':''}><summary>Full directives · choose (${related.length})</summary><div>${related.map(d=>`<button type="button" onclick="openCriticalDirective('${d.id}')">${esc(d.n)}</button>`).join('')}</div></details>`:`<button type="button" onclick="openCriticalDirective()">Full directive</button>`;
-  html+=`<div class="crit-actions">${directiveControl}<button type="button" onclick="openCriticalCalculations()">All related calculations</button></div>`;
+  html+=`<div class="crit-actions" id="crit-references" tabindex="-1">${directiveControl}<button type="button" onclick="openCriticalCalculations()">All related calculations</button></div>`;
   $('critContent').innerHTML=html;
+  const sections=path.id==='arrest'?[['crit-airway','Airway'],['crit-treatment','Treatment']]:[['crit-checklist','Checklist'],['crit-treatment','Treatment'],['crit-electrical','Electrical'],['crit-airway','Airway']];
+  sections.push(['crit-references','Sources']);
+  $('critJumps').innerHTML=sections.filter(([id])=>$(id)).map(([id,label])=>`<button type="button" data-section="${id}" aria-controls="${id}" onclick="jumpCriticalSection('${id}')">${label}</button>`).join('');
 }
 const criticalScroll={};
-window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!group)return;selectCriticalPath(group.paths.includes(critScenario)?critScenario:group.paths[0]);};
+window.jumpCriticalSection=id=>{
+  const target=$(id),panel=$('critical');if(!target||!panel.contains(target))return;
+  $('critPaths').hidden=true;renderCritPaths();
+  const sticky=document.querySelector('.crit-sticky');
+  const top=target.getBoundingClientRect().top-panel.getBoundingClientRect().top+panel.scrollTop-sticky.getBoundingClientRect().height-10;
+  panel.scrollTo({top:Math.max(0,top),behavior:'instant'});target.focus({preventScroll:true});
+};
+window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!group)return;selectCriticalPath(group.paths.includes(criticalGroupSelection[id])?criticalGroupSelection[id]:group.paths[0]);};
 window.selectCriticalPath=id=>{
   if(!CRIT_PATHS.some(x=>x.id===id))return;
   criticalScroll[critScenario]=$('critical').scrollTop;critScenario=id;
-  const group=CRIT_GROUPS.find(x=>x.paths.includes(id));if(group)critGroup=group.id;
+  const group=CRIT_GROUPS.find(x=>x.paths.includes(id));if(group){critGroup=group.id;criticalGroupSelection[group.id]=id;}
   $('critPaths').hidden=true;renderCritGrid();$('critical').scrollTo(0,criticalScroll[id]||0);
 };
 window.toggleRoscCheck=id=>{if(!ROSC_CHECKLIST.some(x=>x.id===id))return;roscChecklistState[id]=!roscChecklistState[id];renderCritGrid();};
@@ -2565,7 +2608,7 @@ function newPatient(){
   $('ageRow').classList.remove('hide');$('wtOpt').textContent='(optional)';
   for(const [id,on] of [['kgBtn',true],['lbBtn',false]]){$(id).classList.toggle('on',on);$(id).setAttribute('aria-pressed',String(on));}
   $('toolHome').classList.remove('hide');$('toolView').innerHTML='';switchPane('calc');
-  for(const state of [caseOpenState,directiveOpen,cardDetailsOpen,paneScroll,criticalScroll])for(const key of Object.keys(state))delete state[key];
+  for(const state of [caseOpenState,directiveOpen,cardDetailsOpen,paneScroll,criticalScroll,criticalGroupSelection])for(const key of Object.keys(state))delete state[key];
   caseOpenState.all={summary:true};searchOpenState={};preSearchScroll=0;
   $('dirSearch').value='';$('critPaths').hidden=false;renderDirectives('');renderEntryState();renderCaseChips();recompute();
   requestAnimationFrame(()=>{window.scrollTo(0,0);$('ageIn').focus({preventScroll:true});});
@@ -2586,7 +2629,7 @@ async function initOffline(){
   catch(_){offlinePackReady=false;updateOfflineStatus('Offline pack\nfailed');}
 }
 window.addEventListener('online',()=>updateOfflineStatus());window.addEventListener('offline',()=>updateOfflineStatus());
-$('offlineStatus').onclick=()=>alert(offlinePackReady?'Offline pack is installed on this device. Keep this page bookmarked or add it to the Home Screen.':'Open the uploaded GitHub Pages site once with a connection to install the offline pack.');
+$('offlineStatus').onclick=()=>alert((offlinePackReady?'Offline pack is installed on this device. Keep this page bookmarked or add it to the Home Screen.':'Open the uploaded GitHub Pages site once with a connection to install the offline pack.')+' Calculations and in-app summaries are included. Linked source PDFs require internet or separately downloaded copies.');
 
 loadFieldProfile();renderDirectives('');renderToolHome();renderConc();renderEntryState();renderCaseChips();recompute();initOffline();
 </script>
