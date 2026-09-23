@@ -62,11 +62,11 @@ const expected={
         await click('nav [data-pane="critical"]');
       }
       assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['seizure','hypogly','opioid','adrenal']);
-      await group('shocktrauma');assert.equal(await page.locator('#critContext').innerText(),'Trauma');
-      assert.equal(await page.locator('#critSubpaths button').count(),0);
+      await group('painsedation');assert.match(await page.locator('#critContext').innerText(),/^Pain \/ Sedation/);
+      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['pain','combative']);
       for(const width of [320,375,390,430]){
         await page.setViewportSize({width,height:844});
-        for(const large of [false,true])for(const id of ['airbreath','neurometab']){
+        for(const large of [false,true])for(const id of ['airbreath','neurometab','painsedation']){
           await page.evaluate(large=>document.body.classList.toggle('large-text',large),large);await group(id);
           assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(buttons=>{
             const bad=[];

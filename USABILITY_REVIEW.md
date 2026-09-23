@@ -1,9 +1,12 @@
-# App usability review - 2026-09-19
+# App usability review - 2026-09-23
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
 ## Changes delivered
 
+- Build 2026.09.23.1 replaces Critical's Trauma category with Pain / Sedation, with Pain and Combative Patient subcategories. It reuses the full age-appropriate Analgesia card set and only the two combative-sedation cards, respectively; procedural sedation remains under Airway / Respiratory. Trauma Calculator/Directives content is retained.
+- Both new pathways retain shared airway equipment and exact-directive Calculator destinations. Combative treatment is suppressed for unknown age and age <18; Pain applies existing drug-specific eligibility. Pediatric opioid/ketamine patch requirements, sequential-analgesia cautions and sedation/BHP cautions are visible before treatment cards, not hidden in reminders or below the last dose.
+- Checked the affected mapping and cautions against ALS PCS 5.4 printed pp.161–169 (PDF pp.173–181). Corrected ketorolac's overly broad ibuprofen contraindication shorthand and added the missing ketamine allergy/sensitivity contraindication to combative cards, including missing-weight cards. No dose, formula, route, draw-volume or age-gate changes.
 - Critical's Cardiac category contains Brady, Tachy, Cardiogenic shock and ACPE. ACPE has one category owner, so switching it cannot unexpectedly change categories.
 - Cardiogenic shock uses the existing fluid and DOPamine calculations. Its Critical and focused Calculator views require a known adult age and prominently show the STEMI-positive/hypotensive cardiogenic-shock conditions. Contact BHP if bradycardic is visible, not hidden in reminders. Mapping checked against ALS PCS 5.4 printed pp.126-128 (PDF pp.138-140).
 - Every Critical pathway includes the full applicable shared airway card set: ETT size/depth, suction catheter, blade, i-gel, suction pressure, arrest/ROSC ventilation and topical lidocaine ceiling. Existing half-unit rounding, age/weight eligibility and source distinctions remain. Missing age gets explicit placeholders; missing infant weight does not yield an insertion-depth estimate.
@@ -27,5 +30,5 @@ Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and S
 
 - Critical/Cardiac tests cover every pathway's complete airway content, shared airway directive/Calculator links, adult/pediatric/unknown age, adult unknown weight, newborn uncuffed fallback, pediatric chart limits, category memory/reset and separate electrical/airway content.
 - Phone-size and dosage layout checks cover Chrome and WebKit, normal/Large text, dark/daylight modes and existing scenario/reference behavior. The Critical regression also checks that no section-shortcut row is rendered for any pathway.
-- Shared clinical calculation/directive data is compared with the previous deployed build; no medication or equipment formula changes are intended.
+- Pain/Sedation regression covers known/missing weight at ages 0, 1, 11, 12, 17, 18, 64, 65 and unknown; focused links, retained trauma references, category memory/reset, both themes and normal/Large text on narrow phones. Shared clinical data is compared with the previous deployed build with only the explicitly verified contraindication/source metadata corrections allowed; no medication or equipment formula changes are intended.
 - Tools checks cover actual patient edits, reopening/recalculation, preservation of independent inputs, TBSA mode, New patient and low-rate drip handling.

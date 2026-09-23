@@ -1,5 +1,12 @@
 # GitHub upload
 
+Build 2026.09.23.1 replaces Critical's Trauma category with Pain / Sedation:
+
+- Pain opens the existing age-appropriate Analgesia cards; Combative Patient opens only the adult combative midazolam/ketamine cards. Procedural Sedation remains separate under Airway / Respiratory.
+- Both pathways retain all shared airway equipment, focused Calculator/directive links and encounter navigation. Trauma content remains in Calculator and Directives.
+- Age restrictions, pediatric analgesia patch requirements, sequential opioid/ketamine caution and combative sedation safety/BHP cautions remain visible. No adult combative doses are shown for a child or unknown age.
+- Review against ALS PCS 5.4 printed pp.161–169 corrected two contraindication descriptions: ketorolac now has its own explicit list (not the oral ibuprofen list), and combative ketamine explicitly includes allergy/sensitivity. Medication doses, formulas, volumes and age gates are unchanged.
+
 Build 2026.09.19.4 removes the unused 2 mcg/kg/min row from Tools > DOPamine Drip. The tool retains 5, 10, 15 and 20 mcg/kg/min, with unchanged concentration, flow/drop calculations and missing-weight handling. Calculator and Critical DOPamine content is unchanged.
 
 Build 2026.09.19.3 removes the standalone Airway subcategory from Critical. Airway / Respiratory now contains Bronchoconstriction, Procedural Sedation, Anaphylaxis and Croup. Every Critical pathway shares the complete applicable airway card set (ETT size/depth, suction catheter, blade, i-gel, suction pressure, arrest/ROSC ventilation and topical lidocaine ceiling), with existing age/weight handling and calculations retained. The original airway reminders, target references and OTI/SGA/suction directive links are available under the expandable Airway guidance & directives section. No extra shortcut row is added. Arrest remains airway-first; condition-specific treatment cards and pediatric electrical therapy remain distinct.
@@ -44,7 +51,7 @@ Upload all four files in this folder to the root of the GitHub Pages repository:
 
 Do not upload the ZIP itself. After GitHub Pages deploys, open the site once while connected, hard-refresh, and wait for **Offline pack ready** before testing airplane mode.
 
-The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Cardiac, Airway / Respiratory, Trauma, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
+The Critical tab is a patient-specific high-acuity reference hub. Its first screen uses six larger categories—Arrest / pre-arrest, Cardiac, Airway / Respiratory, Pain / Sedation, Neuro / Metabolic, and OB / newborn—then reveals the relevant subpath.
 
 Build 2026.09.07.4 rounds calculated ETT sizes to the nearest 0.5 mm and oral insertion depths to the nearest 0.5 cm throughout Calculator and Critical. Exact halfway values round up. For age ≥1 year, the existing 3 × ETT ID depth convention uses the rounded tube size; suction sizing also stays consistent with that tube. Infant depth retains the weight + 6 cm formula before rounding. Printed pediatric chart equipment values are unchanged. No medication doses are changed.
 

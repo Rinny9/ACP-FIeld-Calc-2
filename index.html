@@ -405,7 +405,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.19.4</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.23.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -501,7 +501,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.19.4 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.23.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1052,7 +1052,7 @@ function drugCalcs(p) {
   if (hasA && a >= 12) {
     out.analgesia.push({ name: 'Acetaminophen PO', dose: a >= 18 ? '960–1,000 mg' : '500–650 mg', when: `${a >= 18 ? '≥18 y' : '12–17 y'} · unaltered`, contra: 'Acetaminophen in last 4 h · allergy · hx liver disease · active vomiting · unable to tolerate PO · suspected ischemic CP', sub: '×1 · consider co-administration with ibuprofen', src: 'PCS p.164', tone: 'pcs' });
     out.analgesia.push({ name: 'Ibuprofen PO', dose: '400 mg', when: '≥12 y · unaltered', contra: 'NSAID in last 6 h · ASA/NSAID allergy · anticoagulated · active bleeding · hx PUD/GI bleed · pregnancy · asthmatic without prior ASA/NSAID use · CVA/TBI in 24 h · renal impairment · active vomiting · unable to tolerate PO · suspected ischemic CP', sub: '×1 · consider co-administration with acetaminophen', src: 'PCS p.164', tone: 'pcs' });
-    out.analgesia.push({ name: 'Ketorolac IM/IV', dose: '10–15 mg', ml: `${fmt(mlRound(10 / CONC.ketorolac.v))}–${fmt(mlRound(15 / CONC.ketorolac.v))} mL`, when: '≥12 y · unaltered', contra: 'Same NSAID list as ibuprofen · do not give with ibuprofen', sub: '×1 · routinely consider NSAID for renal colic', src: 'PCS p.164', tone: 'pcs' });
+    out.analgesia.push({ name: 'Ketorolac IM/IV', dose: '10–15 mg', ml: `${fmt(mlRound(10 / CONC.ketorolac.v))}–${fmt(mlRound(15 / CONC.ketorolac.v))} mL`, when: '≥12 y · unaltered', contra: 'NSAID in last 6 h · ASA/NSAID allergy or sensitivity · anticoagulated · active bleeding · hx PUD/GI bleed · pregnancy · asthmatic without prior ASA/NSAID use · CVA/TBI in 24 h · renal impairment · suspected ischemic CP · do not give with ibuprofen', sub: '×1 · routinely consider NSAID for renal colic', src: 'PCS p.163–164', tone: 'pcs' });
   }
   if (hasA && hasW && a >= 1) {
     if (a >= 18) {
@@ -1092,7 +1092,7 @@ function drugCalcs(p) {
     const mz = Math.min(0.1 * w, 5);
     out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', dose: `up to ${fmt(round(mz,1))} mg IV/IM/IN`, ml: `${fmt(mlRound(mz / CONC.midazolam.v))} mL`, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
     const kd = a >= 65 ? Math.min(3 * w, 300) : Math.min(5 * w, 500);
-    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: `${fmt(mlRound(kd / CONC.ketamine.v))} mL${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: `${fmt(mlRound(kd / CONC.ketamine.v))} mL${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`, contra: 'Allergy or sensitivity to ketamine · Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.167–169 · CD p.31', tone: 'pcs' });
     out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', lines: [
       { l: 'FentaNYL IV/IO/CVAD/IN', d: '25–75 mcg', m: 'q5 min · max total 150 mcg' },
       { l: 'Midazolam IV/IO/CVAD/IN', d: `up to ${fmt(round(mz,1))} mg`, m: 'max single 5 · q5 min · max total 10 mg' }
@@ -1100,7 +1100,7 @@ function drugCalcs(p) {
   }
   if (hasA && a >= 18 && !hasW) {
     out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', needW: true, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
-    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', needW: true, contra: 'Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300 mg' : '18–64 y: 5 mg/kg · max 500 mg'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.168–169 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', needW: true, contra: 'Allergy or sensitivity to ketamine · Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300 mg' : '18–64 y: 5 mg/kg · max 500 mg'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.167–169 · CD p.31', tone: 'pcs' });
     out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', needW: true, when: '≥18 y · normotension · RR ≥10 (non-intubated only) · after ETT placed OR pacing initiated', contra: 'Allergy or sensitivity to fentaNYL or midazolam', sub: 'FentaNYL 25–75 mcg q5 min (max total 150 mcg) · Midazolam up to 0.1 mg/kg (max single 5 · max total 10 mg) · intent is concurrent administration · EtCO₂ once sedated', src: 'PCS p.239–240 · CD p.60', tone: 'pcs' });
   }
 
@@ -1731,6 +1731,8 @@ CASES.push(
  {id:'crit-acpe',label:'ACPE',sections:['cardiac','resp'],directives:['Acute Cardiogenic Pulmonary Edema','CPAP'],hidden:true},
  {id:'crit-cshock',label:'Cardiogenic shock',sections:['cardiac'],directives:['Cardiogenic Shock'],minAge:18,hidden:true},
  {id:'crit-psed',label:'Procedural Sedation',sections:['sedation'],directives:['Procedural Sedation'],hidden:true},
+ {id:'crit-pain',label:'Pain',sections:['analgesia'],directives:['Analgesia'],minAge:1,hidden:true},
+ {id:'crit-combative',label:'Combative Patient',sections:['sedation'],directives:['Combative Patient'],minAge:18,hidden:true},
  {id:'crit-allergy',label:'Anaphylaxis',sections:['resp'],directives:['Moderate–Severe Allergic Reaction'],hidden:true},
  {id:'crit-croup',label:'Croup',sections:['resp'],directives:['Croup'],hidden:true},
  {id:'crit-seizure',label:'Seizure',sections:['neuro'],directives:['Seizure'],hidden:true},
@@ -1760,7 +1762,7 @@ function renderWorkflow(){
 }
 function scrollToCalculations(){
   requestAnimationFrame(()=>{
-    const target=$('results').querySelector('.sec:not([data-sec="summary"])')||$('workflow');
+    const target=$('results').querySelector('.pathway-notice,.sec:not([data-sec="summary"])')||$('workflow');
     const offset=$('ptbar').getBoundingClientRect().height+12;
     window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:'instant'});
   });
@@ -1813,6 +1815,7 @@ function renderResults(){
     box.innerHTML=html+`<div class="calcnotice warnbanner"><b>${esc(scenario.label)}: ${p.ageYears==null?'Age required':`outside the ≥${scenario.minAge} y directive`}.</b> No treatment dose is displayed. Confirm age and use the full directive / BHP direction.</div>`;return;
   }
   if(!q&&S.caseId==='crit-cshock')html+=`<div class="calcnotice warnbanner"><b>Cardiogenic shock eligibility:</b> ≥18 y · STEMI-positive 12-lead ECG · cardiogenic shock with hypotension. Contact BHP if bradycardic. ${srcLink('PCS p.126–128')}</div>`;
+  if(!q){const pathId=S.caseId.replace(/^crit-/,'');html+=painSedationNotice(p,pathId,'calcnotice warnbanner')+painSedationCautions(p,pathId,'calcnotice warnbanner');}
   const secCard=(id,t,i,c,body,n)=>{
     const state=calcOpenState(),isOpen=state[id]??(!!q||(S.caseId!=='all'&&id!=='summary'));
     const open=isOpen?' open':'';
@@ -2054,7 +2057,8 @@ const CRIT_PATHS=[
   {id:'hypogly',icon:'🩸',label:'Hypoglycemia',title:'Hypoglycemia',directives:['hypogly'],calc:'crit-hypogly',priorities:CRIT_METAB_PRIORITIES},
   {id:'opioid',icon:'💊',label:'Opioid Overdose',title:'Opioid overdose',directives:['opioid'],calc:'crit-opioid',priorities:CRIT_METAB_PRIORITIES},
   {id:'adrenal',icon:'⚕',label:'Adrenal Crisis',title:'Suspected adrenal crisis',directives:['adrenal'],calc:'crit-adrenal',priorities:CRIT_METAB_PRIORITIES},
-  {id:'trauma',icon:'🚨',label:'Trauma',title:'Critical trauma and hemorrhage',directives:['trauma','tension','txa','ivft'],calc:'trauma',priorities:['Control catastrophic hemorrhage, address tension pneumothorax and minimize scene time.','Use airway and fluid interventions only when they do not delay definitive transport.','Apply TXA, analgesia and arrest/TOR pathways only when their exact conditions are met.']},
+  {id:'pain',icon:'💊',label:'Pain',title:'Pain — analgesia',directives:['analgesia'],calc:'crit-pain',priorities:[]},
+  {id:'combative',icon:'💤',label:'Combative Patient',title:'Chemical sedation — combative patient',directives:['combative'],calc:'crit-combative',priorities:[]},
   {id:'newborn',icon:'👶',label:'Newborn',title:'Newborn resuscitation (<24 h)',directives:['nrp'],calc:'all',priorities:['Warm, position, dry and stimulate; start effective PPV when HR is <100.','If HR remains <60 after effective PPV, coordinate compressions with 100% oxygen.','Give epinephrine only after the ventilation/compression sequence and transport before the third dose when possible.']},
   {id:'ob',icon:'🤱',label:'Childbirth',title:'Critical childbirth',directives:['ob'],calc:'ob',priorities:['Identify the obstetric emergency and begin the matching manoeuvre sequence immediately.','Track the head-delivery interval during shoulder dystocia or breech delivery.','Treat postpartum hemorrhage and transport according to maternal condition and directive criteria.']}
 ];
@@ -2062,7 +2066,7 @@ const CRIT_GROUPS=[
   {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
   {id:'rhythm',icon:'💓',label:'Cardiac',paths:['brady','tachy','cshock','acpe']},
   {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['bronch','psed','allergy','croup']},
-  {id:'shocktrauma',icon:'🚨',label:'Trauma',paths:['trauma']},
+  {id:'painsedation',icon:'💊',label:'Pain / Sedation',paths:['pain','combative']},
   {id:'neurometab',icon:'🧠',label:'Neuro / Metabolic',paths:['seizure','hypogly','opioid','adrenal']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
 ];
@@ -2123,8 +2127,7 @@ function critTargets(p,id){
   if(['bronch','acpe','allergy','croup'].includes(id))return[['Hypotension',hypo],['Reassess','Every dose']];
   if(id==='seizure')return[['Low glucose',glucose],['Midazolam','q5 min']];
   if(id==='hypogly'||id==='adrenal')return[['Low glucose',glucose]];
-  if(id==='opioid'||id==='psed')return[];
-  if(id==='trauma')return[['Hypotension',hypo],['TXA window','≤3 h'],['Transport','Minimize delay']];
+  if(['opioid','psed','pain','combative'].includes(id))return[];
   if(id==='newborn')return[['Start PPV','HR <100'],['Start CPR','HR <60'],['Reassess','Every 30 sec']];
   return[['Shoulder','8-min alarm'],['Breech head','4-min window'],['Oxytocin','After all fetuses']];
 }
@@ -2187,8 +2190,10 @@ function critRowsForPath(p,id){
   }else if(['seizure','hypogly','opioid','adrenal'].includes(id)){
     const names={hypogly:['Hypoglycemia threshold','Dextrose','Glucagon'],opioid:['Naloxone — opioid toxicity'],adrenal:['Hydrocortisone']};
     out.rows=id==='seizure'?(d.neuro||[]).slice():critOrder(d.metab,names[id]);
-  }else if(id==='trauma'){
-    out.rows=[{name:'Needle thoracostomy — tension pneumothorax',dose:'4th ICS anterior axillary line',d2:'2nd ICS midclavicular',when:'Pre-arrest or VSA + absent/severely diminished breath sounds + hypotension/VSA',sub:'Preferred site first; consider bilateral decompression in traumatic arrest when indicated.',src:'PCS p.94 · CD p.69',tone:'pcs'},...critOrder(d.fluids,['Bolus — hypotension','TXA']),...critOrder(d.analgesia,['FentaNYL','Morphine','Ketamine'])];
+  }else if(id==='pain'){
+    out.rows=(d.analgesia||[]).slice();
+  }else if(id==='combative'){
+    out.rows=critOrder(d.sedation,['Midazolam — combative','Ketamine IM — severe agitation']);
   }else if(id==='newborn'){
     out.rows=critOrder(d.newborn,['Sequence','Preductal SpO₂','EPINEPHrine IV/IO','EPINEPHrine ETT']);
   }else if(id==='ob')out.rows=critOrder(d.ob,['Shoulder dystocia','Breech','Oxytocin']);
@@ -2232,12 +2237,31 @@ function critPatientCard(p){
   const limits=[p.hypoSBP!=null?`Hypo <${p.hypoSBP}`:null,p.hypoglycemia!=null?`low BGL <${p.hypoglycemia.toFixed(1)}`:null].filter(Boolean).join(' · ');
   return`<div class="crit-ptmain"><div class="cpw num">${esc(w)}</div><div class="cpa"><b>${esc(critAgeLabel(p))}</b> · ${esc(type)}${limits?`<br>${esc(limits)}`:''}</div></div><button type="button" class="crit-edit" onclick="criticalEditPatient()">Edit patient</button>`;
 }
+// Shared by Critical and its focused Calculator destinations. Keep eligibility
+// and patch requirements visible; do not put them in collapsed reminders.
+function painSedationNotice(p,id,css='crit-alert'){
+  css+=' pathway-notice';
+  const age=p?.ageYears;
+  if(id==='pain'){
+    if(age==null||age<1)return`<div class="${css} red"><b>Pain: ${age==null?'age required':'outside the ≥1 y Analgesia directive'}.</b> No treatment dose is displayed. Confirm age and use the full directive / BHP direction. ${referenceHTML('PCS p.161–162')}</div>`;
+    const patch=age<18?` <b>MANDATORY BHP patch + dosage verification before ${age<12?'morphine, fentaNYL or ketamine':'ketamine'}.</b>`:'';
+    return`<div class="${css}${patch?' patch':''}"><b>Pain:</b> unaltered patient; apply each drug’s age and contraindication criteria.${patch} ${referenceHTML(patch?'PCS p.161–162, 165':'PCS p.161–162')}</div>`;
+  }
+  if(id==='combative')return`<div class="${css}${age==null||age<18?' red':''}"><b>Combative Patient: ≥18 y only.</b> Combative, violent or agitated behaviour requiring sedation for patient safety.${age==null||age<18?' <b>No treatment dose is displayed. Confirm age and seek BHP direction outside the adult directive.</b>':''} ${referenceHTML('PCS p.167')}</div>`;
+  return'';
+}
+function painSedationCautions(p,id,css='crit-alert'){
+  if(id==='pain'&&p?.ageYears>=1)return`<div class="${css}"><b>Opioid ↔ ketamine:</b> sequential, not co-administered. Observe the repeat interval of the most recently administered medication. ${referenceHTML('PCS p.166')}</div>`;
+  if(id==='combative'&&p?.ageYears>=18)return`<div class="${css} patch"><b>Before sedation:</b> treat hypoglycemia, hypoxia or hypovolemia when possible. <b>No midazolam + ketamine without BHP direction.</b> Consider quantitative ETCO₂ once sedated. Ketamine emergence reaction needing further sedation: <b>patch BHP.</b> ${referenceHTML('PCS p.169')}</div>`;
+  return'';
+}
 function critWarnings(p,id){
   let h='';
   if(S.validation.length)h+=`<div class="crit-alert red"><b>Verify patient:</b> ${S.validation.map(esc).join(' ')}</div>`;
   if(p&&p.weightSrc&&p.weightSrc!=='entered')h+=`<div class="crit-alert"><b>Estimated weight in use:</b> ${fmt(p.weightKg)} kg from ${esc(p.weightSrc)}. Confirm an actual weight and independently cross-check every dose before administration.</div>`;
   if(p&&p.ageYears==null)h+=`<div class="crit-alert red"><b>Age unknown:</b> age-gated directives, thresholds and maximums remain suppressed. Do not infer adult eligibility from weight.</div>`;
   if(p&&p.weightKg==null)h+=`<div class="crit-alert red"><b>Weight required:</b> weight-based doses and draw volumes cannot be safely populated.</div>`;
+  h+=painSedationNotice(p,id)+painSedationCautions(p,id);
   if(id==='cshock')h+=`<div class="crit-alert patch"><b>Cardiogenic shock eligibility:</b> ≥18 y · STEMI-positive 12-lead ECG · cardiogenic shock with hypotension. Contact BHP if bradycardic.${p&&p.ageYears!=null&&p.ageYears<18?' <b>Outside the adult directive: no treatment dose is displayed. Patch to a BHP for direction.</b>':''} ${srcLink('PCS p.126–128')}</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is adult-gated. Use the published pediatric chart only as a BHP reference, not as authorization.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds reference</button></div></div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='hyperk')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing Hyperkalemia Medical Directive is limited to patients ≥18 years old. Patch to a BHP for direction; no adult dose is displayed.</div>`;
@@ -2260,7 +2284,7 @@ function renderCritGrid(){
   }else{
     const data=critRowsForPath(p,path.id);
     const pedsTachy=path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18;
-    const treatmentSection=data.rows.length?critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='psed'?'Procedural sedation':'Patient-specific treatment',data.rows,'dose → draw volume','crit-treatment'):`<section class="crit-empty" id="crit-treatment" tabindex="-1"><b>No treatment calculation available for this patient</b>Airway reference values below do not establish treatment eligibility. Confirm patient data and use the full directive / BHP direction.</section>`;
+    const treatmentSection=data.rows.length?critSection(pedsTachy?'Pediatric drugs — BHP patch':path.id==='psed'?'Procedural sedation':path.id==='pain'?'Pain — analgesia':path.id==='combative'?'Chemical sedation — combative patient':'Patient-specific treatment',data.rows,'dose → draw volume','crit-treatment'):`<section class="crit-empty" id="crit-treatment" tabindex="-1"><b>No treatment calculation available for this patient</b>Airway reference values below do not establish treatment eligibility. Confirm patient data and use the full directive / BHP direction.</section>`;
     const equipmentSection=critSection('Airway / equipment',data.equipment,'reference sizing · verify local stock','crit-airway',critAirwayGuidance(p));
     const electricalSection=critSection('Pediatric electrical therapy — BHP patch',data.electrical,'PDC sequential settings','crit-electrical');
     html+=path.id==='arrest'?equipmentSection+treatmentSection:treatmentSection+electricalSection+equipmentSection;

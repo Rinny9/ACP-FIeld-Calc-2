@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.19.4-dopamine-tool-rates';
+const CACHE = 'acp-field-calc-2026.09.23.1-pain-sedation';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
