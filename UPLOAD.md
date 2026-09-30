@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.09.30.1 adds the missing dexamethasone croup draw volume to Calculator and Critical, using the existing service-stock concentration (default 10 mg/mL). For example, 7 mg displays Draw volume: 0.7 mL. The concentration is inspectable in the card's Concentration & reference section. Bronchoconstriction already displays this volume and is checked alongside croup. Dose formulas, routes, maximums, age/weight eligibility, warnings and references are unchanged.
+
 Build 2026.09.23.1 replaces Critical's Trauma category with Pain / Sedation:
 
 - Pain opens the existing age-appropriate Analgesia cards; Combative Patient opens only the adult combative midazolam/ketamine cards. Procedural Sedation remains separate under Airway / Respiratory.

@@ -405,7 +405,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.23.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.30.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -501,7 +501,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.23.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.30.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -959,7 +959,7 @@ function drugCalcs(p) {
   if (hasA && hasW && a >= 0.5 && a < 8) {
     out.resp.push({ name: 'EPINEPHrine NEB — croup (stridor at rest)', when: '≥6 mo to <8 y · HR <200 · stridor at rest', dose: w < 10 ? '2.5 mg (2.5 mL of 1:1,000)' : '5 mg (5 mL of 1:1,000)', sub: `${w < 10 ? '<10 kg' : '≥10 kg'} · ×1 · HR <200 · age ≥6 mo to <8 y`, src: 'PCS p.93', tone: 'pcs' });
     const dexC = Math.min(0.5 * w, 8);
-    out.resp.push({ name: 'Dexamethasone PO — croup', dose: `${fmt(round(dexC,1))} mg`, when: '≥6 mo to <8 y · unaltered · mild/moderate/severe croup', contra: 'Steroid allergy · steroids in last 48 h · unable to tolerate PO', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.93', tone: 'pcs' });
+    out.resp.push({ name: 'Dexamethasone PO — croup', dose: `${fmt(round(dexC,1))} mg`, ml: `${fmt(mlRound(dexC / CONC.dexamethasone.v))} mL`, when: '≥6 mo to <8 y · unaltered · mild/moderate/severe croup', contra: 'Steroid allergy · steroids in last 48 h · unable to tolerate PO', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.93', tone: 'pcs' });
   }
   if (hasA && a >= 18) {
     out.resp.push({ name: 'CPAP', dose: 'Start 5 cmH₂O', rep: '+2.5 q5 min · max 15', when: 'Severe distress + ACPE/COPD · tachypnea · normotension · SpO₂ <90% or accessory use', contra: 'Asthma exacerbation · pneumothorax · unprotected airway · major head/torso trauma or burns · tracheostomy · unable to sit up/cooperate', src: 'PCS p.233–234', tone: 'pcs' });
