@@ -1,9 +1,15 @@
-# App usability review - 2026-09-23
+# App usability review - 2026-10-03
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
 ## Changes delivered
 
+- Build 2026.10.03.2 pins only Critical's compact patient/condition controls. Back, Change and Aa display settings remain available while scrolling; main/subcategory menus scroll away. Normal and Large text headers measured 112–163 px at 320 px, and 112–120 px at 390 px/landscape in Chrome and WebKit.
+- Medication cards have simpler borders and full-width dose/draw lines. Conditions, contraindications, repeat/max and administration/BHP cautions remain visible. The compact airway panel retains every applicable shared row and all metadata, with common expandable sizing references. In WebKit at 390 px, adult Arrest's airway section fell from 1,579 to 832 px; its first treatment moved up by 762 px. Arrest remains airway-first.
+- Calculator Pain / Sedation uses the same terminology as Critical and includes the existing Analgesia, Combative Patient and Procedural Sedation cards. All calculations remains alphabetical and retains trauma/fluid content. Procedural Sedation is available under both Critical Pain / Sedation and Airway / Respiratory.
+- Peds Find drug reveals matching cards. Patch shows selected medication/route cards and an expandable chooser, rather than appending the full chart; band weight, chart basis, discrepancy warnings and authorization notes remain. Chart dose and Draw volume are labelled explicitly. Equipment is expandable below the medication cards.
+- Directives search expands matching bodies without overwriting ordinary browsing state; the search box stays below the patient bar. Critical pathway and ROSC checklist focus survives updates, and checklist controls retain native button semantics. Daylight Edit/Change band contrast is corrected.
+- Calculator's airway adapter now includes the original repeat/max metadata (suction frequency and topical lidocaine ceiling) that was omitted from the displayed cards. Clinical formulas, directive data and raw PEDS54 chart data compare unchanged with deployed fc58afb.
 - Build 2026.09.23.1 replaces Critical's Trauma category with Pain / Sedation, with Pain and Combative Patient subcategories. It reuses the full age-appropriate Analgesia card set and only the two combative-sedation cards, respectively; procedural sedation remains under Airway / Respiratory. Trauma Calculator/Directives content is retained.
 - Both new pathways retain shared airway equipment and exact-directive Calculator destinations. Combative treatment is suppressed for unknown age and age <18; Pain applies existing drug-specific eligibility. Pediatric opioid/ketamine patch requirements, sequential-analgesia cautions and sedation/BHP cautions are visible before treatment cards, not hidden in reminders or below the last dose.
 - Checked the affected mapping and cautions against ALS PCS 5.4 printed pp.161–169 (PDF pp.173–181). Corrected ketorolac's overly broad ibuprofen contraindication shorthand and added the missing ketamine allergy/sensitivity contraindication to combative cards, including missing-weight cards. No dose, formula, route, draw-volume or age-gate changes.
@@ -21,13 +27,13 @@ Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and S
 ## Review findings retained / possible next improvements
 
 - Calculator already expands scenario/search results, labels global search, preserves encounter navigation and flags estimated weights. These behaviors are retained.
-- Directives search finds matching documents, but a matching directive can remain collapsed. A future search-specific open state plus clear button could save another tap without changing normal browsing state.
-- Peds remains a long, fully expanded reference. Drug search or section shortcuts could reduce scrolling, provided chart-band identity, actual-vs-estimated weight and source discrepancy warnings remain visible.
+- Tools can still lose GCS/APGAR selections when a different tool is opened; preserving each tool's draft would be a separate improvement. Existing patient-change invalidation safeguards are retained.
 - PDF page fragments are not honored by every phone PDF viewer. The displayed PDF page number remains the fallback; source URLs cannot guarantee viewer behavior.
 - Three older clinical summaries already carry reference-review warnings. Resolving those requires a separate clinical-source review, not a silent change during a layout update. See REFERENCE_AUDIT.md.
 
 ## Verification
 
+- Visual navigation checks cover compact headers on 320/390 px phones and 844×390 landscape, display changes in place, keyboard focus, tappable Directive search, Peds filtering/focused Patch and New patient reset. Clinical engine/directive block and raw pediatric chart data are compared with fc58afb. Dosage layout checks cover 320–1280 px, both text sizes/themes and every adult/pediatric Critical pathway in Chrome/WebKit; no split or clipped measurements.
 - Critical/Cardiac tests cover every pathway's complete airway content, shared airway directive/Calculator links, adult/pediatric/unknown age, adult unknown weight, newborn uncuffed fallback, pediatric chart limits, category memory/reset and separate electrical/airway content.
 - Phone-size and dosage layout checks cover Chrome and WebKit, normal/Large text, dark/daylight modes and existing scenario/reference behavior. The Critical regression also checks that no section-shortcut row is rendered for any pathway.
 - Pain/Sedation regression covers known/missing weight at ages 0, 1, 11, 12, 17, 18, 64, 65 and unknown; focused links, retained trauma references, category memory/reset, both themes and normal/Large text on narrow phones. Shared clinical data is compared with the previous deployed build with only the explicitly verified contraindication/source metadata corrections allowed; no medication or equipment formula changes are intended.

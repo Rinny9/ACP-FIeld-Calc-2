@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.10.03.1-procedural-sedation-navigation';
+const CACHE = 'acp-field-calc-2026.10.03.2-compact-field-layout';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

@@ -54,7 +54,7 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
             const main=document.getElementById('critPaths').getBoundingClientRect(),sub=document.getElementById('critSubpaths').getBoundingClientRect();
             return sub.top>=main.bottom-1;
           }),`${engine} ${width}px: subcategories below main categories`);
-          assert.equal(await page.locator('.crit-sticky').evaluate(el=>getComputedStyle(el).position),'static','Expanded picker can scroll on short screens');
+          assert.ok(await page.locator('#critPaths').evaluate(el=>!el.closest('.crit-sticky')),'Expanded category menu scrolls independently of the compact patient header');
           assert.equal(await page.locator('#critical').evaluate(el=>el.scrollWidth>el.clientWidth),false,'No horizontal overflow');
           if(process.env.SCREENSHOT_DIR&&width===390&&!large&&group==='arrest'){
             fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,engine+'-critical-order.png')});
@@ -76,7 +76,7 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
         const m=values.rows[0];assert.ok(Math.abs(parseFloat(m.v)*.2-parseFloat(m.t))<1e-9,id+' retained chart volume matches dose at 0.2 mg/mL');
         assert.equal(m.bhp,true);
         const cards=page.locator('#pane-peds .row').filter({has:page.locator('.rname', {hasText:/^Atropine/})});
-        assert.equal(await cards.count(),2,'One chart row and one patch row');
+        assert.equal(await cards.count(),1,'Focused patch shows only the selected service row');
         for(const card of await cards.all()){
           const text=await card.innerText();assert.match(text,/0\.2 mg\/mL/);assert.match(text,/BHP auth/i);
           assert.doesNotMatch(text,/0\.[146] mg\/mL|1 mg\/10 mL|conc [134]/);
@@ -85,6 +85,11 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
           assert.match(await cards.last().innerText(),/Confirm intended dose with BHP/);
           assert.match(await cards.last().innerText(),/MAX/);
         }
+        await page.evaluate(()=>{PS.patch=false;renderPeds();});
+        const chartAtropine=page.locator('#pane-peds .row').filter({has:page.locator('.rname',{hasText:/^Atropine/})});
+        assert.equal(await chartAtropine.count(),1,'Full chart also keeps only the service row');
+        assert.match(await chartAtropine.innerText(),/0\.2 mg\/mL/);
+        assert.match(await chartAtropine.innerText(),/BHP auth/i);
       }
       await page.locator('nav [data-pane="tools"]').click();await page.evaluate(()=>openTool('drip'));
       assert.deepEqual(await page.locator('#dset option').evaluateAll(els=>els.map(el=>el.value)),['10','60']);

@@ -1,5 +1,15 @@
 # GitHub upload
 
+Build 2026.10.03.2 simplifies the field layout:
+
+- Critical pins a compact patient/current-condition header with Back, Change and display controls. Category and subcategory menus scroll with the page, remain in the correct order and retain encounter selections.
+- Every Critical pathway uses a compact shared airway panel with all original values, cautions and repeat/max guidance. Sizing references and full airway directives are expandable. Arrest remains airway-first.
+- Medication cards use full-width dose and draw lines, simpler borders and visible conditions, contraindications and administration/BHP cautions. Daylight and Large text can be changed in place from Aa on Calculator or Critical; display preferences persist.
+- Calculator's Pain / Sedation scenario matches Critical terminology and includes Analgesia, Combative Patient and Procedural Sedation. All calculations stays alphabetical; trauma/fluid references remain available there and in Directives.
+- Peds has Find drug, clearly labelled chart dose/draw volume and a focused Patch view containing selected medication cards. Band identity, weight discrepancies, source notes and BHP requirements remain visible; equipment is expandable.
+- Directives search opens matching content, restores prior browsing state on clearing and stays tappable below the patient bar. Critical pathway/ROSC checklist keyboard focus is retained.
+- Restored existing airway repeat/max metadata omitted by the Calculator display adapter. Medication/equipment formulas, directive data and raw pediatric chart values are unchanged from build 2026.10.03.1.
+
 Build 2026.10.03.1 adds Procedural Sedation to Critical > Pain / Sedation, alongside Pain and Combative Patient. It also remains available under Airway / Respiratory. Both entries open the same existing pathway, with unchanged doses, conditions, cautions, airway content and references. Shared-path navigation retains the category the user selected and each category's last selected subcategory. The three Pain / Sedation tabs use a wrapping grid for phone readability.
 
 Build 2026.09.30.1 adds the missing dexamethasone croup draw volume to Calculator and Critical, using the existing service-stock concentration (default 10 mg/mL). For example, 7 mg displays Draw volume: 0.7 mL. The concentration is inspectable in the card's Concentration & reference section. Bronchoconstriction already displays this volume and is checked alongside croup. Dose formulas, routes, maximums, age/weight eligibility, warnings and references are unchanged.
