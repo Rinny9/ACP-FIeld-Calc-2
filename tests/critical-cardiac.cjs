@@ -29,7 +29,8 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       assert.equal(groups.find(g=>g.id==='rhythm').label,'Cardiac');
       assert.deepEqual(groups.find(g=>g.id==='airbreath').paths,['bronch','psed','allergy','croup']);
       assert.ok(!groups.find(g=>g.id==='airbreath').paths.includes('acpe'),'ACPE belongs to Cardiac, not two groups');
-      const memberships=groups.flatMap(g=>g.paths);assert.equal(new Set(memberships).size,memberships.length,'Each pathway has one category');
+      const memberships=groups.flatMap(g=>g.paths).filter(id=>id!=='psed');assert.equal(new Set(memberships).size,memberships.length,'Only Procedural Sedation is intentionally shared between categories');
+      assert.deepEqual(groups.filter(g=>g.paths.includes('psed')).map(g=>g.id),['airbreath','painsedation']);
       const cshockCase=await page.evaluate(()=>CASES.find(c=>c.id==='crit-cshock'));
       assert.equal(cshockCase.minAge,18);assert.equal(cshockCase.hidden,true);
 

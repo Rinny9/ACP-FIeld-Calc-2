@@ -54,7 +54,7 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
       await click('nav [data-pane="critical"]');
       const config=await page.evaluate(()=>({groups:CRIT_GROUPS,paths:CRIT_PATHS,cases:CASES,dirs:DIR.map(d=>({id:d.id,name:d.n}))}));
       const group=config.groups.find(g=>g.id==='painsedation');assert.ok(group);
-      assert.equal(group.label,'Pain / Sedation');assert.deepEqual(group.paths,['pain','combative']);
+      assert.equal(group.label,'Pain / Sedation');assert.deepEqual(group.paths,['pain','combative','psed']);
       assert.equal(config.groups.length,6,'Replacing Trauma does not add another top-level category');
       assert.ok(!config.groups.some(g=>g.id==='shocktrauma'||g.label==='Trauma'),'No obsolete Critical Trauma category');
       assert.ok(!config.paths.some(p=>p.id==='trauma'),'No obsolete Critical Trauma pathway');
@@ -105,7 +105,7 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
 
       // Exercise the actual category/subcategory buttons and destination actions.
       await click('#critPaths [onclick="selectCriticalGroup(\'painsedation\')"]');
-      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['pain','combative']);
+      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['pain','combative','psed']);
       assert.equal(await page.evaluate(()=>critScenario),'pain');
       for(const id of ['pain','combative']){
         await click(`#critSubpaths [data-path="${id}"]`);
@@ -173,13 +173,36 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
           }return bad;
         });assert.deepEqual(overflow,[],`${engine} ${width}px large=${large} daylight=${day} ${id}`);
         assert.equal(await page.locator('#critJumps,.crit-jumps').count(),0);
-        assert.equal(await page.locator('#critSubpaths button').count(),2);
+        assert.equal(await page.locator('#critSubpaths button').count(),3);
         if(process.env.SCREENSHOT_DIR&&width===390&&large===day){
           fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.locator('#critical').evaluate(el=>el.scrollTo(0,0));
           await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,`${engine}-${id}-${day?'day-large':'dark'}.png`)});
         }
       }
       await page.evaluate(()=>{document.body.classList.remove('large-text','daylight');});
+      // Procedural Sedation is one shared pathway, accessible from both groups.
+      const chooseGroup=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
+      for(const groupId of ['painsedation','airbreath']){
+        await chooseGroup(groupId);await click('#critSubpaths [data-path="psed"]');
+        assert.equal(await page.evaluate(()=>critGroup),groupId,'Shared pathway does not jump categories');
+        assert.match(await page.locator('#critContext').innerText(),groupId==='painsedation'?/^Pain \/ Sedation · Procedural Sedation$/:/^Airway \/ Respiratory · Procedural Sedation$/);
+        assert.deepEqual(await page.evaluate(()=>critRowsForPath(S.pt,'psed').rows),await page.evaluate(()=>drugCalcs(S.pt).sedation.filter(r=>r.name==='Procedural sedation (post-ETT / TCP)')));
+        assert.equal(await page.locator('#crit-treatment .row').count(),1);
+        assert.equal(await page.locator('#crit-airway').count(),1);
+        await click('#critContent [onclick="openCriticalCalculations()"]');
+        assert.equal(await page.evaluate(()=>S.caseId),'crit-psed');
+        assert.deepEqual(await page.locator('#results .rdirective').allTextContents(),['Procedural Sedation']);
+        await click('nav [data-pane="critical"]');assert.equal(await page.evaluate(()=>critGroup),groupId);
+        await click('#critContent [onclick="openCriticalDirective()"]');
+        assert.equal(await page.locator('#dirSearch').inputValue(),'Procedural Sedation');
+        await click('nav [data-pane="critical"]');assert.equal(await page.evaluate(()=>critGroup),groupId);
+        await chooseGroup('rhythm');await chooseGroup(groupId);
+        assert.equal(await page.evaluate(()=>critScenario),'psed','Each category remembers its shared-path selection');
+      }
+      await chooseGroup('painsedation');assert.equal(await page.evaluate(()=>critScenario),'psed');
+      await click('#critSubpaths [data-path="pain"]');
+      await chooseGroup('airbreath');assert.equal(await page.evaluate(()=>critScenario),'psed','Selections remain independent');
+      await chooseGroup('painsedation');assert.equal(await page.evaluate(()=>critScenario),'pain');
       await click('#critClose');await click('#newPtTop');await click('nav [data-pane="critical"]');
       assert.equal(await page.evaluate(()=>critScenario),null,'New patient clears chosen scenario');
       await click('#critPaths [onclick="selectCriticalGroup(\'painsedation\')"]');

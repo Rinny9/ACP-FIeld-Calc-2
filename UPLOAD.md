@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.10.03.1 adds Procedural Sedation to Critical > Pain / Sedation, alongside Pain and Combative Patient. It also remains available under Airway / Respiratory. Both entries open the same existing pathway, with unchanged doses, conditions, cautions, airway content and references. Shared-path navigation retains the category the user selected and each category's last selected subcategory. The three Pain / Sedation tabs use a wrapping grid for phone readability.
+
 Build 2026.09.30.1 adds the missing dexamethasone croup draw volume to Calculator and Critical, using the existing service-stock concentration (default 10 mg/mL). For example, 7 mg displays Draw volume: 0.7 mL. The concentration is inspectable in the card's Concentration & reference section. Bronchoconstriction already displays this volume and is checked alongside croup. Dose formulas, routes, maximums, age/weight eligibility, warnings and references are unchanged.
 
 Build 2026.09.23.1 replaces Critical's Trauma category with Pain / Sedation:

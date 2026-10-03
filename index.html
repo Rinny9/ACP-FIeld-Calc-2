@@ -405,7 +405,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.09.30.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.03.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -501,7 +501,7 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.09.30.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.03.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -2066,7 +2066,7 @@ const CRIT_GROUPS=[
   {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
   {id:'rhythm',icon:'💓',label:'Cardiac',paths:['brady','tachy','cshock','acpe']},
   {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['bronch','psed','allergy','croup']},
-  {id:'painsedation',icon:'💊',label:'Pain / Sedation',paths:['pain','combative']},
+  {id:'painsedation',icon:'💊',label:'Pain / Sedation',paths:['pain','combative','psed']},
   {id:'neurometab',icon:'🧠',label:'Neuro / Metabolic',paths:['seizure','hypogly','opioid','adrenal']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
 ];
@@ -2222,7 +2222,7 @@ function renderCritPaths(){
   const group=CRIT_GROUPS.find(x=>x.id===critGroup),path=critPath();
   if(!path)el.hidden=false;
   document.querySelector('.crit-sticky').classList.toggle('picker-open',!el.hidden);
-  sub.classList.toggle('many',!!group&&group.paths.length>3);
+  sub.classList.toggle('many',!!group&&(group.paths.length>3||group.id==='painsedation'));
   $('critContext').textContent=group&&path?(group.paths.length>1?group.label+' · '+path.label:group.label):'Choose a category';
   $('critChange').hidden=!path;
   $('critChange').setAttribute('aria-expanded',String(!el.hidden));
@@ -2295,11 +2295,13 @@ function renderCritGrid(){
   $('critContent').innerHTML=html;
 }
 const criticalScroll={};
-window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!group)return;selectCriticalPath(group.paths.includes(criticalGroupSelection[id])?criticalGroupSelection[id]:group.paths[0]);};
+window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!group)return;critGroup=id;selectCriticalPath(group.paths.includes(criticalGroupSelection[id])?criticalGroupSelection[id]:group.paths[0]);};
 window.selectCriticalPath=id=>{
   if(!CRIT_PATHS.some(x=>x.id===id))return;
   criticalScroll[critScenario]=$('critical').scrollTop;critScenario=id;
-  const group=CRIT_GROUPS.find(x=>x.paths.includes(id));if(group){critGroup=group.id;criticalGroupSelection[group.id]=id;}
+  // Shared pathways stay in the category the user chose rather than jumping
+  // to the first category that happens to contain them.
+  const group=CRIT_GROUPS.find(x=>x.id===critGroup&&x.paths.includes(id))||CRIT_GROUPS.find(x=>x.paths.includes(id));if(group){critGroup=group.id;criticalGroupSelection[group.id]=id;}
   $('critPaths').hidden=true;renderCritGrid();$('critical').scrollTo(0,criticalScroll[id]||0);
 };
 window.toggleRoscCheck=id=>{if(!ROSC_CHECKLIST.some(x=>x.id===id))return;roscChecklistState[id]=!roscChecklistState[id];renderCritGrid();};

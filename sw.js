@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.09.30.1-dexamethasone-draw';
+const CACHE = 'acp-field-calc-2026.10.03.1-procedural-sedation-navigation';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

@@ -63,7 +63,7 @@ const expected={
       }
       assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['seizure','hypogly','opioid','adrenal']);
       await group('painsedation');assert.match(await page.locator('#critContext').innerText(),/^Pain \/ Sedation/);
-      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['pain','combative']);
+      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['pain','combative','psed']);
       for(const width of [320,375,390,430]){
         await page.setViewportSize({width,height:844});
         for(const large of [false,true])for(const id of ['airbreath','neurometab','painsedation']){
