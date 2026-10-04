@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.10.04.1 makes Critical's iPhone navigation clearer. Exit Critical is a prominent 48 px button in the pinned top toolbar above the patient card and returns to Calculator. Change directive is a separate filled 48 px button beside the selected condition; it opens the category picker within Critical and becomes Hide categories while expanded. Both remain visible while scrolling, with distinct labels, icons and styling. The iPhone safe-area inset is applied once. Patient/pathway state, treatment content and calculations are unchanged.
+
 Build 2026.10.03.2 simplifies the field layout:
 
 - Critical pins a compact patient/current-condition header with Back, Change and display controls. Category and subcategory menus scroll with the page, remain in the correct order and retain encounter selections.

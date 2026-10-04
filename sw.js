@@ -1,4 +1,4 @@
-const CACHE = 'acp-field-calc-2026.10.03.2-compact-field-layout';
+const CACHE = 'acp-field-calc-2026.10.04.1-clear-critical-controls';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 

@@ -424,12 +424,19 @@ body.large-text .crit-dosegrid{grid-template-columns:1fr}body.large-text .kv,bod
 .display-options{position:absolute;right:0;top:calc(100% + 5px);width:220px;padding:6px;border:1px solid var(--border2);border-radius:12px;background:var(--card);box-shadow:0 8px 24px #0005;z-index:70}
 .display-options button{display:block;width:100%;min-height:44px;text-align:left;padding:8px 10px;font-size:14px;color:var(--text);border-radius:8px}.display-options button[aria-pressed="true"]{background:var(--blue-dim);color:#B8CAFF}
 body.daylight .display-options button[aria-pressed="true"]{color:#173B88}
-.crit-sticky{padding-top:calc(4px + env(safe-area-inset-top));border-bottom:1px solid var(--border)}
+.crit-sticky{padding-top:calc(4px + var(--safe-top));border-bottom:1px solid var(--border)}
 .crit-sticky.picker-open{position:sticky}
-.crit-top{padding:calc(6px + env(safe-area-inset-top)) 0 6px}.crit-ptcard{margin:0;padding:6px 8px;border-radius:9px;gap:8px}
+.crit-top{padding:0;margin:0 0 8px;gap:8px;flex-wrap:nowrap;backdrop-filter:none}.crit-top h2{min-width:0;white-space:nowrap}
+.crit-top .crit-close{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:8px 10px;flex:none;border-color:var(--mut);background:var(--raise);color:var(--text);font-size:14px;white-space:nowrap}
+.crit-top .crit-close svg{width:18px;height:18px;flex:none}
+.crit-ptcard{margin:0;padding:6px 8px;border-radius:9px;gap:8px}
 .crit-ptmain .cpw{font-size:calc(20px * var(--clinical-scale));line-height:1.2}.crit-ptmain .cpa{line-height:1.3}
-.crit-edit{color:#B8CAFF;background:var(--blue-dim);padding:8px 10px}.crit-context{gap:4px}.crit-context>b{flex:1;min-width:0}
-.crit-context .crit-close{padding:6px 8px;min-width:44px;min-height:44px;background:var(--surface);color:var(--text);font-size:14px}
+.crit-edit{color:#B8CAFF;background:var(--blue-dim);padding:8px 10px}.crit-context{gap:8px;padding-top:6px}
+.crit-selection{flex:1;min-width:0;line-height:1.3}.crit-group-label{display:block;color:var(--mut);font-size:calc(12px * var(--clinical-scale));margin-bottom:2px}.crit-condition-label{display:block;font-size:calc(14px * var(--clinical-scale));color:var(--text)}
+#critChange{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:8px 10px;border:1px solid #7FA3FF;border-radius:10px;background:var(--blue-dim);color:#B8CAFF;font-size:14px;font-weight:800;line-height:1.3;white-space:nowrap}
+#critChange svg{width:18px;height:18px;flex:none}
+body.daylight #critChange{color:#173B88;border-color:#7186B4}
+@media(max-width:430px){#critChange{width:120px;white-space:normal;padding:7px 8px;gap:5px}#critChangeLabel{min-width:0}}
 body.daylight .crit-edit{color:#173B88}
 .crit-paths,.crit-subpaths{margin-top:8px;margin-bottom:8px}.crit-profile{background:transparent;border:0;padding:4px 1px;margin:4px 0;color:var(--mut)}
 .crit-patient-limits{display:block;margin-bottom:3px;font-size:calc(13px * var(--clinical-scale))}
@@ -456,7 +463,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.03.2</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.04.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -554,7 +561,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.03.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.04.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -562,10 +569,10 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
 <!-- ================= CRITICAL MODE ================= -->
 <div id="critical" role="dialog" aria-modal="true" aria-labelledby="criticalTitle">
   <div class="crit-shell">
-    <div class="crit-top"><h2 id="criticalTitle">⬤ CRITICAL<small>ALS PCS 5.4 · patient-specific</small></h2></div>
     <div class="crit-sticky">
+    <div class="crit-top"><h2 id="criticalTitle">⬤ CRITICAL<small>ALS PCS 5.4 · patient-specific</small></h2><button class="crit-close" id="critClose" type="button" aria-label="Exit Critical and return to Calculator" title="Return to Calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Exit Critical</button><div id="critDisplay"></div></div>
     <div class="crit-ptcard" id="critPt"></div>
-    <div class="crit-context"><button class="crit-close" id="critClose" type="button" aria-label="Back to Calculator" title="Back to Calculator">‹ Back</button><b id="critContext"></b><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths">Change</button><div id="critDisplay"></div></div>
+    <div class="crit-context"><div class="crit-selection" id="critContext"></div><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span id="critChangeLabel">Change directive</span></button></div>
     </div>
     <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway"></div>
     <div class="crit-subpaths" id="critSubpaths" role="group" aria-label="High-acuity subpath"></div>
@@ -2300,8 +2307,9 @@ function renderCritPaths(){
   if(!path)el.hidden=false;
   document.querySelector('.crit-sticky').classList.toggle('picker-open',!el.hidden);
   sub.classList.toggle('many',!!group&&(group.paths.length>3||group.id==='painsedation'));
-  $('critContext').textContent=group&&path?(group.paths.length>1?group.label+' · '+path.label:group.label):'Choose a category';
+  $('critContext').innerHTML=group&&path?`<span class="crit-group-label">${esc(group.label)}</span><b class="crit-condition-label">${esc(path.label)}</b>`:'<b class="crit-condition-label">Choose a category</b>';
   $('critChange').hidden=!path;
+  $('critChangeLabel').textContent=el.hidden?'Change directive':'Hide categories';
   $('critChange').setAttribute('aria-expanded',String(!el.hidden));
   el.innerHTML=CRIT_GROUPS.map(x=>`<button type="button" class="${x.id===group?.id?'on':''}" aria-pressed="${x.id===group?.id}" onclick="selectCriticalGroup('${x.id}')"><span aria-hidden="true">${x.icon}</span>${x.label}</button>`).join('');
   sub.innerHTML=group&&group.paths.length>1?group.paths.map(id=>{const x=CRIT_PATHS.find(p=>p.id===id);return`<button type="button" data-path="${id}" class="${id===critScenario?'on':''}" aria-pressed="${id===critScenario}" onclick="selectCriticalPath('${id}')">${x.icon} ${esc(x.label).replace('Bronchoconstriction','Broncho<wbr>constriction')}</button>`;}).join(''):'';

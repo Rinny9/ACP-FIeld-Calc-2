@@ -48,22 +48,59 @@ function readable(rootSelector){
       await page.evaluate(()=>{S.entryCollapsed=true;renderEntryState();switchPane('critical');});
       assert.equal(await page.evaluate(()=>critScenario),null,'Critical remains neutral on entry');
       assert.equal(await page.locator('.crit-sticky #critPaths,.crit-sticky #critSubpaths').count(),0,'Category and subcategory menus scroll outside the pinned header');
+      assert.match(await page.locator('#critClose').innerText(),/Exit Critical/,'Exit control names the mode being left');
+      assert.match(await page.locator('#critClose').getAttribute('aria-label'),/Calculator/i,'Exit control announces its Calculator destination');
+      assert.equal(await page.locator('#critChange').isVisible(),false,'Neutral entry has no misleading change action');
       for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390}])for(const large of [false,true]){
         await page.setViewportSize(size);await page.evaluate(large=>document.body.classList.toggle('large-text',large),large);
         for(const id of ['arrest','psed','combative','tachy']){
           await page.evaluate(id=>{selectCriticalPath(id);document.getElementById('critical').scrollTop=500;},id);await settle();
           const result=await page.evaluate(()=>{
             const sticky=document.querySelector('.crit-sticky'),rect=sticky.getBoundingClientRect(),sub=document.getElementById('critSubpaths').getBoundingClientRect();
-            return {height:rect.height,top:rect.top,subBottom:sub.bottom,scroll:document.getElementById('critical').scrollTop};
+            const exit=document.getElementById('critClose').getBoundingClientRect(),patient=document.getElementById('critPt').getBoundingClientRect(),change=document.getElementById('critChange').getBoundingClientRect();
+            return {height:rect.height,top:rect.top,subBottom:sub.bottom,scroll:document.getElementById('critical').scrollTop,exit:{x:exit.x,y:exit.y,width:exit.width,height:exit.height,bottom:exit.bottom},patient:{top:patient.top,bottom:patient.bottom},change:{x:change.x,y:change.y,width:change.width,height:change.height}};
           });
-          assert.ok(result.height<(size.width===320?180:160),`${engine} ${size.width}px large=${large} ${id}: compact pinned header (${result.height}px)`);
+          assert.ok(result.height<=(size.width===320?200:190),`${engine} ${size.width}px large=${large} ${id}: compact pinned header including distinct exit toolbar (${result.height}px)`);
           assert.ok(result.height<size.height*.48,'Landscape keeps more than half the viewport available for content');
           assert.ok(Math.abs(result.top)<1,'Patient and selected pathway remain pinned');
           assert.ok(result.subBottom<result.height,'Subcategory menu scrolls out of the content viewport');
+          assert.ok(result.exit.bottom<=result.patient.top+1,'Exit is above patient information, separate from changing a directive');
+          assert.ok(result.change.y>=result.patient.bottom-1,'Change directive stays beside the current directive below the patient');
+          for(const action of ['exit','change']){
+            assert.ok(result[action].height>=48,`${action} has a 48px phone touch target`);
+            assert.ok(result[action].x>=0&&result[action].x+result[action].width<=size.width,`${action} stays wholly within the phone viewport`);
+          }
+          assert.equal(await page.locator('#critChange').innerText(),'Change directive','Directive action has an explicit label');
           assert.deepEqual(await page.evaluate(readable,'#critical'),[],`${engine} ${size.width}px large=${large} ${id}: intact equipment and dose text`);
           measurements.push({engine,...size,large,id,...result});
         }
       }
+      // Standalone iPhone safe-area padding is applied once above the exit toolbar.
+      await page.setViewportSize({width:390,height:844});
+      await page.evaluate(()=>{selectCriticalPath('arrest');document.getElementById('critical').scrollTop=500;});await settle();
+      const headerWithoutInset=await page.locator('.crit-sticky').evaluate(el=>el.getBoundingClientRect().height);
+      await page.evaluate(()=>document.documentElement.style.setProperty('--safe-top','44px'));await settle();
+      const insetGeometry=await page.evaluate(()=>{
+        const header=document.querySelector('.crit-sticky').getBoundingClientRect(),exit=document.getElementById('critClose').getBoundingClientRect();
+        return {height:header.height,exitTop:exit.top,hit:!!document.elementFromPoint(exit.left+exit.width/2,exit.top+exit.height/2)?.closest('#critClose')};
+      });
+      assert.ok(Math.abs(insetGeometry.height-headerWithoutInset-44)<1,'iPhone safe inset adds one padding region');
+      assert.ok(insetGeometry.exitTop>=44,'Exit remains below the iPhone status area');
+      assert.equal(insetGeometry.hit,true,'Exit stays tappable after scrolling with a safe inset');
+      await page.evaluate(()=>document.documentElement.style.removeProperty('--safe-top'));await settle();
+      // Changing categories stays within Critical and leaves patient/pathway state intact.
+      await page.setViewportSize({width:390,height:844});
+      await page.evaluate(()=>{selectCriticalPath('arrest');document.getElementById('critical').scrollTop=500;});await settle();
+      const patientBefore=await page.evaluate(()=>JSON.stringify(S.pt));
+      await page.locator('#critChange').click();await settle();
+      assert.equal(await page.evaluate(()=>activePane),'critical','Change directive never exits Critical');
+      assert.equal(await page.evaluate(()=>critScenario),'arrest','Opening categories preserves the current directive');
+      assert.equal(await page.evaluate(()=>JSON.stringify(S.pt)),patientBefore,'Opening categories preserves the patient');
+      assert.equal(await page.locator('#critPaths').isVisible(),true,'Change directive reveals categories');
+      assert.equal(await page.locator('#critChange').innerText(),'Hide categories','Expanded picker action clearly closes the category choices');
+      await page.locator('#critChange').click();await settle();
+      assert.equal(await page.locator('#critPaths').isVisible(),false);
+      assert.equal(await page.locator('#critChange').innerText(),'Change directive');
       await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{document.body.classList.remove('large-text','daylight');selectCriticalPath('arrest');document.getElementById('critical').scrollTop=0;});await settle();
       const panel=await page.locator('#crit-airway .crit-air-panel').innerText();
       for(const name of ['ETT — cuffed','Oral insertion depth','Suction catheter','Laryngoscope blade'])assert.ok(panel.includes(name),'Compact airway retains '+name);
@@ -99,7 +136,7 @@ function readable(rootSelector){
       assert.equal(await page.locator(`[data-check="${checkId}"]`).getAttribute('aria-pressed'),'true');
       assert.equal(await page.locator(`[data-check="${checkId}"]`).getAttribute('role'),null,'ROSC check retains native button semantics');
       await page.locator('#critClose').click();await settle();
-      assert.equal(await page.evaluate(()=>activePane),'calc','Pinned Back returns to Calculator');
+      assert.equal(await page.evaluate(()=>activePane),'calc','Pinned Exit Critical returns to Calculator');
       await page.locator('#calcDisplayMenu > summary').click();
       assert.equal(await page.locator('#calcDisplayMenu [data-display="daylight"]').getAttribute('aria-pressed'),'true');
       assert.equal(await page.locator('#calcDisplayMenu [data-display="large"]').getAttribute('aria-pressed'),'true');
