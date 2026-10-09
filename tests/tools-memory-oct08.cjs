@@ -1,0 +1,61 @@
+// Same-patient Tools memory, explicit resets, APGAR pause/resume and invalidation.
+// Requires Playwright; CHROME_PATH may select an installed Chromium browser.
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {chromium}=require('playwright');
+const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);});
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
+  try{
+    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce',serviceWorkers:'block'}),errors=[];
+    page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+    await page.goto(`http://127.0.0.1:${server.address().port}`);
+    await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');
+    const tools=()=>page.evaluate(()=>switchPane('tools'));
+    const open=id=>page.evaluate(id=>openTool(id),id);
+    const close=()=>page.evaluate(()=>closeTool());
+    const reset=()=>page.locator('#toolReset').click();
+    await tools();await open('gcs');
+    await page.locator('#gcsRows .gcsrow').nth(0).locator('button').nth(0).click();
+    await close();await open('gcs');
+    assert.equal(await page.locator('#gcsRows button.on').count(),1,'Partial GCS selection retained');
+    assert.equal(await page.locator('#gcsTotal').innerText(),'—');
+    await page.locator('#gcsRows .gcsrow').nth(1).locator('button').nth(1).click();
+    await page.locator('#gcsRows .gcsrow').nth(2).locator('button').nth(2).click();
+    const gcs=await page.locator('#gcsTotal').innerText();assert.equal(gcs,'GCS 12');
+    await open('drip');await open('gcs');
+    assert.equal(await page.locator('#gcsTotal').innerText(),gcs);assert.equal(await page.locator('#gcsRows button.on').count(),3);
+    await reset();assert.equal(await page.locator('#gcsRows button.on').count(),0);assert.equal(await page.locator('#gcsTotal').innerText(),'—');
+    await open('drip');await page.locator('#dvol').fill('250');await page.locator('#dmin').fill('30');await page.locator('#dset').selectOption('60');
+    const drip=await page.locator('#dripLbl').innerText();await close();await open('drip');
+    assert.equal(await page.locator('#dvol').inputValue(),'250');assert.equal(await page.locator('#dmin').inputValue(),'30');assert.equal(await page.locator('#dset').inputValue(),'60');assert.equal(await page.locator('#dripLbl').innerText(),drip);
+    await reset();assert.equal(await page.locator('#dvol').inputValue(),'');assert.equal(await page.locator('#dset').inputValue(),'10');
+    await open('shock');await page.locator('#siHR').fill('100');await page.locator('#siBP').fill('80');const shock=await page.locator('#siOut').innerText();
+    await open('gcs');await open('shock');assert.equal(await page.locator('#siHR').inputValue(),'100');assert.equal(await page.locator('#siBP').inputValue(),'80');assert.equal(await page.locator('#siOut').innerText(),shock);
+    await reset();assert.equal(await page.locator('#siOut').innerText(),'—');
+    await open('tbsa');await page.locator('#tbsaAge [data-a="child"]').click();await page.locator('#tbsaRows button:has-text("Right arm")').click();await page.locator('#tbsaExtra').fill('2.5');
+    const burn=await page.locator('#parklandOut').innerText();await close();await open('tbsa');
+    assert.equal(await page.locator('#tbsaAge button.on').getAttribute('data-a'),'child');assert.equal(await page.locator('#tbsaTotal').innerText(),'11.5%');assert.equal(await page.locator('#parklandOut').innerText(),burn);
+    await close();await page.evaluate(()=>{S.wtVal=40;recompute();});await open('tbsa');
+    assert.equal(await page.locator('#tbsaTotal').innerText(),'0%','Closed TBSA memory is invalidated by patient changes');assert.equal(await page.locator('#parklandOut').innerText(),'');
+    await page.locator('#tbsaRows button:has-text("Right arm")').click();await page.evaluate(()=>{S.ageVal=10;recompute();});assert.equal(await page.evaluate(()=>S.tool),null,'Open TBSA invalidated by age change');
+    await open('apgar');for(let i=0;i<5;i++)await page.locator('#apRows .gcsrow').nth(i).locator('button').nth(2).click();
+    await page.locator('#apStart').click();await page.evaluate(()=>{apT0-=65000;renderApgarTimer();});
+    await close();await open('apgar');
+    assert.equal(await page.locator('#apTotal').innerText(),'10');assert.equal(await page.locator('#apRows button.on').count(),5);assert.match(await page.locator('#apTimer').innerText(),/^1:0[5-9]$/);assert.match(await page.locator('#apTimerLbl').innerText(),/Paused/);assert.match(await page.locator('#apStart').innerText(),/Resume/);assert.equal(await page.evaluate(()=>apInt),null);
+    await page.locator('#apStart').click();await page.evaluate(()=>{apT0-=240000;renderApgarTimer();});assert.match(await page.locator('#apTimer').innerText(),/^5:0[5-9]$/);assert.match(await page.locator('#apTimerLbl').innerText(),/5-minute mark/);
+    await page.evaluate(()=>switchPane('calc'));assert.equal(await page.evaluate(()=>apInt),null,'Leaving Tools pauses the timer');await tools();assert.match(await page.locator('#apTimerLbl').innerText(),/Paused/);
+    await reset();assert.equal(await page.locator('#apTimer').innerText(),'0:00');assert.match(await page.locator('#apStart').innerText(),/Start/);assert.equal(await page.locator('#apRows button.on').count(),0);
+    await page.evaluate(()=>{apgarTimerToggle();apT0-=10000;Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});assert.equal(await page.evaluate(()=>apInt),null,'Hidden app does not keep a purported background reminder');assert.match(await page.locator('#apTimerLbl').innerText(),/Paused/);
+    await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});});
+    await open('gcs');await page.locator('#gcsRows button').first().click();await open('drip');await page.locator('#dvol').fill('500');await page.locator('#dmin').fill('20');await open('shock');await page.locator('#siHR').fill('90');await open('tbsa');await page.locator('#tbsaRows button').first().click();await close();
+    assert.equal(await page.evaluate(()=>hasToolInputs()),true,'Cached inputs count as active encounter information');
+    await page.locator('#newPtTop').click();await tools();
+    assert.equal(await page.evaluate(()=>hasToolInputs()),false,'New patient clears every cached tool state');
+    await open('gcs');assert.equal(await page.locator('#gcsRows button.on').count(),0);await open('apgar');assert.equal(await page.locator('#apRows button.on').count(),0);assert.equal(await page.locator('#apTimer').innerText(),'0:00');
+    await open('drip');assert.equal(await page.locator('#dvol').inputValue(),'');await open('shock');assert.equal(await page.locator('#siHR').inputValue(),'');await open('tbsa');assert.equal(await page.locator('#tbsaTotal').innerText(),'0%');assert.equal(await page.locator('#tbsaAge button.on').getAttribute('data-a'),'adult');
+    assert.deepEqual(errors,[]);
+    console.log('PASS: same-patient GCS/APGAR/TBSA/drip/shock memory, Reset tool, APGAR truthful pause/resume/hidden-app state, closed/open TBSA patient invalidation, and New patient clears all memory.');
+  }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

@@ -32,7 +32,12 @@ const expected={
       const settle=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
       const click=async selector=>{await page.locator(selector).click();await settle();};
       await click('nav [data-pane="critical"]');
-      const group=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
+      const group=async id=>{
+        if(await page.locator('#critPaths').isVisible())return click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);
+        if(!await page.locator('#critPicker').isVisible())await click('#critChange');
+        if(!await page.locator('#critPicker .crit-paths').count())await click('#critPicker [onclick="showCriticalPicker(\'all\')"]');
+        await click(`#critPicker .crit-paths [onclick="selectCriticalGroup('${id}')"]`);
+      };
       await group('airbreath');
       assert.match(await page.locator('#critContext').innerText(),/^Airway \/ Respiratory/);
       assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['bronch','psed','allergy','croup']);

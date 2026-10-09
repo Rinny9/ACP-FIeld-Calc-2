@@ -85,7 +85,12 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       assert.equal(peds.electrical.length,2);assert.ok(peds.electrical.some(r=>/Synchronized cardioversion/.test(r.name)));
       assert.ok(peds.equipment.some(r=>/^ETT —/.test(r.name)));
 
-      const group=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
+      const group=async id=>{
+        if(await page.locator('#critPaths').isVisible())return click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);
+        if(!await page.locator('#critPicker').isVisible())await click('#critChange');
+        if(!await page.locator('#critPicker .crit-paths').count())await click('#critPicker [onclick="showCriticalPicker(\'all\')"]');
+        await click(`#critPicker .crit-paths [onclick="selectCriticalGroup('${id}')"]`);
+      };
       await group('rhythm');await click('#critSubpaths [data-path="tachy"]');
       await group('neurometab');await group('rhythm');
       assert.equal(await page.evaluate(()=>critScenario),'tachy','Returning to Cardiac recalls its last subpath');

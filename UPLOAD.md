@@ -1,5 +1,18 @@
 # GitHub upload
 
+Build 2026.10.08.1 implements the encounter-usability recommendations:
+
+- Critical targets, treatment rows and notices now agree with the app's existing age gates. Adult-only Brady rows are suppressed for pediatric patients; ROSC DOPamine targets require the existing age condition; unknown-age Tachy no longer inserts the adult maneuver card. Raw doses, formulas, directive text and printed PDC transcription are unchanged.
+- Tools retain GCS/APGAR scores, TBSA selections, IV-drip and shock-index inputs during an encounter. Reset tool clears the current tool; New patient clears all tools, including closed ones. Patient changes still invalidate TBSA and DOPamine output. APGAR pauses when leaving Tools or hiding the app and offers Resume; use a watch outside the app, not background-alert assumptions.
+- Peds Exact calculator transfers the selected/searched medication and route, clears unrelated Calculator searches and shows matching current-patient results. Chart weight is never substituted for patient weight. Missing/partially unavailable results are labelled. All calculations stays alphabetical.
+- Change directive opens a compact related-condition chooser at the pinned header without changing scroll position. All categories is secondary. Existing direct subcategory buttons remain available. Escape first closes the chooser; Exit Critical remains the explicit Calculator destination.
+- A collapsed BHP read-back panel groups current age, weight/source, condition, a chosen medication/route or electrical reference, patch requirements and manually entered findings. Chart-band references are explicitly distinct from exact-patient calculations. It is discussion material, not a recommendation or an order record. Notes live only in this open page; patient edits clear the chosen reference, while New patient/reload clears everything.
+- Settings displays the active build and Check update. Later defers the notification. A waiting update does not reload automatically; applying it requires confirmation and clears encounter data on reload. The notification is hidden during Critical and remains available after exiting. Matching HTML/worker versions align without a second reload. Only this app's old caches are removed.
+
+Source-review caveat: PCS v5.4 p.117–118 does not specify the older app's lower 2-year age cutoff for ROSC NaCl. The existing engine still suppresses that calculation below 2 years; Calculator and Critical now prominently flag that restriction as unverified, and read-back excludes age-status placeholders. This usability release does not silently change clinical dosing/authorization logic. Resolve this separate clinical-source mismatch against current BHP/service direction before relying on that scenario.
+
+Validated in Chromium and WebKit at phone/landscape sizes, normal/Large text and both themes: Critical navigation/read-back, age boundaries, tool memory, Peds handoff, dose layout, ETT rounding, dexamethasone volumes and reference navigation. Actual service-worker install/update/legacy-migration/offline tests run in Chromium. WebKit automation is not a physical iPhone test.
+
 Build 2026.10.04.1 makes Critical's iPhone navigation clearer. Exit Critical is a prominent 48 px button in the pinned top toolbar above the patient card and returns to Calculator. Change directive is a separate filled 48 px button beside the selected condition; it opens the category picker within Critical and becomes Hide categories while expanded. Both remain visible while scrolling, with distinct labels, icons and styling. The iPhone safe-area inset is applied once. Patient/pathway state, treatment content and calculations are unchanged.
 
 Build 2026.10.03.2 simplifies the field layout:

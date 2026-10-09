@@ -26,6 +26,12 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
       assert.equal(await stock.locator('input').count(),0);assert.match(await stock.innerText(),/0\.2 mg\/mL/);
       const enter=()=>page.locator('nav [data-pane="critical"]').click();
       const close=()=>page.locator('#critClose').click();
+      const selectGroup=async group=>{
+        if(await page.locator('#critPaths').isVisible())return page.locator(`#critPaths [onclick="selectCriticalGroup('${group}')"]`).click();
+        if(!await page.locator('#critPicker').isVisible())await page.locator('#critChange').click();
+        if(!await page.locator('#critPicker .crit-paths').count())await page.locator('#critPicker [onclick="showCriticalPicker(\'all\')"]').click();
+        await page.locator(`#critPicker .crit-paths [onclick="selectCriticalGroup('${group}')"]`).click();
+      };
       const chooser=async()=>{
         assert.equal(await page.evaluate(()=>critScenario),null);
         assert.equal(await page.locator('#critPaths button').count(),6);
@@ -47,14 +53,15 @@ const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/ht
         await page.setViewportSize({width,height:844});
         await page.evaluate(large=>document.body.classList.toggle('large-text',large),large);
         for(const group of ['arrest','airbreath','neurometab']){
-          if(await page.locator('#critPaths').evaluate(el=>el.hidden))await page.locator('#critChange').click();
-          await page.locator(`#critPaths [onclick="selectCriticalGroup('${group}')"]`).click();
+          await selectGroup(group);
           await page.locator('#critChange').click();
+          assert.equal(await page.locator('#critPicker .crit-subpaths').isVisible(),true,'Change directive opens related conditions first');
+          assert.equal(await page.locator('#critPaths').isVisible(),false,'Full category menu is not repeated above treatment');
           assert.ok(await page.evaluate(()=>{
-            const main=document.getElementById('critPaths').getBoundingClientRect(),sub=document.getElementById('critSubpaths').getBoundingClientRect();
-            return sub.top>=main.bottom-1;
-          }),`${engine} ${width}px: subcategories below main categories`);
-          assert.ok(await page.locator('#critPaths').evaluate(el=>!el.closest('.crit-sticky')),'Expanded category menu scrolls independently of the compact patient header');
+            const main=document.getElementById('critPaths'),sub=document.getElementById('critSubpaths');
+            return !!(main.compareDocumentPosition(sub)&Node.DOCUMENT_POSITION_FOLLOWING);
+          }),`${engine} ${width}px: neutral category menu remains before subcategories in document order`);
+          assert.ok(await page.locator('#critPaths').evaluate(el=>!el.closest('.crit-sticky')),'Neutral category menu stays outside the compact pinned patient header');
           assert.equal(await page.locator('#critical').evaluate(el=>el.scrollWidth>el.clientWidth),false,'No horizontal overflow');
           if(process.env.SCREENSHOT_DIR&&width===390&&!large&&group==='arrest'){
             fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,engine+'-critical-order.png')});

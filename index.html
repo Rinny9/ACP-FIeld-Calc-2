@@ -455,6 +455,23 @@ body.daylight .crit-edit{color:#173B88}
 .search{top:var(--patient-bar-height,110px)}.unitseg button,.viewtoggle button,.crit-checkhead button{min-height:44px}
 @media(max-width:374px){.crit-air-grid{grid-template-columns:1fr}}
 body.large-text .crit-air-grid{grid-template-columns:1fr}
+.crit-picker{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:8;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:10px;box-shadow:0 10px 28px #0006;max-height:calc(100dvh - var(--critical-header-height,220px) - 16px);overflow-y:auto;overscroll-behavior:contain}
+.crit-picker-title{font-size:calc(14px * var(--clinical-scale));font-weight:800;margin-bottom:8px;color:var(--mut)}
+.crit-picker .crit-subpaths,.crit-picker .crit-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin:0 0 8px}
+.crit-picker button{min-height:48px;overflow-wrap:normal;word-break:normal;line-height:1.35;font-size:calc(14px * var(--clinical-scale))}
+.crit-picker-switch{width:100%;padding:10px;border:1px solid var(--border2);border-radius:10px;color:var(--blue);background:var(--blue-dim);font-weight:800;text-align:left}
+.crit-readback{margin:8px 0;border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:0 10px}
+.crit-readback>summary{min-height:48px;font-size:calc(14px * var(--clinical-scale));color:var(--blue);font-weight:800}
+.crit-readback-body{min-width:0;padding:4px 0 10px;line-height:1.5;font-size:calc(14px * var(--clinical-scale));overflow-wrap:anywhere}
+.crit-readback-body label{display:block;margin:12px 0 5px;color:var(--mut);font-weight:750}
+.crit-readback-body select,.crit-readback-body textarea{display:block;width:100%;max-width:100%;min-width:0;font-size:calc(16px * var(--clinical-scale));min-height:48px;padding:10px;background:var(--surface);border:1px solid var(--border2);border-radius:9px;line-height:1.5;resize:vertical}
+.crit-readback-body select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+.readback-fact{margin:8px 0;overflow-wrap:anywhere}.readback-fact small{display:block;color:var(--mut);font-size:inherit}.readback-fact b{color:var(--text)}
+.readback-selected{border-top:1px solid var(--border);margin-top:12px;padding-top:4px}.readback-selected .row{margin:8px 0 0}
+.readback-reset{min-height:44px;margin-top:10px;padding:8px 10px;border:1px solid var(--border2);border-radius:9px;color:var(--blue);background:var(--surface);font-weight:750;font-size:14px}
+.update-notice{position:fixed;z-index:140;left:12px;right:12px;bottom:calc(82px + env(safe-area-inset-bottom));max-width:700px;margin:auto;padding:12px;border:1px solid var(--border2);border-radius:12px;background:var(--card);box-shadow:0 8px 26px #0007;font-size:14px;line-height:1.45}
+.update-notice strong{display:block;color:var(--text)}.update-notice-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.update-notice button{min-height:44px;padding:8px 12px;border:1px solid var(--border2);border-radius:9px;font-size:14px;color:var(--blue);background:var(--blue-dim);font-weight:800}
+body.critical-open .update-notice{display:none}
 </style>
 </head>
 <body>
@@ -463,7 +480,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.04.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.08.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -547,6 +564,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.08.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -561,7 +579,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.04.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.08.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -572,7 +590,8 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
     <div class="crit-sticky">
     <div class="crit-top"><h2 id="criticalTitle">⬤ CRITICAL<small>ALS PCS 5.4 · patient-specific</small></h2><button class="crit-close" id="critClose" type="button" aria-label="Exit Critical and return to Calculator" title="Return to Calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Exit Critical</button><div id="critDisplay"></div></div>
     <div class="crit-ptcard" id="critPt"></div>
-    <div class="crit-context"><div class="crit-selection" id="critContext"></div><button id="critChange" type="button" aria-expanded="false" aria-controls="critPaths"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span id="critChangeLabel">Change directive</span></button></div>
+    <div class="crit-context"><div class="crit-selection" id="critContext"></div><button id="critChange" type="button" aria-expanded="false" aria-controls="critPicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span id="critChangeLabel">Change directive</span></button></div>
+    <div class="crit-picker" id="critPicker" hidden role="group" aria-label="Change Critical directive"></div>
     </div>
     <div class="crit-paths" id="critPaths" role="group" aria-label="High-acuity pathway"></div>
     <div class="crit-subpaths" id="critSubpaths" role="group" aria-label="High-acuity subpath"></div>
@@ -588,6 +607,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
   <button data-pane="peds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="6.5" r="3"/><path d="M6 13.2c1.7-1.6 3.8-2.4 6-2.4s4.3.8 6 2.4M9.5 21l1.2-5h2.6l1.2 5M8 15.5l-2.5 2M16 15.5l2.5 2" stroke-linecap="round" stroke-linejoin="round"/></svg>Peds</button>
   <button data-pane="critical" class="crit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l9 16H3z" stroke-linejoin="round"/><path d="M12 10v4M12 17.2v.1" stroke-linecap="round"/></svg>Critical</button>
 </nav>
+<aside id="updateNotice" class="update-notice" hidden aria-label="App update available"><div role="status" aria-live="polite"><strong>Update ready</strong><span id="updateNoticeText"></span></div><div class="update-notice-actions"><button id="applyUpdate" type="button">Reload app</button><button id="dismissUpdate" type="button">Later</button></div></aside>
 
 <script>
 // ============================================================
@@ -1649,7 +1669,7 @@ function recompute(){
   if(checkedAge!=null&&checkedWeight!=null&&((checkedAge>=18&&checkedWeight<20)||(checkedAge<1&&checkedWeight>30)||(checkedAge>=2&&checkedAge<18&&checkedWeight<5)))S.validation.push('Age/weight combination is unusual — confirm both entries before using calculations.');
   const key=patientKey(),patientChanged=S.patientKey!=null&&key!==S.patientKey;
   if(S.patientKey==null)$('toolPatientNotice')?.remove();
-  if(patientChanged){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};PS.query='';PS.selectorOpen=false;}
+  if(patientChanged){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};PS.query='';PS.selectorOpen=false;invalidateCriticalReadbackSelection();}
   S.patientKey=key;
   S.pt = buildPatient({ ageYears: currentAgeYears(), weightKg: currentWeightKg(), sex: S.sex||null, heightCm: S.ht, suppressWeightEstimate:S.wtVal!=null&&currentWeightKg()==null });
   if(patientChanged)invalidatePatientTool();
@@ -1835,7 +1855,7 @@ function renderWorkflow(){
   $('scenarioChange').setAttribute('aria-expanded',String(S.pickerOpen));
   $('workflow').classList.toggle('compact',!S.pickerOpen);
   $('clearCalcSearch').hidden=!S.query;
-  $('searchStatus').textContent=searching?`Searching all calculations · Clear to return to ${scenario.label}`:'';
+  $('searchStatus').textContent=searching?(pedsExactKeys.length?`Patient-specific results from Peds · ${pedsExactKeys.length} medication / route selection${pedsExactKeys.length===1?'':'s'} · Clear to browse all calculations`:`Searching all calculations · Clear to return to ${scenario.label}`):'';
 }
 function scrollToCalculations(){
   requestAnimationFrame(()=>{
@@ -1846,6 +1866,7 @@ function scrollToCalculations(){
 }
 window.selectCase=id=>{
   if(!CASES.some(c=>c.id===id))return;
+  resetPedsExact();
   S.caseId=id;S.query='';$('calcSearch').value='';searchOpenState={};S.pickerOpen=false;
   const entryWasCollapsed=S.entryCollapsed;
   if(S.pt&&(S.pt.weightKg!=null||S.pt.ageYears!=null)&&!S.validation.length)S.entryCollapsed=true;
@@ -1854,6 +1875,7 @@ window.selectCase=id=>{
   renderEntryState();renderCaseChips();renderResults();scrollToCalculations();
 };
 function updateCalcSearch(value){
+  resetPedsExact();
   const wasSearching=!!S.query.trim(),searching=!!value.trim();
   if(!wasSearching&&searching)preSearchScroll=window.scrollY;
   if(S.query!==value)searchOpenState={};
@@ -1882,12 +1904,17 @@ function renderResults(){
   const p=S.pt, box=$('results');
   if(!p||(p.weightKg==null&&p.ageYears==null)){box.innerHTML='';return;}
   const air=airway(p), drugs=drugCalcs(p), scenario=CASES.find(c=>c.id===S.caseId)||CASES[0], rawQ=S.query.toLowerCase().trim(),q=SEARCH_ALIASES[rawQ]||rawQ;
-  const rowMatch=(r,titles=[])=>!q||(JSON.stringify(r)+' '+titles.join(' ')).toLowerCase().includes(q);
+  const rowMatch=(r,titles=[])=>pedsExactKeys.length?pedsExactMatches(r):!q||(JSON.stringify(r)+' '+titles.join(' ')).toLowerCase().includes(q);
   const caseMatch=(r,sec)=>!!q||!scenario.terms||!scenario.terms[sec]||/^Cardiac ischemia \/ bradycardia/.test(r.name||'')||scenario.terms[sec].some(t=>JSON.stringify(r).toLowerCase().includes(t.toLowerCase()));
   let html='';
+  if(drugs.rosc?.some(r=>rowMatch(r,['Return of Spontaneous Circulation (ROSC)']))&&(!scenario.sections||scenario.sections.includes('rosc')||q))html+=roscFluidAgeReviewNotice(p,'calcnotice warnbanner');
   if(p.weightSrc&&p.weightSrc!=='entered')html+='<div class="calcnotice warnbanner">⚠ Estimated weight is active. Confirm weight and independently cross-check every dose.</div>';
   else if(p.weightKg==null)html+='<div class="calcnotice warnbanner">⚖ No weight entered — weight-based directives below show “Weight required for dose”. The ALS PCS has no weight-estimation formula for age ≥13 (p.14); enter a measured or reported weight to populate them.</div>';
   html+=`<div class="calcnotice"><b>Stock profile: ${esc($('profileName').value||'My service')}</b> · Verify the vial before draw-up.<span class="refonly"> Volumes use the configured service stock; confirm concentration, route and a measurable syringe volume before administration.</span></div>`;
+  if(pedsExactKeys.length){
+    const allRows=Object.values(drugs).flat(),unavailable=pedsExactKeys.filter(key=>!allRows.some(row=>pedsExactMatches(row,[key])));
+    if(unavailable.length&&unavailable.length<pedsExactKeys.length)html+=`<div class="pathway-notice calcnotice warnbanner"><b>No patient-specific Calculator result for:</b> ${esc([...new Set(unavailable.map(key=>key.split('|')[0]))].join(', '))}. Confirm patient data and the full directive / BHP direction; chart values do not establish treatment eligibility.</div>`;
+  }
   if(!q&&scenario.minAge&&(p.ageYears==null||p.ageYears<scenario.minAge)){
     box.innerHTML=html+`<div class="calcnotice warnbanner"><b>${esc(scenario.label)}: ${p.ageYears==null?'Age required':`outside the ≥${scenario.minAge} y directive`}.</b> No treatment dose is displayed. Confirm age and use the full directive / BHP direction.</div>`;return;
   }
@@ -1906,6 +1933,7 @@ function renderResults(){
   for(const sec of SECTIONS.slice(0,2)){
     if(!q&&scenario.sections&&!scenario.sections.includes(sec.id))continue;
     let body='',rows=[];
+    if(pedsExactKeys.length)continue;
     if(sec.id==='summary'){
       if(!q||['patient','weight','age','pressure','hypotension','glucose','vitals','broselow','ibw'].some(x=>x.includes(q)||q.includes(x)))body=summaryRows(p);
     }else{
@@ -1931,7 +1959,7 @@ function renderResults(){
     const rows=groups.get(t),g=groupMeta.get(t)||{i:'⚠',c:'#F0A429'};
     html+=secCard(slugSec(t),t,g.i,g.c,rows.map(r=>calculatorRowHTML({...r,directive:t})).join(''),rows.length);
   }
-  if(!html.includes('data-sec='))html+='<p class="p" style="padding:24px;text-align:center">No calculation matches. Try a drug, condition, or route.</p>';
+  if(!html.includes('data-sec='))html+=pedsExactKeys.length?'<div class="pathway-notice calcnotice warnbanner" tabindex="-1"><b>No matching patient-specific calculation available.</b> The selected chart medication is not returned by the Calculator for this patient. Confirm age, weight and the full directive / BHP direction; chart values do not establish treatment eligibility.</div>':'<p class="p" style="padding:24px;text-align:center">No calculation matches. Try a drug, condition, or route.</p>';
   box.innerHTML=html;
 }
 window.toggleSec=(id,btn)=>{const el=btn.parentElement;el.classList.toggle('open');calcOpenState()[id]=el.classList.contains('open');btn.setAttribute('aria-expanded',String(calcOpenState()[id]));};
@@ -1992,36 +2020,63 @@ const TOOLS=[
  {id:'dopa',i:'🧪',n:'DOPamine Drip',d:'800 mcg/mL chart values'},
  {id:'pushdose',i:'💉',n:'Push-Dose Epi BHP',d:'Non-PCS reference — BHP order only'}
 ];
+const toolFields={drip:{dvol:'',dmin:'',dset:'10'},shock:{siHR:'',siBP:''}};
+function saveToolFields(){
+  const fields=toolFields[S.tool];if(!fields)return;
+  for(const id of Object.keys(fields))if($(id))fields[id]=$(id).value;
+}
+function restoreToolFields(id){
+  const fields=toolFields[id];if(!fields)return;
+  for(const [key,value] of Object.entries(fields))if($(key))$(key).value=value;
+  if(id==='drip')dripCalc();if(id==='shock')siCalc();
+}
+function hasToolInputs(){return gcsSel.some(v=>v!=null)||apSel.some(v=>v!=null)||apElapsedMs>0||apT0!=null||Object.keys(tbsaOn).some(n=>tbsaOn[n])||Number(tbsaExtra)>0||toolFields.drip.dvol!==''||toolFields.drip.dmin!==''||toolFields.drip.dset!=='10'||toolFields.shock.siHR!==''||toolFields.shock.siBP!=='';}
+function resetToolState(id){
+  if(id==='gcs')gcsSel=[null,null,null];
+  if(id==='apgar'){stopApgarTimer();apSel=[null,null,null,null,null];apElapsedMs=0;apT0=null;}
+  if(id==='tbsa'){tbsaAge='adult';tbsaOn={};tbsaExtra='0';}
+  if(id==='drip')Object.assign(toolFields.drip,{dvol:'',dmin:'',dset:'10'});
+  if(id==='shock')Object.assign(toolFields.shock,{siHR:'',siBP:''});
+}
+function resetAllToolState(){for(const id of ['gcs','apgar','tbsa','drip','shock'])resetToolState(id);}
+function renderActiveTool(id){
+  $('toolView').innerHTML=toolPanel(id);linkReferenceText($('toolView'));
+  if(id==='gcs')gcsInit();if(id==='apgar')apgarInit();if(id==='tbsa')tbsaInit();
+  restoreToolFields(id);
+}
+window.resetCurrentTool=()=>{if(!S.tool)return;resetToolState(S.tool);renderActiveTool(S.tool);$('toolReset')?.focus({preventScroll:true});};
 function renderToolHome(message=''){
   $('toolHome').innerHTML=(message?`<div id="toolPatientNotice" class="warnbanner" role="status" style="margin-bottom:12px">${esc(message)}</div>`:'')+`<div class="toolgrid">${TOOLS.map(t=>`<button class="tool" onclick="openTool('${t.id}')"><div class="ti">${t.i}</div><div class="tn">${t.n}</div><div class="td">${t.d}</div></button>`).join('')}</div>`;
   $('toolView').innerHTML='';
 }
 function invalidatePatientTool(){
+  // Clear cached weight-dependent estimates even if their panel is closed.
+  tbsaOn={};tbsaExtra='0';
   if(!['dopa','tbsa'].includes(S.tool))return;
   const name=TOOLS.find(t=>t.id===S.tool).n;
   S.tool=null;$('toolHome').classList.remove('hide');
   renderToolHome(`Patient updated — reopen ${name} to recalculate. Previous results have been cleared.`);
 }
 window.openTool=(id,fromChip)=>{
+  saveToolFields();if(S.tool==='apgar'&&id!=='apgar')stopApgarTimer();
   $('toolPatientNotice')?.remove();
   S.tool=id;
   if(fromChip){switchPane('tools');}
   $('toolHome').classList.add('hide');
-  $('toolView').innerHTML=toolPanel(id);
-  linkReferenceText($('toolView'));
-  if(id==='gcs') gcsInit(); if(id==='apgar') apgarInit(); if(id==='tbsa') tbsaInit();
+  renderActiveTool(id);
 };
-window.closeTool=()=>{S.tool=null;$('toolHome').classList.remove('hide');$('toolView').innerHTML='';stopApgarTimer();};
+window.closeTool=()=>{saveToolFields();stopApgarTimer();S.tool=null;$('toolHome').classList.remove('hide');$('toolView').innerHTML='';};
 
 function toolPanel(id){
-  const back=`<button class="backbtn" onclick="closeTool()">‹ All tools</button>`;
+  const back=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px"><button class="backbtn" style="margin-bottom:0;min-height:44px" onclick="closeTool()">‹ All tools</button>${['gcs','apgar','tbsa','drip','shock'].includes(id)?'<button id="toolReset" style="min-height:44px;padding:8px 14px;background:var(--blue-dim);border:1px solid var(--border2);border-radius:10px;color:var(--blue);font-size:14px;font-weight:750" onclick="resetCurrentTool()">Reset tool</button>':''}</div>`;
   if(id==='pushdose'){const pd=pushDoseEpi();return `${back}<div class="toolpanel"><h3>Push-Dose EPINEPHrine</h3><div class="tsrc">${esc(pd.src)}</div>
     <div class="warnbanner red">⚠ <b>Not an ALS PCS 5.4 treatment.</b> In Ontario this requires a BHP order. Reference for patch discussion only.</div>
     ${rowHTML({name:'Mix',dose:pd.mix,tone:'ext',src:'EXT: common push-dose preparation'})}
     ${rowHTML({name:'Dose',dose:pd.dose,sub:'Titrate to effect · discard syringe if unlabeled — local medication-labelling safety check; not located in current CD',tone:'ext',src:'EXT'})}</div>`;}
   if(id==='apgar'){return `${back}<div class="toolpanel"><h3>APGAR</h3><div class="tsrc">Standard neonatal score — score at 1 min & 5 min</div>
-    <div class="result" style="margin:0 0 14px"><div class="big num" id="apTimer">0:00</div><div class="lbl" id="apTimerLbl">Tap start at delivery — flags at 1:00 & 5:00</div>
-    <div class="timerbtns" style="margin-top:10px"><button class="go" id="apStart" onclick="apgarTimerToggle()">▶ Start</button></div></div>
+    <div class="result" style="margin:0 0 14px"><div class="big num" id="apTimer">0:00</div><div class="lbl" id="apTimerLbl">Tap start at delivery — reminders at 1:00 & 5:00</div>
+    <div class="timerbtns" style="margin-top:10px"><button id="apStart" style="min-height:44px;padding:8px 14px;background:var(--blue-dim);border:1px solid var(--border2);border-radius:10px;color:var(--blue);font-size:14px;font-weight:750" onclick="apgarTimerToggle()">▶ Start</button></div></div>
+    <p class="p" style="margin-bottom:12px">Timer pauses when you leave this tool or hide the app. Use your watch for timing outside the app; no background alerts.</p>
     <div id="apRows"></div><div class="result g"><div class="big num" id="apTotal">—</div><div class="lbl" id="apBand">Select all five</div></div></div>`;}
   if(id==='gcs'){return `${back}<div class="toolpanel"><h3>Glasgow Coma Scale</h3><div class="tsrc">Standard GCS · adult and pediatric descriptors shown together</div>
     <div id="gcsRows"></div><div class="result g"><div class="big num" id="gcsTotal">—</div><div class="lbl" id="gcsBand">Select E, V, M</div></div>
@@ -2053,7 +2108,7 @@ function toolPanel(id){
   return back;
 }
 // --- drip/shock ---
-window.dripCalc=()=>{const v=+$('dvol').value,m=+$('dmin').value,f=+$('dset').value;
+window.dripCalc=()=>{saveToolFields();const v=+$('dvol').value,m=+$('dmin').value,f=+$('dset').value;
   if(Number.isFinite(v)&&Number.isFinite(m)&&v>0&&m>0){const g=ivDrip(v,m,f);const dd=dropDetail(g);
     if(!dd){$('dripOut').textContent='Below 1';$('dripLbl').textContent='gtt/min — below whole-drop timing; verify pump/local method.';return;}
     $('dripOut').textContent=dd.gps;
@@ -2061,9 +2116,10 @@ window.dripCalc=()=>{const v=+$('dvol').value,m=+$('dmin').value,f=+$('dset').va
       `<br>≈ 1 gtt every <b class="num">${dd.every} s</b> · <b class="num">${dd.per10}</b> gtt per 10 s`+
       `<br>${g} gtt/min · ${Math.round(v/m*60)} mL/hr`;}
   else{$('dripOut').textContent='—';$('dripLbl').textContent='drops per second';}};
-window.siCalc=()=>{const h=+$('siHR').value,b=+$('siBP').value,box=$('siBox');
+window.siCalc=()=>{saveToolFields();const h=+$('siHR').value,b=+$('siBP').value,box=$('siBox');
   if(h>0&&b>0){const si=shockIndex(h,b);$('siOut').textContent=si;box.className='result '+(si>=1.3?'r':si>=0.9?'y':'g');
     $('siLbl').textContent=si>=1.3?'Markedly elevated':si>=0.9?'Elevated — occult shock possible':'Within usual adult range';}
+  else{$('siOut').textContent='—';$('siLbl').textContent='Enter HR & SBP';box.className='result';}
 };
 // --- GCS ---
 const GCSDATA=[
@@ -2071,12 +2127,14 @@ const GCSDATA=[
  {k:'Verbal',opts:[['Oriented / coos & babbles',5],['Confused / irritable cry',4],['Inappropriate words / cries to pain',3],['Incomprehensible / moans to pain',2],['None',1]]},
  {k:'Motor',opts:[['Obeys / spontaneous',6],['Localizes pain',5],['Withdraws',4],['Abnormal flexion',3],['Extension',2],['None',1]]}];
 let gcsSel=[null,null,null];
-function gcsInit(){gcsSel=[null,null,null];
-  $('gcsRows').innerHTML=GCSDATA.map((g,i)=>`<div class="gcsrow"><label>${g.k}</label><div class="optgrid">${g.opts.map(o=>`<button onclick="gcsPick(${i},${o[1]},this)">${o[1]} — ${o[0]}</button>`).join('')}</div></div>`).join('');}
+function gcsInit(){
+  $('gcsRows').innerHTML=GCSDATA.map((g,i)=>`<div class="gcsrow"><label>${g.k}</label><div class="optgrid">${g.opts.map(o=>`<button class="${gcsSel[i]===o[1]?'on':''}" onclick="gcsPick(${i},${o[1]},this)">${o[1]} — ${o[0]}</button>`).join('')}</div></div>`).join('');gcsTotal();}
 window.gcsPick=(i,v,btn)=>{gcsSel[i]=v;[...btn.parentElement.children].forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  gcsTotal();};
+function gcsTotal(){
   if(gcsSel.every(x=>x!=null)){const t=gcsSel[0]+gcsSel[1]+gcsSel[2];$('gcsTotal').textContent=`GCS ${t}`;
     $('gcsBand').textContent=t>=13?'Mild (13–15)':t>=9?'Moderate (9–12)':'Severe (≤8)';
-    $('gcsTotal').parentElement.className='result '+(t>=13?'g':t>=9?'y':'r');}};
+    $('gcsTotal').parentElement.className='result '+(t>=13?'g':t>=9?'y':'r');}}
 // --- APGAR ---
 const APDATA=[
  {k:'Appearance (colour)',opts:['Blue/pale','Body pink, extremities blue','Completely pink']},
@@ -2084,37 +2142,48 @@ const APDATA=[
  {k:'Grimace (reflex)',opts:['None','Grimace','Cry / active withdrawal']},
  {k:'Activity (tone)',opts:['Limp','Some flexion','Active motion']},
  {k:'Respirations',opts:['Absent','Slow / irregular','Good cry']}];
-let apSel=[null,null,null,null,null],apInt=null,apT0=null;
-function apgarInit(){apSel=[null,null,null,null,null];
-  $('apRows').innerHTML=APDATA.map((g,i)=>`<div class="gcsrow"><label>${g.k}</label><div class="optgrid">${g.opts.map((o,v)=>`<button onclick="apPick(${i},${v},this)">${v} — ${o}</button>`).join('')}</div></div>`).join('');}
+let apSel=[null,null,null,null,null],apInt=null,apT0=null,apElapsedMs=0;
+function apgarInit(){
+  $('apRows').innerHTML=APDATA.map((g,i)=>`<div class="gcsrow"><label>${g.k}</label><div class="optgrid">${g.opts.map((o,v)=>`<button class="${apSel[i]===v?'on':''}" onclick="apPick(${i},${v},this)">${v} — ${o}</button>`).join('')}</div></div>`).join('');apgarTotal();renderApgarTimer();}
 window.apPick=(i,v,btn)=>{apSel[i]=v;[...btn.parentElement.children].forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  apgarTotal();};
+function apgarTotal(){
   if(apSel.every(x=>x!=null)){const t=apSel.reduce((a,b)=>a+b,0);$('apTotal').textContent=t;
     $('apBand').textContent=t>=7?'Reassuring (7–10)':t>=4?'Moderately abnormal (4–6)':'Low (0–3)';
-    $('apTotal').parentElement.className='result '+(t>=7?'g':t>=4?'y':'r');}};
+    $('apTotal').parentElement.className='result '+(t>=7?'g':t>=4?'y':'r');}}
+function renderApgarTimer(){
+  if(!$('apTimer'))return;
+  const s=Math.floor((apElapsedMs+(apT0==null?0:Date.now()-apT0))/1000);
+  $('apTimer').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  $('apStart').textContent=apT0!=null?'Ⅱ Pause':apElapsedMs>0?'▶ Resume':'▶ Start';
+  const mark=s>=300?'5-minute mark reached — record the APGAR score.':s>=60?'1-minute mark reached — record the APGAR score.':'Reminders at 1:00 & 5:00.';
+  $('apTimerLbl').textContent=apT0!=null?mark:apElapsedMs>0?'Paused — elapsed time retained. '+mark:'Tap start at delivery — reminders at 1:00 & 5:00';
+}
 window.apgarTimerToggle=()=>{if(apInt){stopApgarTimer();return;}
-  apT0=Date.now();$('apStart').textContent='■ Stop';
-  apInt=setInterval(()=>{const s=Math.floor((Date.now()-apT0)/1000);const el=$('apTimer');if(!el){stopApgarTimer();return;}
-    el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-    if(s>=60&&s<70)$('apTimerLbl').textContent='⏱ 1-minute APGAR now';
-    else if(s>=300&&s<312)$('apTimerLbl').textContent='⏱ 5-minute APGAR now';
+  apT0=Date.now();renderApgarTimer();
+  apInt=setInterval(()=>{if(!$('apTimer')){stopApgarTimer();return;}renderApgarTimer();
   },500);};
-function stopApgarTimer(){if(apInt){clearInterval(apInt);apInt=null;}const b=$('apStart');if(b)b.textContent='▶ Start';}
+function stopApgarTimer(){if(apInt){clearInterval(apInt);apInt=null;}if(apT0!=null){apElapsedMs+=Date.now()-apT0;apT0=null;}renderApgarTimer();}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopApgarTimer();});
 // --- TBSA ---
 const T9={adult:[['Head & neck',9],['Anterior trunk',18],['Posterior trunk',18],['Right arm',9],['Left arm',9],['Right leg',18],['Left leg',18],['Perineum',1]],
  child:[['Head & neck',18],['Anterior trunk',18],['Posterior trunk',18],['Right arm',9],['Left arm',9],['Right leg',13.5],['Left leg',13.5],['Perineum',1]]};
-let tbsaAge='adult',tbsaOn={};
-function tbsaInit(){tbsaOn={};
+let tbsaAge='adult',tbsaOn={},tbsaExtra='0';
+function tbsaInit(){
   $('tbsaAge').querySelectorAll('button').forEach(b=>b.onclick=()=>{tbsaAge=b.dataset.a;
     $('tbsaAge').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');tbsaRender();});
-  $('tbsaExtra').oninput=tbsaTotal;tbsaRender();}
+  $('tbsaExtra').value=tbsaExtra;$('tbsaExtra').oninput=tbsaTotal;tbsaRender();}
 function tbsaRender(){$('tbsaRows').innerHTML=T9[tbsaAge].map(([n,v],i)=>`<button class="${tbsaOn[n]?'on':''}" onclick="tbsaPick('${n}',${v},this)">${n} — ${v}%</button>`).join('');tbsaTotal();}
 window.tbsaPick=(n,v,btn)=>{tbsaOn[n]=!tbsaOn[n];btn.classList.toggle('on');tbsaTotal();};
 function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
-  t+=(+$('tbsaExtra').value||0);t=Math.min(t,100);$('tbsaTotal').textContent=round(t,1)+'%';
+  tbsaExtra=$('tbsaExtra').value;t+=(+tbsaExtra||0);t=Math.min(t,100);$('tbsaTotal').textContent=round(t,1)+'%';
   const w=S.pt&&S.pt.weightKg;$('parklandOut').innerHTML=(w&&t>0)?rowHTML({name:'Parkland (reference only)',dose:`${Math.round(4*w*t).toLocaleString()} mL LR / 24 h`,sub:`½ (${Math.round(2*w*t).toLocaleString()} mL) in first 8 h from burn time · 4 mL × ${fmt(w)} kg × ${round(t,1)}% · NOT an ALS PCS directive`,src:'EXT: Parkland formula',tone:'ext'}):'';}
 
 // ============ CRITICAL MODE ============
-let critScenario=null,critGroup=null;
+let critScenario=null,critGroup=null,critPickerMode=null;
+const criticalReadback={open:{},selection:{},findings:''};
+function resetCriticalReadback(){for(const key of ['open','selection'])for(const id of Object.keys(criticalReadback[key]))delete criticalReadback[key][id];criticalReadback.findings='';}
+function invalidateCriticalReadbackSelection(){for(const id of Object.keys(criticalReadback.selection))delete criticalReadback.selection[id];}
 const criticalGroupSelection={};
 const CRIT_RESP_PRIORITIES=['Prioritize ventilation and the condition-specific treatment.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.'];
 const CRIT_METAB_PRIORITIES=['Support airway and ventilation; rapidly check glucose when indicated.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.'];
@@ -2188,11 +2257,21 @@ function critPedsBandInfo(p){
   if(!b)return{band:null,note:'No PDC band is available for the entered age.'};
   return{band:b,basis:`${b.color} ${b.w} band · age-mapped reference at ${b.calcW} kg`,note:'Age-only band shown. PDC v5.4 states that weight takes priority; obtain an actual weight if possible.'};
 }
+// Match the age gates already used by drugCalcs; these are display guards,
+// not additional clinical criteria or authorization to treat.
+function critAgeEligibility(p,id){
+  const limits={arrest:{label:'Medical cardiac arrest',required:'≥24 h',days:true,min:1},newborn:{label:'Newborn resuscitation',required:'<24 h',days:true,max:1},opioid:{label:'Opioid toxicity',required:'≥24 h',days:true,min:1},brady:{label:'Symptomatic bradycardia',required:'≥18 y',min:18},hyperk:{label:'Hyperkalemia',required:'≥18 y',min:18},cshock:{label:'Cardiogenic shock',required:'≥18 y',min:18},acpe:{label:'ACPE / CPAP',required:'≥18 y',min:18},psed:{label:'Procedural sedation',required:'≥18 y',min:18},combative:{label:'Combative Patient',required:'≥18 y',min:18},pain:{label:'Analgesia',required:'≥1 y',min:1},croup:{label:'Croup',required:'≥6 mo to <8 y',min:.5,max:8}};
+  const rule=limits[id];if(!rule)return null;
+  const age=p?.ageYears==null?null:rule.days?p.ageDays:p.ageYears;
+  return{...rule,eligible:age==null?null:(rule.min==null||age>=rule.min)&&(rule.max==null||age<rule.max)};
+}
 function critTargets(p,id){
   const hypo=p&&p.hypoSBP!=null?`SBP <${p.hypoSBP}`:'Age required';
   const glucose=p&&p.hypoglycemia!=null?`<${p.hypoglycemia.toFixed(1)} mmol/L`:'Age required';
+  const eligibility=critAgeEligibility(p,id);
+  if(eligibility&&eligibility.eligible!==true&&['arrest','newborn','brady','hyperk','cshock','acpe','croup'].includes(id))return[['Eligibility',eligibility.eligible==null?'Age required':'Outside directive'],['Age condition',eligibility.required],['Standing treatment','Suppressed']];
   if(id==='arrest')return[['Rhythm','q2 min'],['Epinephrine','q4 min'],['Vent rate',critVentRate(p)]];
-  if(id==='rosc')return[['SpO₂','94–98%'],['ETCO₂','30–40 mmHg'],['DOPamine SBP','90–<110']];
+  if(id==='rosc')return[['SpO₂','94–98%'],['ETCO₂','30–40 mmHg'],['DOPamine SBP',p?.ageYears==null?'Age required':p.ageYears<8?'Outside ≥8 y condition':'90–<110']];
   if(id==='hyperk'){
     if(!p||p.ageYears==null)return[['Eligibility','Age required'],['Treatment','Suppressed'],['Directive','≥18 y']];
     if(p.ageYears<18)return[['Eligibility','Outside directive'],['BHP patch','Required'],['Adult dose','Suppressed']];
@@ -2200,7 +2279,7 @@ function critTargets(p,id){
   }
   if(id==='brady')return[['Hypotension',hypo],['Adult HR','<50/min'],['TCP rate','80/min']];
   if(id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18){const info=critPedsBandInfo(p);return[['BHP patch','MANDATORY'],['PDC band',info.band?info.band.w:'Weight needed'],['Chart basis',info.band?`${info.band.calcW} kg`:'Not available']];}
-  if(id==='tachy')return[['Wide regular','HR ≥120'],['Narrow regular','HR ≥150'],['Hypotension',hypo]];
+  if(id==='tachy')return p?.ageYears==null?[['Eligibility','Age required'],['Adult treatment','Suppressed'],['Directive','≥18 y']]:[['Wide regular','HR ≥120'],['Narrow regular','HR ≥150'],['Hypotension',hypo]];
   if(id==='cshock')return[['Directive','≥18 y · STEMI+'],['Hypotension',hypo]];
   if(['bronch','acpe','allergy','croup'].includes(id))return[['Hypotension',hypo],['Reassess','Every dose']];
   if(id==='seizure')return[['Low glucose',glucose],['Midazolam','q5 min']];
@@ -2253,10 +2332,10 @@ function critRowsForPath(p,id){
   }else if(id==='hyperk'){
     out.rows=critOrder(d.metab,['Calcium gluconate 10% — hyperkalemia','Salbutamol — hyperkalemia']);
   }else if(id==='brady'){
-    out.rows=[...critOrder(d.cardiac,['Atropine']),...critOrder(d.fluids,['Bolus — hypotension']).map(r=>({...r,name:'Fluid bolus — if indicated',sub:`${r.sub||''}${r.sub?' · ':''}Do not delay TCP for IV access or fluid administration.`})),...critOrder(d.cardiac,['TCP','DOPamine']),...critOrder(d.sedation,['Procedural sedation'])];
+    if(p.ageYears!=null&&p.ageYears>=18)out.rows=[...critOrder(d.cardiac,['Atropine']),...critOrder(d.fluids,['Bolus — hypotension']).map(r=>({...r,name:'Fluid bolus — if indicated',sub:`${r.sub||''}${r.sub?' · ':''}Do not delay TCP for IV access or fluid administration.`})),...critOrder(d.cardiac,['TCP','DOPamine']),...critOrder(d.sedation,['Procedural sedation'])];
   }else if(id==='tachy'){
     if(p&&p.ageYears!=null&&p.ageYears<18){const ped=critPedsTachyRows(p);out.rows=ped.rows;out.electrical=ped.equipment;out.pedsInfo=ped.pedsInfo;}
-    else out.rows=[{name:'Valsalva maneuver — narrow regular rhythm',dose:'Up to 2 attempts',rep:'10–20 seconds each',when:'≥18 y · unaltered · HR ≥150 · normotension · narrow + regular',contra:'Sinus tachycardia · atrial fibrillation · atrial flutter',sub:'Perform before adenosine when directive conditions are met.',src:'PCS p.132–134',tone:'pcs'},...critOrder(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion'])];
+    else if(p.ageYears!=null&&p.ageYears>=18)out.rows=[{name:'Valsalva maneuver — narrow regular rhythm',dose:'Up to 2 attempts',rep:'10–20 seconds each',when:'≥18 y · unaltered · HR ≥150 · normotension · narrow + regular',contra:'Sinus tachycardia · atrial fibrillation · atrial flutter',sub:'Perform before adenosine when directive conditions are met.',src:'PCS p.132–134',tone:'pcs'},...critOrder(d.cardiac,['Adenosine','Amiodarone — wide','Lidocaine — wide','Synchronized cardioversion'])];
   }else if(id==='cshock'){
     if(p.ageYears!=null&&p.ageYears>=18)out.rows=critOrder(d.cardiac,['Cardiogenic shock (STEMI+) — fluid','DOPamine']).map(r=>({...r,when:`≥18 y · STEMI-positive 12-lead · cardiogenic shock · hypotension${r.name.includes('fluid')?' · chest auscultation clear':''}`,sub:`${r.sub||''} · Contact BHP if bradycardic.`,src:r.name.includes('fluid')?'PCS p.126–127':'PCS p.126–128'}));
   }else if(id==='psed'){
@@ -2275,6 +2354,8 @@ function critRowsForPath(p,id){
   }else if(id==='newborn'){
     out.rows=critOrder(d.newborn,['Sequence','Preductal SpO₂','EPINEPHrine IV/IO','EPINEPHrine ETT']);
   }else if(id==='ob')out.rows=critOrder(d.ob,['Shoulder dystocia','Breech','Oxytocin']);
+  const eligibility=critAgeEligibility(p,id);
+  if(eligibility&&eligibility.eligible!==true)out.rows=[];
   const essential=critEssentialAirway(p);
   out.rows=critUnique(out.rows);out.equipment=[...essential,...critAirRows(p).filter(r=>!essential.some(e=>e.name===r.name))];return out;
 }
@@ -2299,21 +2380,68 @@ function critRoscChecklist(){
 }
 function critPriorities(p,path){
   if(path.id==='tachy'&&p&&p.ageYears!=null&&p.ageYears<18)return['Place pads/monitor, obtain a diagnostic rhythm strip or 12-lead when feasible, and assess perfusion/hemodynamic instability.','Pediatric tachydysrhythmia is outside the adult standing directive: patch BHP before drug therapy or synchronized cardioversion.','Use the PDC band values below for the patch read-back; confirm actual weight, concentration, route and selected joules with your partner.'];
+  const eligibility=critAgeEligibility(p,path.id);
+  if(eligibility&&eligibility.eligible!==true)return[`${eligibility.label} has an age condition of ${eligibility.required}. ${eligibility.eligible==null?'Confirm the patient’s age.':'The entered age is outside this standing directive.'} No standing treatment dose is displayed; use the applicable full directive / BHP direction.`];
+  if(path.id==='tachy'&&p?.ageYears==null)return['Confirm age before selecting the adult standing directive or pediatric BHP patch-reference pathway. No adult treatment dose is displayed.'];
   return path.priorities;
 }
 function renderCritPaths(){
   const el=$('critPaths'),sub=$('critSubpaths');if(!el||!sub)return;
   const group=CRIT_GROUPS.find(x=>x.id===critGroup),path=critPath();
-  if(!path)el.hidden=false;
+  el.hidden=!!path;
+  if(!path)critPickerMode=null;
   document.querySelector('.crit-sticky').classList.toggle('picker-open',!el.hidden);
   sub.classList.toggle('many',!!group&&(group.paths.length>3||group.id==='painsedation'));
   $('critContext').innerHTML=group&&path?`<span class="crit-group-label">${esc(group.label)}</span><b class="crit-condition-label">${esc(path.label)}</b>`:'<b class="crit-condition-label">Choose a category</b>';
   $('critChange').hidden=!path;
-  $('critChangeLabel').textContent=el.hidden?'Change directive':'Hide categories';
-  $('critChange').setAttribute('aria-expanded',String(!el.hidden));
+  $('critChangeLabel').textContent=critPickerMode?'Close chooser':'Change directive';
+  $('critChange').setAttribute('aria-expanded',String(!!critPickerMode));
   el.innerHTML=CRIT_GROUPS.map(x=>`<button type="button" class="${x.id===group?.id?'on':''}" aria-pressed="${x.id===group?.id}" onclick="selectCriticalGroup('${x.id}')"><span aria-hidden="true">${x.icon}</span>${x.label}</button>`).join('');
   sub.innerHTML=group&&group.paths.length>1?group.paths.map(id=>{const x=CRIT_PATHS.find(p=>p.id===id);return`<button type="button" data-path="${id}" class="${id===critScenario?'on':''}" aria-pressed="${id===critScenario}" onclick="selectCriticalPath('${id}')">${x.icon} ${esc(x.label).replace('Bronchoconstriction','Broncho<wbr>constriction')}</button>`;}).join(''):'';
+  const picker=$('critPicker');picker.hidden=!critPickerMode;
+  if(critPickerMode==='all')picker.innerHTML=`<div class="crit-picker-title">All categories</div><div class="crit-paths">${el.innerHTML}</div><button class="crit-picker-switch" type="button" onclick="showCriticalPicker('related')">‹ Related conditions · ${esc(group?.label||'')}</button>`;
+  else if(critPickerMode)picker.innerHTML=`<div class="crit-picker-title">${esc(group?.label||'')} · related conditions</div><div class="crit-subpaths">${sub.innerHTML}</div><button class="crit-picker-switch" type="button" onclick="showCriticalPicker('all')">All categories →</button>`;
+  else picker.innerHTML='';
 }
+window.showCriticalPicker=mode=>{
+  if(!critPath())return;
+  critPickerMode=mode==='all'?'all':'related';renderCritPaths();
+  $('critPicker').querySelector('[aria-pressed="true"],button')?.focus({preventScroll:true});
+};
+function closeCriticalPicker(refocus=true){if(!critPickerMode)return;critPickerMode=null;renderCritPaths();if(refocus)$('critChange').focus({preventScroll:true});}
+document.addEventListener('click',e=>{const route=e.composedPath();if(critPickerMode&&!route.includes($('critPicker'))&&!route.includes($('critChange')))closeCriticalPicker(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&critPickerMode){e.preventDefault();closeCriticalPicker();}});
+if('ResizeObserver'in window)new ResizeObserver(entries=>document.documentElement.style.setProperty('--critical-header-height',entries[0].target.getBoundingClientRect().height+'px')).observe(document.querySelector('.crit-sticky'));
+
+// Read-back is encounter-only discussion material, never a treatment recommendation
+// or a record of an order. Only the currently displayed pathway rows are offered.
+function critReadbackChoices(p,path){
+  if(!p||S.validation.length)return[];
+  const data=critRowsForPath(p,path.id),choices=[];
+  for(const r of [...data.rows,...data.electrical]){
+    if(r.needW||(!r.dose&&!r.lines)||/^(Outside directive|Age required|No standing ALS PCS dose)/i.test(r.dose||'')||/threshold|^Sequence|^Preductal SpO₂/i.test(r.name))continue;
+    const add=(key,label,row)=>choices.push({key,label,row});
+    if(r.lines)r.lines.forEach(l=>add(JSON.stringify([r.name,l.l]),`${r.name} · ${l.l}`,{...r,lines:null,dose:l.d,ml:l.m,d2:null,ml2:null,directive:l.l}));
+    else if(r.d2){
+      add(JSON.stringify([r.name,'first']),`${r.name} · 1st reference`,{...r,d2:null,ml2:null,directive:'1st reference dose'});
+      add(JSON.stringify([r.name,'subsequent']),`${r.name} · subsequent reference`,{...r,dose:r.d2,ml:r.ml2,d2:null,ml2:null,directive:'Subsequent reference dose — confirm timing / BHP order'});
+    }else add(JSON.stringify([r.name]),r.name,{...r});
+  }
+  return choices;
+}
+function critPatchReadback(p,path){
+  const choices=critReadbackChoices(p,path),selected=choices.find(x=>x.key===criticalReadback.selection[path.id]);
+  if(!selected)delete criticalReadback.selection[path.id];
+  const facts=`<div class="readback-fact"><small>Patient</small><b>${esc(critAgeLabel(p))} · ${p?.weightKg!=null?esc(fmt(p.weightKg)+' kg · '+(p.weightSrc==='entered'?'entered weight':'ESTIMATED: '+p.weightSrc)):'Weight required'}</b></div><div class="readback-fact"><small>Condition being discussed</small><b>${esc(path.title)}</b></div>`;
+  const chart=path.id==='tachy'&&p?.ageYears!=null&&p.ageYears<18?critPedsBandInfo(p):null;
+  const patch=chart?'<div class="crit-alert patch"><b>MANDATORY BHP PATCH</b><br>Pediatric tachydysrhythmia chart values are for consultation only. Confirm dose, route, concentration and any electrical setting in the BHP order; these are not adult standing-directive doses.</div>':path.directives.map(id=>DIR.find(d=>d.id===id)).filter(d=>d?.patch).map(d=>`<div class="crit-alert patch"><b>${esc(d.n)} · patch requirement</b><br>${referenceHTML(d.patch)}</div>`).join('');
+  const basis=chart?`<div class="crit-alert patch"><b>Chart-reference basis — not an exact patient calculation</b><br>${esc(chart.basis||chart.note||'Chart band unavailable')}${chart.band?` · chart calculation weight ${fmt(chart.band.calcW)} kg`:''}${chart.note?`<br>${esc(chart.note)}`:''}</div>`:'';
+  const eligibility=critAgeEligibility(p,path.id);
+  const unavailable=eligibility&&eligibility.eligible!==true?`<div class="crit-alert red"><b>Outside this standing directive, or age unknown.</b> No standing treatment reference is available for read-back. Confirm the patient and seek BHP direction.</div>`:'';
+  return `<details class="crit-readback" id="critReadbackPanel"${criticalReadback.open[path.id]?' open':''} ontoggle="if(this.isConnected)criticalReadback.open['${path.id}']=this.open"><summary>BHP read-back · patient &amp; treatment reference</summary><div class="crit-readback-body"><div class="p">Discussion aid only — not an administration recommendation, BHP order or treatment record. Confirm the indication, contraindications, concentration and order.</div>${facts}${basis}${unavailable}${patch}<label for="critReadbackTreatment">Treatment reference to discuss · choose one</label><select id="critReadbackTreatment" onchange="chooseCriticalReadback(this.value)"><option value="">Choose medication / therapy reference</option>${choices.map(x=>`<option value="${esc(x.key)}"${x.key===selected?.key?' selected':''}>${esc(x.label)}</option>`).join('')}</select>${!choices.length?'<p class="p">No dose reference is available for the entered patient in this pathway. Verify patient entries, open the full directive and patch as needed.</p>':''}<div class="readback-selected" id="critReadbackSelected">${selected?rowHTML({...selected.row,name:selected.label}):'<p class="p">No treatment is selected. Selecting a reference does not establish eligibility.</p>'}</div><label for="critReadbackFindings">Observed findings / rationale / response to prior measures</label><textarea id="critReadbackFindings" rows="3" maxlength="4000" placeholder="Enter observed vitals, rhythm, perfusion, relevant history and treatment response. No findings are filled in automatically." oninput="criticalReadback.findings=this.value">${esc(criticalReadback.findings)}</textarea><button class="readback-reset" type="button" onclick="clearCriticalReadback()">Clear read-back</button><p class="p">Kept only in this open app; cleared with New patient or reload. Patient edits clear the selected reference.</p></div></details>`;
+}
+window.chooseCriticalReadback=key=>{const path=critPath();if(!path)return;criticalReadback.selection[path.id]=key;criticalReadback.open[path.id]=true;renderCritGrid();$('critReadbackTreatment')?.focus({preventScroll:true});};
+window.clearCriticalReadback=()=>{const path=critPath();if(!path)return;delete criticalReadback.selection[path.id];criticalReadback.findings='';renderCritGrid();$('critReadbackTreatment')?.focus({preventScroll:true});};
 function critPatientCard(p){
   const has=p&&(p.weightKg!=null||p.ageYears!=null);
   if(!has)return`<div class="crit-ptmain"><div class="cpw">Patient not entered</div><div class="cpa">Age and weight are required for the safest pathway-specific output.</div></div><button type="button" class="crit-edit" onclick="criticalEditPatient()">Enter patient</button>`;
@@ -2339,25 +2467,31 @@ function painSedationCautions(p,id,css='crit-alert'){
   if(id==='combative'&&p?.ageYears>=18)return`<div class="${css} patch"><b>Before sedation:</b> treat hypoglycemia, hypoxia or hypovolemia when possible. <b>No midazolam + ketamine without BHP direction.</b> Consider quantitative ETCO₂ once sedated. Ketamine emergence reaction needing further sedation: <b>patch BHP.</b> ${referenceHTML('PCS p.169')}</div>`;
   return'';
 }
+function roscFluidAgeReviewNotice(p,css='crit-alert'){
+  if(p?.ageYears==null||p.ageYears>=2)return'';
+  return`<div class="${css} red rosc-age-review"><b>ROSC fluid-age source review required:</b> this app currently suppresses the ROSC fluid calculation below 2 years, but PCS v5.4 p.117–118 does not specify that lower age cutoff. The older app restriction is not a verified directive condition. Consult the current directive / BHP rather than relying on that status card. The dose calculation has not been changed in this usability update. ${srcLink('PCS p.117–118')}</div>`;
+}
 function critWarnings(p,id){
   let h='';
+  if(id==='rosc')h+=roscFluidAgeReviewNotice(p);
   if(S.validation.length)h+=`<div class="crit-alert red"><b>Verify patient:</b> ${S.validation.map(esc).join(' ')}</div>`;
   if(p&&p.weightSrc&&p.weightSrc!=='entered')h+=`<div class="crit-alert"><b>Estimated weight in use:</b> ${fmt(p.weightKg)} kg from ${esc(p.weightSrc)}. Confirm an actual weight and independently cross-check every dose before administration.</div>`;
   if(p&&p.ageYears==null)h+=`<div class="crit-alert red"><b>Age unknown:</b> age-gated directives, thresholds and maximums remain suppressed. Do not infer adult eligibility from weight.</div>`;
   if(p&&p.weightKg==null)h+=`<div class="crit-alert red"><b>Weight required:</b> weight-based doses and draw volumes cannot be safely populated.</div>`;
   h+=painSedationNotice(p,id)+painSedationCautions(p,id);
+  const eligibility=critAgeEligibility(p,id);
+  if(eligibility&&eligibility.eligible!==true&&['arrest','newborn','acpe','psed','croup','opioid'].includes(id))h+=`<div class="crit-alert ${eligibility.eligible==null?'red':'patch'}"><b>${esc(eligibility.label)} age condition: ${esc(eligibility.required)}.</b> ${eligibility.eligible==null?'Confirm age before applying this standing directive.':'The entered age is outside this standing directive; seek BHP direction.'} <b>No treatment dose is displayed.</b></div>`;
   if(id==='cshock')h+=`<div class="crit-alert patch"><b>Cardiogenic shock eligibility:</b> ≥18 y · STEMI-positive 12-lead ECG · cardiogenic shock with hypotension. Contact BHP if bradycardic.${p&&p.ageYears!=null&&p.ageYears<18?' <b>Outside the adult directive: no treatment dose is displayed. Patch to a BHP for direction.</b>':''} ${srcLink('PCS p.126–128')}</div>`;
-  if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is adult-gated. Use the published pediatric chart only as a BHP reference, not as authorization.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds reference</button></div></div>`;
+  if(p&&p.ageYears!=null&&p.ageYears<18&&id==='brady')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing bradycardia directive is ≥18 y. <b>Adult targets and standing treatment doses are suppressed.</b> The published PDC values are chart-band BHP patch-reference data only, not patient-specific calculations or authorization to treat.<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open Peds patch reference</button></div></div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='hyperk')h+=`<div class="crit-alert patch"><b>Pediatric authorization:</b> the standing Hyperkalemia Medical Directive is limited to patients ≥18 years old. Patch to a BHP for direction; no adult dose is displayed.</div>`;
   if(p&&p.ageYears!=null&&p.ageYears<18&&id==='tachy'){const info=critPedsBandInfo(p);h+=`<div class="crit-alert patch"><b>MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA:</b> age &lt;18 is outside the standing Tachydysrhythmia Medical Directive. The PDC drug doses and electrical settings below are patch-reference data only; treatment requires a BHP order. Report age, actual weight, rhythm/rate, QRS width/regularity, perfusion/hemodynamic status, IV/IO access and response to prior measures.${info.band?`<div class="crit-band"><b>${esc(info.basis)}</b>${info.note?`<br>${esc(info.note)}`:''} · <a class="rlink" href="${srcHref('PDC',info.band.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${info.band.pg} (PDF ${info.band.pg-55}) ↗</a></div>`:info.note?`<div class="crit-band"><b>Chart band unavailable</b><br>${esc(info.note)}</div>`:''}<div class="crit-actions"><button type="button" onclick="openCriticalPeds()">Open full Peds reference</button></div></div>`;}
-  if(id==='newborn'&&p&&p.ageDays!=null&&p.ageDays>=1)h+=`<div class="crit-alert red"><b>Wrong patient pathway:</b> Newborn Resuscitation applies only to a patient &lt;24 hours old.</div>`;
   return h;
 }
 function renderCritGrid(){
   const focused=document.activeElement,focusInCritical=$('critical').contains(focused),focusKey=focusInCritical?{id:focused.id,onclick:focused.getAttribute('onclick'),path:focused.dataset.path}:null;
   const restoreFocus=()=>{
     if(!focusKey)return;
-    const candidates=[...$('critical').querySelectorAll('button,summary,a[href]')].filter(el=>el.getClientRects().length);
+    const candidates=[...$('critical').querySelectorAll('button,summary,a[href],select,textarea')].filter(el=>el.getClientRects().length);
     const match=candidates.find(el=>focusKey.id&&el.id===focusKey.id||focusKey.path&&el.dataset.path===focusKey.path||focusKey.onclick&&el.getAttribute('onclick')===focusKey.onclick);
     (match||$('critSubpaths').querySelector('[aria-pressed="true"]'))?.focus({preventScroll:true});
   };
@@ -2371,6 +2505,7 @@ function renderCritGrid(){
   let html=critWarnings(p,path.id);
   if(priorities.length||targets)html+=`<div class="crit-overview">${targets?`<div class="crit-targets">${targets}</div>`:''}${priorities.length?`<details data-detail-key="priorities-${path.id}"${cardDetailsOpen['priorities-'+path.id]?' open':''}><summary>Pathway reminders</summary><ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`:''}</div>`;
   if(path.id==='rosc')html+=`<div id="crit-checklist" tabindex="-1">${critRoscChecklist()}</div>`;
+  html+=critPatchReadback(p,path);
   if(!p||(p.weightKg==null&&p.ageYears==null)){
     html+=`<div class="crit-empty"><b>Enter the patient first</b>The hub will then calculate dose, draw-up volume, thresholds and equipment for this pathway.</div>`;
   }else{
@@ -2392,6 +2527,7 @@ window.selectCriticalGroup=id=>{const group=CRIT_GROUPS.find(x=>x.id===id);if(!g
 window.selectCriticalPath=id=>{
   if(!CRIT_PATHS.some(x=>x.id===id))return;
   criticalScroll[critScenario]=$('critical').scrollTop;critScenario=id;
+  critPickerMode=null;
   // Shared pathways stay in the category the user chose rather than jumping
   // to the first category that happens to contain them.
   const group=CRIT_GROUPS.find(x=>x.id===critGroup&&x.paths.includes(id))||CRIT_GROUPS.find(x=>x.paths.includes(id));if(group){critGroup=group.id;criticalGroupSelection[group.id]=id;}
@@ -2414,7 +2550,7 @@ window.openCriticalCalculations=()=>{
 };
 window.openCriticalAirwayCalculations=()=>{if(!critPath())return;switchPane('calc');selectCase(CRIT_AIRWAY.calc);};
 $('critClose').onclick=()=>switchPane('calc');
-$('critChange').onclick=()=>{$('critPaths').hidden=!$('critPaths').hidden;renderCritPaths();if(!$('critPaths').hidden)$('critical').scrollTo(0,0);};
+$('critChange').onclick=()=>{if(critPickerMode)closeCriticalPicker();else showCriticalPicker('related');};
 
 // ============ SETTINGS / CONC ============
 function renderConc(){
@@ -2436,6 +2572,24 @@ window.setConcentration=(k,input)=>{if(!CONC[k])return;const v=+input.value;if(!
 const PEDS54 = [{"id":"b2_5","color":"light grey","hex":"#C9CDD4","w":"2.5 kg","wMin":2.5,"calcW":2.5,"age":"pre-term/small newborn","aMin":0,"aMax":0.02,"pg":57,"vit":{"hr":"100 – 205","rr":"30 – 53","bp":"N/A"},"eq":{"cardio":["N/A","N/A","N/A"],"defib":["N/A","N/A","N/A"],"ett":"2.5 / 3","blade":"1","suctionETT":"5 – 6 Fr","igel":"1","suctionIgel":"N/A"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"N/A","t":"N/A","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"N/A","t":"N/A","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"N/A","t":"N/A","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"0.5 mL","t":"0.05 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"0.25 mL","t":"0.05 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.13 mL","t":"0.05 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.08 mL","t":"0.05 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"N/A","t":"N/A","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"0.25 mL","t":"0.025 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2.5 mL","t":"0.25 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"5 mL","t":"0.5 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"N/A","t":"N/A","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"N/A","t":"N/A","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.05 mL","t":"2.5 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.03 mL","t":"0.03 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"50 mL","t":"50 mL","b":"20 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"25 mL","t":"25 mL","b":"10 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.05 mL","t":"2.5 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.01 mL","t":"0.625 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.05 mL","t":"2.5 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.1 mL","t":"5 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.04 mL","t":"5 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.05 mL","t":"0.25 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.1 mL","t":"0.5 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.01 – 0.02 mL","t":"0.125 – 0.20 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b3_5","color":"grey","hex":"#9AA1AC","w":"3–5 kg","wMin":3,"calcW":4,"age":"full term (>24 h to <3 mo)","aMin":0.003,"aMax":0.25,"pg":58,"vit":{"hr":"100 – 205","rr":"30 – 50","bp":"> 72/38"},"eq":{"cardio":["5 J","10 J","10 J"],"defib":["10 J","20 J","20 J"],"ett":"3","blade":"1","suctionETT":"6 Fr","igel":"1","suctionIgel":"N/A"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.15 mL","t":"0.4 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"0.25 mL","t":"0.8 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"0.4 mL","t":"20 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"1 mL","t":"0.1 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"0.5 mL","t":"0.1 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.25 mL","t":"0.1 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.16 mL","t":"0.1 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"2 mL","t":"200 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"0.4 mL","t":"0.04 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"8 mL","t":"0.8 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"N/A","t":"N/A","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.2 mL","t":"2 mg","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.1 mL","t":"4 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.04 mL","t":"0.04 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"80 mL","t":"80 mL","b":"20 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"40 mL","t":"40 mL","b":"10 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.08 mL","t":"4 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.02 mL","t":"1 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.08 mL","t":"4 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.16 mL","t":"8 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.06 mL","t":"8 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.08 mL","t":"0.4 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.16 mL","t":"0.8 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.02 – 0.04 mL","t":"0.2 – 0.4 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b6_7","color":"pink","hex":"#F48FB1","w":"6–7 kg","wMin":6,"calcW":6,"age":"3 to 5 months","aMin":0.25,"aMax":0.5,"pg":59,"vit":{"hr":"100 – 205","rr":"30 – 53","bp":"> 72/38"},"eq":{"cardio":["7 J","15 J","15 J"],"defib":["15 J","30 J","30 J"],"ett":"3","blade":"1","suctionETT":"6 Fr","igel":"1.5","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.2 mL","t":"0.6 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"0.4 mL","t":"1.2 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"0.6 mL","t":"30 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"1.2 mL","t":"0.12 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"0.6 mL","t":"0.12 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.3 mL","t":"0.12 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.2 mL","t":"0.12 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"3 mL","t":"300 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"0.6 mL","t":"0.06 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"0.6 mL","t":"0.6 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false,"fl":{"sev":"warn","note":"Row label prints \"1:10,000\" but the concentration column (1 mg/mL) and volume (0.6 mL = 0.6 mg) are 1:1,000 — matching every other band ≥3 kg. Only the 2.5 kg chart uses 1:10,000 via ETT."}},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"12 mL","t":"1.2 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"N/A","t":"N/A","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.3 mL","t":"3 mg","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.12 mL","t":"6 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.06 mL","t":"0.06 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"120 mL","t":"120 mL","b":"20 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"60 mL","t":"60 mL","b":"10 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.12 mL","t":"6 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.03 mL","t":"1.5 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.12 mL","t":"6 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.24 mL","t":"12 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.01 mL","t":"12 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false,"fl":{"sev":"err","note":"Source misprint: chart prints 0.01 mL for this row (p.59) — 12 mg at 250 mg/2 mL (125 mg/mL) = 0.1 mL. The 100 mg/2 mL row (0.24 mL) is unaffected.","fix":{"vol":"0.1 mL"}}},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.12 mL","t":"0.6 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.24 mL","t":"1.2 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.03 – 0.06 mL","t":"0.3 – 0.6 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b8_9","color":"red","hex":"#EF5350","w":"8–9 kg","wMin":8,"calcW":8.5,"age":"6 to 11 months","aMin":0.5,"aMax":1,"pg":60,"vit":{"hr":"100 – 205","rr":"30 – 50","bp":"72 – 104 | 37 – 56"},"eq":{"cardio":["10 J","20 J","20 J"],"defib":["20 J","40 J","40 J"],"ett":"3","blade":"1","suctionETT":"6 Fr","igel":"1.5","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.28 mL","t":"0.85 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"0.56 mL","t":"1.7 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"0.85 mL","t":"42.5 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"1.7 mL","t":"0.17 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"0.85 mL","t":"0.17 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.43 mL","t":"0.17 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.28 mL","t":"0.17 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"4.25 mL","t":"425 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"0.85 mL","t":"0.085 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"0.85 mL","t":"0.85 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"17 mL","t":"1.7 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"N/A","t":"N/A","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.43 mL","t":"4.25 mg","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.17 mL","t":"8.5 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.09 mL","t":"0.085 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"170 mL","t":"170 mL","b":"20 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"85 mL","t":"85 mL","b":"10 mL/kg","mx":false,"c":"N/A","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.17 mL","t":"8.5 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.04 mL","t":"2.125 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.17 mL","t":"8.5 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.34 mL","t":"17 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.14 mL","t":"17 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.17 mL","t":"0.85 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.34 mL","t":"1.7 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.04 – 0.08 mL","t":"0.4 - 0.8 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b10_11","color":"purple","hex":"#AB7CE8","w":"10–11 kg","wMin":10,"calcW":10,"age":"12 to 23 months","aMin":1,"aMax":2,"pg":61,"vit":{"hr":"98 – 140","rr":"22 – 37","bp":"86 – 106 | 42 – 63"},"eq":{"cardio":["10 J","20 J","20 J"],"defib":["20 J","40 J","40 J"],"ett":"3.5 – 4","blade":"1 – 1.5","suctionETT":"6 Fr","igel":"1.5 – 2.0","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.33 mL","t":"1 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"0.66 mL","t":"2 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"1 mL","t":"50 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"2 mL","t":"0.2 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"1 mL","t":"0.2 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.5 mL","t":"0.2 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.33 mL","t":"0.2 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"5 mL","t":"500 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"1 mL","t":"0.1 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"1 mL","t":"1 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"20 mL","t":"2 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"N/A","t":"N/A","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.5 mL","t":"5 mg","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.2 mL","t":"10 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.1 mL","t":"0.1 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"200 mL","t":"200 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"100 mL","t":"100 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.2 mL","t":"10 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.05 mL","t":"2.5 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.2 mL","t":"10 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.4 mL","t":"20 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.16 mL","t":"20 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.2 mL","t":"1 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.4 mL","t":"2 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.05 – 0.1 mL","t":"0.5 – 1 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b12_14","color":"yellow","hex":"#F2D14E","w":"12–14 kg","wMin":12,"calcW":12,"age":"2 years","aMin":2,"aMax":3,"pg":62,"vit":{"hr":"98 – 140","rr":"22 – 37","bp":"86 – 106 | 42 – 63"},"eq":{"cardio":["15 J","30 J","30 J"],"defib":["30 J","50 J","50 J"],"ett":"4","blade":"1.5 – 2","suctionETT":"6 – 8 Fr","igel":"1.5 – 2.0","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.4 mL","t":"1.2 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"0.8 mL","t":"2.4 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"1.2 mL","t":"60 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"2.4 mL","t":"0.24 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"1.2 mL","t":"0.24 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.6 mL","t":"0.24 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.4 mL","t":"0.24 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"6 mL","t":"600 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"1.2 mL","t":"0.12 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"1.2 mL","t":"1.2 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"24 mL","t":"2.4 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"12 mL","t":"6 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.6 mL","t":"6 mg","b":"0.5 mg/kg","mx":false,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.24 mL","t":"12 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.12 mL","t":"0.12 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"240 mL","t":"240 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"120 mL","t":"120 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.24 mL","t":"12 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.06 mL","t":"3 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.24 mL","t":"12 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.48 mL","t":"24 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.19 mL","t":"24 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.24 mL","t":"1.2 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.48 mL","t":"2.4 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.06 – 0.12 mL","t":"0.6 – 1.2 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b15_18","color":"white","hex":"#F2F4F8","w":"15–18 kg","wMin":15,"calcW":16,"age":"3 to 4 years","aMin":3,"aMax":5,"pg":63,"vit":{"hr":"80 – 120","rr":"22 – 28","bp":"89 – 112 | 46 – 72"},"eq":{"cardio":["15 J","30 J","30 J"],"defib":["30 J","70 J","70 J"],"ett":"4.5","blade":"2","suctionETT":"6 – 8 Fr","igel":"2","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.5 mL","t":"1.6 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"1 mL","t":"3.2 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"1.6 mL","t":"80 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"3.2 mL","t":"0.32 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"1.6 mL","t":"0.32 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"0.8 mL","t":"0.32 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.5 mL","t":"0.32 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"8 mL","t":"800 mg","b":"50 mg/kg","mx":false,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"1.6 mL","t":"0.16 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"1.6 mL","t":"1.6 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"32 mL","t":"3.2 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"16 mL","t":"8 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.3 mL","t":"16 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.16 mL","t":"0.16 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"320 mL","t":"320 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"160 mL","t":"160 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.32 mL","t":"16 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.08 mL","t":"4 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.32 mL","t":"16 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.64 mL","t":"32 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.26 mL","t":"32 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.32 mL","t":"1.6 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.64 mL","t":"3.2 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.08 – 0.16 mL","t":"0.8 – 1.6 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b19_23","color":"blue","hex":"#5B8DEF","w":"19–23 kg","wMin":19,"calcW":20,"age":"5 to 6 years","aMin":5,"aMax":7,"pg":64,"vit":{"hr":"80 – 120","rr":"18 – 25","bp":"89 – 112 | 46 – 72"},"eq":{"cardio":["30 J","50 J","50 J"],"defib":["50 J","85 J","85 J"],"ett":"5","blade":"2","suctionETT":"10 Fr","igel":"2","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.67 mL","t":"2 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"1.3 mL","t":"4 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"2 mL","t":"100 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"4 mL","t":"0.4 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"2 mL","t":"0.4 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"1 mL","t":"0.4 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.67 mL","t":"0.4 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"2 mL","t":"0.2 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"40 mL","t":"4 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"20 mL","t":"10 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.4 mL","t":"20 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.2 mL","t":"0.2 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"400 mL","t":"400 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"200 mL","t":"200 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.4 mL","t":"20 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.1 mL","t":"5 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.4 mL","t":"20 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"0.8 mL","t":"40 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.32 mL","t":"40 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.4 mL","t":"2 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"0.8 mL","t":"4 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.1 – 0.2 mL","t":"1 – 2 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b24_29","color":"orange","hex":"#F59B42","w":"24–29 kg","wMin":24,"calcW":27,"age":"7 to 9 years","aMin":7,"aMax":10,"pg":65,"vit":{"hr":"75 – 118","rr":"18 – 25","bp":"97 – 115 | 57 – 76"},"eq":{"cardio":["30 J","70 J","70 J"],"defib":["70 J","120 J","120 J"],"ett":"5.5","blade":"2 – 3","suctionETT":"10 Fr","igel":"2.0 – 2.5","suctionIgel":"10 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"0.9 mL","t":"2.7 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"1.8 mL","t":"5.4 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"2.7 mL","t":"135 mg","b":"5 mg/kg","mx":false,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"5 mL","t":"0.5 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"2.5 mL","t":"0.5 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"1.25 mL","t":"0.5 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.83 mL","t":"0.5 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"2.7 mL","t":"0.27 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"0.1 mg/kg","mx":false,"c":"1 mg/mL","bhp":false,"fl":{"sev":"note","note":"2 mg ceiling applied (0.1 mg/kg × 27 = 2.7 mg); heavier bands print \"2 mg *\"."}},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"54 mL","t":"5.4 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"27 mL","t":"13.5 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.5 mL","t":"25 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.27 mL","t":"0.27 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"540 mL","t":"540 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"270 mL","t":"270 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.54 mL","t":"27 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.14 mL","t":"6.75 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.54 mL","t":"27 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"1.1 mL","t":"54 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.43 mL","t":"54 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.54 mL","t":"2.7 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"1.1 mL","t":"5.4 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.14 – 0.27 mL","t":"1.4 – 2.7 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b30_36","color":"green","hex":"#58C97C","w":"30–36 kg","wMin":30,"calcW":33,"age":"10 to 12 years","aMin":10,"aMax":12,"pg":66,"vit":{"hr":"60 – 100","rr":"12 – 20","bp":"102 – 120 | 61 – 80"},"eq":{"cardio":["30 J","70 J","70 J"],"defib":["120 J","150 J","200 J"],"ett":"6","blade":"2 – 3","suctionETT":"10 – 12 Fr","igel":"2.5 – 3","suctionIgel":"10 – 12 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"1.1 mL","t":"3.3 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"2.2 mL","t":"6.6 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"3.3 mL","t":"165 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":false,"fl":{"sev":"err","note":"Source misprint (p.66): dose cell prints \"0.02 mg/kg\" and concentration \"0.4 mg/mL\" — these belong to the atropine block. Printed volume/total (3.3 mL = 165 mg) are self-consistent at 150 mg/3 mL and match all other bands (5 mg/kg).","fix":{"dose":"5 mg/kg","conc":"150 mg/3 mL"}}},{"s":"C","d":"Amiodarone","r":"IV","role":"2nd dose","v":"3 mL","t":"150 mg","b":"150 mg","mx":true,"c":"0.6 mg/mL","bhp":false,"fl":{"sev":"err","note":"Source misprint (p.66): concentration prints \"0.6 mg/mL\"; 3 mL = 150 mg is only consistent with 150 mg/3 mL, as printed on every other band.","fix":{"conc":"150 mg/3 mL"}}},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"5 mL","t":"0.5 mg","b":"0.5 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true,"fl":{"sev":"err","note":"Source misprint (p.66): atropine concentration cells print 1,000 mg/10 mL · 1 mg/10 mL · 1 mg/mL · 0.6 mg/mL. The printed volumes (5 / 2.5 / 1.25 / 0.83 mL for 0.5 mg) correspond exactly to the standard ladder 0.1 · 0.2 · 0.4 · 0.6 mg/mL used on every other page. Verify the vial in hand.","fix":{"conc":"1 mg/10 mL"},"note2":"Printed 0.5 mg* breaks the band sequence: 0.02 mg/kg × 33 kg = 0.66 mg, and adjacent bands print 0.5 → 0.8 → 0.9 → 1 mg*. The chart’s own volumes were built from 0.5 mg; transcribed as printed. Confirm intended dose with BHP."}},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"2.5 mL","t":"0.5 mg","b":"0.5 mg","mx":true,"c":"1 mg/10 mL","bhp":true,"fl":{"sev":"err","note":"See conc 1 note — printed cell reads \"1 mg/10 mL\".","fix":{"conc":"0.2 mg/mL"}}},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"1.25 mL","t":"0.5 mg","b":"0.5 mg","mx":true,"c":"1 mg/mL","bhp":true,"fl":{"sev":"err","note":"See conc 1 note — printed cell reads \"1 mg/mL\".","fix":{"conc":"0.4 mg/mL"}}},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"0.83 mL","t":"0.5 mg","b":"0.5 mg","mx":true,"c":"0.6 mg/mL","bhp":true,"fl":{"sev":"warn","note":"Printed 0.5 mg* breaks the band sequence: 0.02 mg/kg × 33 kg = 0.66 mg, and adjacent bands print 0.5 → 0.8 → 0.9 → 1 mg*. The chart’s own volumes were built from 0.5 mg; transcribed as printed. Confirm intended dose with BHP."}},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"3.3 mL","t":"0.33 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"2 mg","mx":true,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"66 mL","t":"6.6 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"33 mL","t":"16.5 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.5 mL","t":"25 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true,"fl":{"sev":"note","note":"Printed total holds at 25 mg (0.5 mL) on the 30–36, 37–42 and 43–47 kg charts although the basis column reads 1 mg/kg (which would be 33–45 mg); steps to 50 mg at 48–52 kg. Transcribed as printed."}},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.33 mL","t":"0.33 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"660 mL","t":"660 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"330 mL","t":"330 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.66 mL","t":"33 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.17 mL","t":"8.25 mg","b":"0.25 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.66 mL","t":"33 mg","b":"1 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"1.32 mL","t":"66 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.53 mL","t":"66 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.66 mL","t":"3.3 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"1.32 mL","t":"6.6 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.17 – 0.33 mL","t":"1.65 – 3.3 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b37_42","color":"teal","hex":"#3EC8C0","w":"37–42 kg","wMin":37,"calcW":40,"age":"12 to 15 years","aMin":12,"aMax":16,"pg":67,"vit":{"hr":"60 – 100","rr":"12 – 20","bp":"110 – 131 | 64 – 83"},"eq":{"cardio":["50 J","85 J","85 J"],"defib":["120 J","150 J","200 J"],"ett":"6 – 7","blade":"3","suctionETT":"12 – 14 Fr","igel":"3","suctionIgel":"12 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"1.3 mL","t":"4 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"2.7 mL","t":"8 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"6 mL","t":"300 mg","b":"300 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"2nd dose","v":"3 mL","t":"150 mg","b":"150 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"8 mL","t":"0.8 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"4 mL","t":"0.8 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"2 mL","t":"0.8 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"1.3 mL","t":"0.8 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"10 mL","t":"1 mg","b":"1 mg","mx":true,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"2 mg","mx":true,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"80 mL","t":"8 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"40 mL","t":"20 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.5 mL","t":"25 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true,"fl":{"sev":"note","note":"See 30–36 kg note — printed total 25 mg vs 1 mg/kg basis."}},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"800 mL","t":"800 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"400 mL","t":"400 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.8 mL","t":"40 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.2 mL","t":"10 mg","b":"10 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.6 mL","t":"30 mg","b":"30 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"1.6 mL","t":"80 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.64 mL","t":"80 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.8 mL","t":"4 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"1.6 mL","t":"8 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.2 – 0.4 mL","t":"2 – 4 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b43_47","color":"teal","hex":"#3EC8C0","w":"43–47 kg","wMin":43,"calcW":45,"age":"adolescent (12 to 15 years)","aMin":12,"aMax":16,"pg":68,"vit":{"hr":"60 – 100","rr":"12 – 20","bp":"110 – 131 | 64 – 83"},"eq":{"cardio":["50 J","100 J","100 J"],"defib":["120 J","150 J","200 J"],"ett":"6 – 7","blade":"3","suctionETT":"12 – 14 Fr","igel":"3","suctionIgel":"12 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"1.5 mL","t":"4.5 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"3 mL","t":"9 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"6 mL","t":"300 mg","b":"300 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"2nd dose","v":"3 mL","t":"150 mg","b":"150 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"9 mL","t":"0.9 mg","b":"0.02 mg/kg","mx":false,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"4.5 mL","t":"0.9 mg","b":"0.02 mg/kg","mx":false,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"2.25 mL","t":"0.9 mg","b":"0.02 mg/kg","mx":false,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"1.5 mL","t":"0.9 mg","b":"0.02 mg/kg","mx":false,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":false,"c":"1,000 mg/10 mL","bhp":true,"fl":{"sev":"note","note":"1,000 mg maximum printed without the asterisk used on adjacent bands — same 1 g ceiling."}},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"10 mL","t":"1 mg","b":"1 mg","mx":true,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"2 mg","mx":true,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"90 mL","t":"9 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"45 mL","t":"22.5 g","b":"0.5 g/kg","mx":false,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"0.5 mL","t":"25 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true,"fl":{"sev":"note","note":"See 30–36 kg note — printed total 25 mg vs 1 mg/kg basis."}},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.45 mL","t":"0.45 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"900 mL","t":"900 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"450 mL","t":"450 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"0.9 mL","t":"45 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.2 mL","t":"10 mg","b":"10 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.6 mL","t":"30 mg","b":"30 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"1.8 mL","t":"90 mg","b":"2 mg/kg","mx":false,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.72 mL","t":"90 mg","b":"2 mg/kg","mx":false,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"0.9 mL","t":"4.5 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"1.8 mL","t":"9 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.23 - 0.45 mL","t":"2.25 – 4.5 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]},{"id":"b48_52","color":"teal","hex":"#3EC8C0","w":"48–52 kg","wMin":48,"calcW":50,"age":"12 to 15 years","aMin":12,"aMax":16,"pg":69,"vit":{"hr":"60 – 100","rr":"12 – 20","bp":"110 – 131 | 64 – 83"},"eq":{"cardio":["50 J","100 J","100 J"],"defib":["120 J","150 J","200 J"],"ett":"6 – 7","blade":"3","suctionETT":"12 – 14 Fr","igel":"3 – 4","suctionIgel":"12 Fr"},"meds":[{"s":"C","d":"Adenosine","r":"IV fast push","role":"1st dose","v":"1.7 mL","t":"5 mg","b":"0.1 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Adenosine","r":"IV fast push","role":"2nd dose","v":"3.5 mL","t":"10 mg","b":"0.2 mg/kg","mx":false,"c":"6 mg/2 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"1st dose","v":"6 mL","t":"300 mg","b":"300 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Amiodarone","r":"IV","role":"2nd dose","v":"3 mL","t":"150 mg","b":"150 mg","mx":true,"c":"150 mg/3 mL","bhp":false},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 1","v":"10 mL","t":"1 mg","b":"1 mg","mx":true,"c":"1 mg/10 mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 2","v":"5 mL","t":"1 mg","b":"1 mg","mx":true,"c":"0.2 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 3","v":"2.5 mL","t":"1 mg","b":"1 mg","mx":true,"c":"0.4 mg/mL","bhp":true},{"s":"C","d":"Atropine","r":"IV — bradycardia, toxins","role":"conc 4","v":"1.7 mL","t":"1 mg","b":"1 mg","mx":true,"c":"0.6 mg/mL","bhp":true},{"s":"C","d":"Calcium Gluconate 10%","r":"IV","role":"","v":"10 mL","t":"1,000 mg","b":"1,000 mg","mx":true,"c":"1,000 mg/10 mL","bhp":true},{"s":"C","d":"EPINEPHrine","r":"IV/IO 1:10,000","role":"","v":"10 mL","t":"1 mg","b":"1 mg","mx":true,"c":"1 mg/10 mL","bhp":false},{"s":"C","d":"EPINEPHrine","r":"ETT","role":"","v":"2 mL","t":"2 mg","b":"2 mg","mx":true,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Dextrose 10%","r":"IV","role":"","v":"100 mL","t":"10 g","b":"0.2 g/kg","mx":false,"c":"100 mg/mL","bhp":false},{"s":"S","d":"Dextrose 50%","r":"IV","role":"","v":"50 mL","t":"25 g","b":"25 g","mx":true,"c":"500 mg/mL","bhp":false},{"s":"S","d":"Dexamethasone","r":"PO/IM/IV","role":"","v":"0.8 mL","t":"8 mg","b":"8 mg","mx":true,"c":"10 mg/mL","bhp":false},{"s":"S","d":"DiphenhydrAMINE","r":"IV/IM","role":"","v":"1 mL","t":"50 mg","b":"1 mg/kg","mx":false,"c":"50 mg/mL","bhp":true},{"s":"S","d":"EPINEPHrine","r":"IM 1:1,000","role":"","v":"0.5 mL","t":"0.5 mg","b":"0.01 mg/kg","mx":false,"c":"1 mg/mL","bhp":false},{"s":"S","d":"Normal saline — bolus","r":"IV","role":"","v":"1,000 mL","t":"1,000 mL","b":"20 mL/kg","mx":false,"c":"","bhp":false},{"s":"S","d":"Normal saline — ROSC","r":"IV","role":"","v":"500 mL","t":"500 mL","b":"10 mL/kg","mx":false,"c":"","bhp":false},{"s":"P","d":"FentaNYL","r":"IV/IN","role":"","v":"1 mL","t":"50 mcg","b":"1 mcg/kg","mx":false,"c":"100 mcg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IV","role":"","v":"0.2 mL","t":"10 mg","b":"10 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Ketamine","r":"IN","role":"","v":"0.6 mL","t":"30 mg","b":"30 mg","mx":true,"c":"100 mg/2 mL","bhp":true},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 1","v":"2 mL","t":"100 mg","b":"100 mg","mx":true,"c":"100 mg/2 mL","bhp":false},{"s":"P","d":"Hydrocortisone","r":"IM/IV","role":"conc 2","v":"0.8 mL","t":"100 mg","b":"100 mg","mx":true,"c":"250 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IV/IO","role":"","v":"1 mL","t":"5 mg","b":"0.1 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Midazolam — seizure","r":"IM/IN/Buccal","role":"","v":"2 mL","t":"10 mg","b":"0.2 mg/kg","mx":false,"c":"10 mg/2 mL","bhp":false},{"s":"P","d":"Morphine — analgesia","r":"IV/SC","role":"","v":"0.25 – 0.5 mL","t":"2.5 – 5 mg","b":"0.05 – 0.1 mg/kg","mx":false,"c":"10 mg/mL","bhp":true},{"s":"P","d":"Naloxone","r":"IV/IM","role":"","v":"0.4 mL","t":"0.4 mg","b":"0.4 mg","mx":true,"c":"2 mg/2 mL","bhp":false}]}];
 const PEDS_BHP_LIST='atropine, calcium gluconate, diphenhydrAMINE, ketamine and narcotics (fentaNYL, morphine)';
 const PS={band:null,manual:false,patch:false,pickerOpen:false,sel:{},note:'',query:'',selectorOpen:false};
+let pedsExactKeys=[];
+function resetPedsExact(){pedsExactKeys=[];}
+// Match medication names/routes, not contraindications or reference text. The
+// Calculator remains the source of patient-specific doses and eligibility.
+function pedsExactMatches(row,keys=pedsExactKeys){
+  const name=(row.name||'').toLocaleLowerCase();
+  return keys.some(key=>{
+    const [drug,route='']=key.split('|'),d=drug.toLocaleLowerCase();
+    if(d==='normal saline — rosc')return name.startsWith('ns bolus');
+    if(d==='normal saline — bolus')return name.startsWith('nacl bolus')||name.startsWith('bolus — hypotension');
+    if(d==='dextrose 10%')return name==='dextrose'||name.startsWith('dextrose d10w');
+    if(d==='dextrose 50%')return name==='dextrose'||name.startsWith('dextrose d50w');
+    if(d==='midazolam — seizure')return name.startsWith('midazolam — active seizure');
+    if(d==='morphine — analgesia')return name.startsWith('morphine iv/sc');
+    if(d==='epinephrine'&&route)return name.startsWith(`epinephrine ${route.startsWith('ETT')?'ett':route.startsWith('IV')?'iv/io':'im'}`);
+    return name.startsWith(d)||(row.lines||[]).some(line=>(line.l||'').toLocaleLowerCase().startsWith(d));
+  });
+}
 
 function pedsBandForWeight(w){
   if(w==null)return null;
@@ -2514,6 +2668,7 @@ function pedRow(m,b){
     ${conc?`<div class="rsub">Supplied: ${m.d==='Atropine'?'1 mg/5 mL (0.2 mg/mL)':esc(conc)}${m.fl&&m.fl.fix&&m.fl.fix.conc?' <b style="color:var(--red)">(reconciled — see note)</b>':''}</div>`:''}
     ${pedFlagBox(m.fl)}
     <a class="rsrc rlink" href="${srcHref('PDC',b.pg)}" target="_blank" rel="noopener">PDC v5.4 p.${b.pg} (PDF ${b.pg-55}) ↗</a><span class="rsrc" style="display:inline;margin-left:6px"> — transcribed as printed${m.bhp?' · chart: requires BHP authorization':''}</span>
+    <button class="ptedit" type="button" style="width:100%;margin-top:10px" data-ped-exact="${esc(m.d+'|'+m.r)}" aria-label="Exact calculator for ${esc(m.d)} ${esc(m.r)}" onclick="useExactCalc(this.dataset.pedExact)">Exact calculator → current patient</button>
   </div>`;
 }
 function pedEquip(b){
@@ -2646,7 +2801,24 @@ window.pedSelectBand=(id)=>{PS.band=id;PS.manual=true;PS.pickerOpen=false;render
 window.pedToggleBands=()=>{PS.pickerOpen=!PS.pickerOpen;renderPeds();};
 window.pedUseAuto=()=>{PS.manual=false;PS.pickerOpen=false;renderPeds();};
 window.pedTogglePatch=()=>{PS.patch=!PS.patch;PS.selectorOpen=false;renderPeds();$('pedMode')?.focus({preventScroll:true});};
-window.useExactCalc=()=>{S.caseId='all';renderCaseChips();renderResults();switchPane('calc');setTimeout(()=>$('wtIn').focus(),200);};
+window.useExactCalc=key=>{
+  const b=pedBand(),query=(PS.query||'').trim();
+  const keys=key?[key]:b&&query?pedServiceMeds(b).filter(pedMatches).map(m=>m.d+'|'+m.r):PS.patch?Object.keys(PS.sel).filter(k=>PS.sel[k]):[];
+  pedsExactKeys=[...new Set(keys)];
+  S.caseId='all';S.query=pedsExactKeys.length?[...new Set(pedsExactKeys.map(k=>k.split('|')[0]))].join(', '):query;
+  $('calcSearch').value=S.query;searchOpenState={};S.pickerOpen=false;
+  const ready=S.pt&&(S.pt.ageYears!=null||S.pt.weightKg!=null)&&!S.validation.length;
+  S.entryCollapsed=!!ready;
+  if(!S.query)caseOpenState.all.summary=true;
+  renderEntryState();renderCaseChips();renderResults();switchPane('calc');
+  if(!ready){requestAnimationFrame(()=>$(S.mode==='age'?'ageIn':'wtIn').focus());return;}
+  if(S.query)scrollToCalculations();
+  requestAnimationFrame(()=>{
+    const target=S.query?$('results').querySelector('.pathway-notice,.sec:not([data-sec="summary"]) .sechead'):$('results').querySelector('[data-sec="summary"] .sechead');
+    target?.focus({preventScroll:true});
+    if(!S.query)window.scrollTo(0,0);
+  });
+};
 
 
 // ============ NAV & WIRING ============
@@ -2654,6 +2826,8 @@ let activePane='calc';
 const paneScroll={};
 function switchPane(id){
   if(id===activePane)return;
+  if(activePane==='tools')stopApgarTimer();
+  closeCriticalPicker(false);
   if(activePane==='critical')criticalScroll[critScenario]=$('critical').scrollTop;
   else paneScroll[activePane]=window.scrollY;
   activePane=id;
@@ -2672,6 +2846,7 @@ function switchPane(id){
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));
 document.addEventListener('keydown',e=>{
+  if(e.defaultPrevented)return;
   if(e.key==='Escape'){
     const menu=[...document.querySelectorAll('.display-menu[open]')].find(el=>el.getClientRects().length);
     if(menu){e.preventDefault();menu.open=false;menu.querySelector('summary').focus({preventScroll:true});return;}
@@ -2679,7 +2854,7 @@ document.addEventListener('keydown',e=>{
   if(activePane!=='critical')return;
   if(e.key==='Escape'){e.preventDefault();switchPane('calc');$('scenarioChange').focus({preventScroll:true});}
   if(e.key==='Tab'){
-    const items=[...$('critical').querySelectorAll('button,a[href],input,select,summary')].filter(el=>!el.disabled&&el.getClientRects().length);
+    const items=[...$('critical').querySelectorAll('button,a[href],input,select,textarea,summary')].filter(el=>!el.disabled&&el.getClientRects().length);
     const first=items[0],last=items[items.length-1];
     if(first&&((e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last))){e.preventDefault();(e.shiftKey?last:first).focus();}
   }
@@ -2714,10 +2889,10 @@ $('profileName').onchange=()=>{saveFieldProfile();renderResults();};
 $('dayBtn').onclick=()=>applyDaylight(!document.body.classList.contains('daylight'));
 $('resetConc').onclick=()=>{if(!confirm('Restore all editable concentrations to the bundled defaults?'))return;for(const [k,v] of Object.entries(DEFAULT_CONC))if(CONC[k].src==='EXT')CONC[k].v=v;saveFieldProfile();renderConc();recompute();};
 
-function hasActivePatient(){return S.ageVal!=null||S.wtVal!=null||S.sex||S.ht!=null||S.tool||PS.manual;}
+function hasActivePatient(){return S.ageVal!=null||S.wtVal!=null||S.sex||S.ht!=null||S.tool||PS.manual||hasToolInputs();}
 function newPatient(){
   if(hasActivePatient()&&!confirm('Start a new patient? This clears patient inputs, manual PDC selections and active tools. Your field profile is kept.'))return;
-  stopApgarTimer();critScenario=null;critGroup=null;roscChecklistState={};
+  resetAllToolState();resetPedsExact();resetCriticalReadback();critPickerMode=null;critScenario=null;critGroup=null;roscChecklistState={};
   document.querySelectorAll('.display-menu').forEach(el=>el.open=false);
   Object.assign(S,{mode:'age',ageVal:null,ageUnit:'y',wtVal:null,wtUnit:'kg',sex:'',ht:null,pt:null,tool:null,caseId:'all',query:'',patientKey:null,validation:[],entryCollapsed:false,advancedOpen:false,pickerOpen:true});
   Object.assign(PS,{band:null,manual:false,patch:false,pickerOpen:false,sel:{},note:'',query:'',selectorOpen:false});
@@ -2733,7 +2908,44 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-let offlinePackReady=false;
+const APP_BUILD='2026.10.08.1';
+let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
+function updateVersionStatus(message){
+  $('activeBuild').textContent=`Active build ${APP_BUILD}`;
+  $('updateStatus').textContent=message||(availableUpdateBuild?`Update ready · ${availableUpdateBuild}`:availableUpdateWorker?'Update ready':offlinePackReady?'This build is ready offline':!navigator.onLine?'Offline · update check unavailable':'Offline pack pending');
+  $('updateNotice').hidden=updateDismissed||(!availableUpdateBuild&&!availableUpdateWorker);
+  $('updateNoticeText').textContent=`${availableUpdateBuild?'Build '+availableUpdateBuild+' is available. ':''}You are viewing ${APP_BUILD}. Reload only when it is safe; patient and tool entries will be cleared.`;
+}
+function workerBuild(worker){
+  return new Promise(resolve=>{
+    if(!worker||!('MessageChannel'in window)){resolve(null);return;}
+    const channel=new MessageChannel();let done=false;
+    const finish=version=>{if(done)return;done=true;clearTimeout(timer);channel.port1.close();resolve(version);};
+    const timer=setTimeout(()=>finish(null),1800);
+    channel.port1.onmessage=e=>finish(e.data?.type==='APP_VERSION'&&typeof e.data.version==='string'?e.data.version:null);
+    try{worker.postMessage({type:'GET_APP_VERSION'},[channel.port2]);}catch(_){finish(null);}
+  });
+}
+async function inspectWaitingWorker(worker){
+  if(!worker||worker.state==='redundant')return;
+  const version=await workerBuild(worker);
+  // HTML can already be newer than its controller because navigation is network-first.
+  // Installing that identical build is safe without reloading or clearing an encounter.
+  if(version===APP_BUILD){worker.postMessage({type:'ACTIVATE_UPDATE'});return;}
+  if(worker.state==='redundant')return;
+  availableUpdateWorker=worker;availableUpdateBuild=version;updateDismissed=false;updateVersionStatus();
+}
+async function checkActiveWorker(){
+  const worker=navigator.serviceWorker?.controller||offlineRegistration?.active;
+  const version=await workerBuild(worker);
+  if(worker!==(navigator.serviceWorker?.controller||offlineRegistration?.active))return;
+  if(version){
+    offlinePackReady=version===APP_BUILD;
+    if(offlinePackReady&&availableUpdateWorker?.state!=='installed'){availableUpdateWorker=null;availableUpdateBuild=null;}
+    if(version!==APP_BUILD&&!offlineRegistration?.waiting){availableUpdateWorker=null;availableUpdateBuild=version;updateDismissed=false;}
+  }
+  updateOfflineStatus();updateVersionStatus();
+}
 function updateOfflineStatus(message){
   const el=$('offlineStatus');
   if(message){el.textContent=message;return;}
@@ -2741,11 +2953,44 @@ function updateOfflineStatus(message){
   el.innerHTML=!navigator.onLine?(offlinePackReady?'Offline<br>ready':'Offline<br>not cached'):(offlinePackReady?'Offline pack<br>ready':'Offline pack<br>pending');
 }
 async function initOffline(){
-  if(!('serviceWorker'in navigator)||location.protocol==='file:'){updateOfflineStatus('Upload to GitHub\nfor offline');return;}
-  try{await navigator.serviceWorker.register('./sw.js');await navigator.serviceWorker.ready;offlinePackReady=true;updateOfflineStatus();}
-  catch(_){offlinePackReady=false;updateOfflineStatus('Offline pack\nfailed');}
+  if(!('serviceWorker'in navigator)||location.protocol==='file:'){updateOfflineStatus('Upload to GitHub\nfor offline');updateVersionStatus('Offline installation requires the hosted app');$('checkUpdate').disabled=true;return;}
+  navigator.serviceWorker.addEventListener('controllerchange',async()=>{
+    if(updateApplying){location.reload();return;}
+    await checkActiveWorker();
+  });
+  navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.source!==navigator.serviceWorker.controller||e.data?.type!=='APP_VERSION')return;
+    checkActiveWorker();
+  });
+  try{
+    offlineRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+    const watch=worker=>{if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&offlineRegistration.waiting)inspectWaitingWorker(offlineRegistration.waiting);});};
+    offlineRegistration.addEventListener('updatefound',()=>watch(offlineRegistration.installing));watch(offlineRegistration.installing);
+    if(offlineRegistration.waiting)await inspectWaitingWorker(offlineRegistration.waiting);
+    await navigator.serviceWorker.ready;await checkActiveWorker();
+  }catch(_){offlinePackReady=false;updateOfflineStatus('Offline pack\nfailed');updateVersionStatus('Offline installation / update check unavailable');}
 }
-window.addEventListener('online',()=>updateOfflineStatus());window.addEventListener('offline',()=>updateOfflineStatus());
+window.addEventListener('online',()=>{updateOfflineStatus();updateVersionStatus();});window.addEventListener('offline',()=>{updateOfflineStatus();updateVersionStatus();});
+window.applyAppUpdate=()=>{
+  if(!availableUpdateWorker&&!availableUpdateBuild)return;
+  if(!confirm('Reload to apply the update? This clears the current patient, tool entries and read-back notes. Reload only when it is safe to interrupt.'))return;
+  if(availableUpdateWorker&&availableUpdateWorker.state==='installed'){
+    updateApplying=true;$('applyUpdate').disabled=true;$('applyUpdate').textContent='Applying…';
+    availableUpdateWorker.postMessage({type:'ACTIVATE_UPDATE'});
+    setTimeout(()=>{if(updateApplying){updateApplying=false;$('applyUpdate').disabled=false;$('applyUpdate').textContent='Reload app';updateVersionStatus('Update activation delayed · current patient remains open; retry when safe');}},8000);
+  }else location.reload();
+};
+$('applyUpdate').onclick=applyAppUpdate;
+$('dismissUpdate').onclick=()=>{updateDismissed=true;updateVersionStatus();};
+$('checkUpdate').onclick=async()=>{
+  if(!navigator.onLine){updateVersionStatus('Offline · connect to check for updates');return;}
+  if(availableUpdateWorker||availableUpdateBuild){updateDismissed=false;updateVersionStatus();return;}
+  if(!offlineRegistration){updateVersionStatus('Offline pack not installed; reopen the hosted app online');return;}
+  $('checkUpdate').disabled=true;updateVersionStatus('Checking for updates…');
+  try{await offlineRegistration.update();if(offlineRegistration.waiting)await inspectWaitingWorker(offlineRegistration.waiting);await checkActiveWorker();}
+  catch(_){updateVersionStatus('Update check failed · current build remains open');}
+  finally{$('checkUpdate').disabled=false;}
+};
 $('offlineStatus').onclick=()=>alert((offlinePackReady?'Offline pack is installed on this device. Keep this page bookmarked or add it to the Home Screen.':'Open the uploaded GitHub Pages site once with a connection to install the offline pack.')+' Calculations and in-app summaries are included. Linked source PDFs require internet or separately downloaded copies.');
 
 $('calcDisplay').innerHTML=displayControlHTML('calc');$('critDisplay').innerHTML=displayControlHTML('crit');

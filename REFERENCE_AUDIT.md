@@ -1,5 +1,11 @@
 # Reference-page audit — 2026-09-09
 
+## Additional source-review finding — 2026-10-08
+
+The existing ROSC calculation engine applies a lower 2-year age cutoff to the NaCl bolus. ALS PCS v5.4 printed p.117 lists age N/A for that intervention; p.118 includes the <12-year dosing branch without that lower cutoff. Confirmed in the official MOH PDF and the [RPPEO published copy](https://www.rppeo.ca/images/pdf/ALS_PCS_5.4_Final.pdf#page=129). This is a clinical-source discrepancy, not a PDF page-navigation error.
+
+Build 2026.10.08.1 does not alter the clinical engine: it flags the unverified restriction prominently in Calculator and Critical for age <2 years, and does not offer the age-status card as a medication read-back reference. This scenario requires separate clinical review against current BHP/service direction before relying on the app calculation. The existing Brady >=18-year and ROSC DOPamine >=8-year age gates were cross-checked against printed p.129 and p.117/119.
+
 Checked against the actual PDF pages, not a global offset guessed from the previous edition.
 
 | Source | Edition | Printed → PDF viewer page |

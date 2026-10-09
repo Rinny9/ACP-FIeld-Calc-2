@@ -96,9 +96,15 @@ function readable(rootSelector){
       assert.equal(await page.evaluate(()=>activePane),'critical','Change directive never exits Critical');
       assert.equal(await page.evaluate(()=>critScenario),'arrest','Opening categories preserves the current directive');
       assert.equal(await page.evaluate(()=>JSON.stringify(S.pt)),patientBefore,'Opening categories preserves the patient');
-      assert.equal(await page.locator('#critPaths').isVisible(),true,'Change directive reveals categories');
-      assert.equal(await page.locator('#critChange').innerText(),'Hide categories','Expanded picker action clearly closes the category choices');
+      assert.equal(await page.locator('#critPicker .crit-subpaths').isVisible(),true,'Change directive reveals related conditions first');
+      assert.deepEqual(await page.locator('#critPicker [data-path]').evaluateAll(els=>els.map(el=>el.dataset.path)),['arrest','rosc','hyperk'],'Related chooser contains only current-category conditions');
+      assert.equal(await page.locator('#critPaths').isVisible(),false,'Selected pathway does not restore the full neutral category grid');
+      assert.equal(await page.locator('#critChange').innerText(),'Close chooser','Expanded picker action clearly closes its choices');
+      await page.locator('#critPicker [onclick="showCriticalPicker(\'all\')"]').click();await settle();
+      assert.equal(await page.locator('#critPicker .crit-paths button').count(),6,'All categories is available as the secondary chooser');
+      assert.equal(await page.evaluate(()=>critScenario),'arrest','Expanding all categories preserves the current pathway');
       await page.locator('#critChange').click();await settle();
+      assert.equal(await page.locator('#critPicker').isVisible(),false);
       assert.equal(await page.locator('#critPaths').isVisible(),false);
       assert.equal(await page.locator('#critChange').innerText(),'Change directive');
       await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{document.body.classList.remove('large-text','daylight');selectCriticalPath('arrest');document.getElementById('critical').scrollTop=0;});await settle();

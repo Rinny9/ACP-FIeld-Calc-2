@@ -42,6 +42,12 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
       const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
       const settle=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
       const click=async selector=>{await page.locator(selector).click();await settle();};
+      const selectGroup=async id=>{
+        if(await page.locator('#critPaths').isVisible())return click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);
+        if(!await page.locator('#critPicker').isVisible())await click('#critChange');
+        if(!await page.locator('#critPicker .crit-paths').count())await click('#critPicker [onclick="showCriticalPicker(\'all\')"]');
+        await click(`#critPicker .crit-paths [onclick="selectCriticalGroup('${id}')"]`);
+      };
       const checkNotices=async(selector,id)=>{
         const results=await page.locator(selector).evaluate((root,id)=>{
           const notice=root.querySelector('.pathway-notice'),first=root.querySelector('.row'),key=id==='pain'?'Opioid ↔ ketamine:':'Before sedation:';
@@ -138,10 +144,10 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
         assert.equal(await page.locator('#caseChips .casechip').count(),9,'Main Calculator scenario count is preserved');
         await click('nav [data-pane="critical"]');
       }
-      await click('#critChange');await click('#critPaths [onclick="selectCriticalGroup(\'rhythm\')"]');
+      await selectGroup('rhythm');
       assert.equal(await page.locator('#critContent .pathway-notice').count(),0,'Pain/sedation notice does not leak into unrelated pathways');
       assert.ok(!(await page.locator('#critContent').innerText()).includes('Opioid ↔ ketamine:'));
-      await click('#critChange');await click('#critPaths [onclick="selectCriticalGroup(\'painsedation\')"]');
+      await selectGroup('painsedation');
       assert.equal(await page.evaluate(()=>critScenario),'combative','Last subcategory is remembered within this encounter');
 
       for(const age of [0,1,11,12,17,null]){
@@ -181,11 +187,12 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
       }
       await page.evaluate(()=>{document.body.classList.remove('large-text','daylight');});
       // Procedural Sedation is one shared pathway, accessible from both groups.
-      const chooseGroup=async id=>{if(await page.locator('#critPaths').evaluate(el=>el.hidden))await click('#critChange');await click(`#critPaths [onclick="selectCriticalGroup('${id}')"]`);};
+      const chooseGroup=selectGroup;
       for(const groupId of ['painsedation','airbreath']){
         await chooseGroup(groupId);await click('#critSubpaths [data-path="psed"]');
         assert.equal(await page.evaluate(()=>critGroup),groupId,'Shared pathway does not jump categories');
-        assert.match(await page.locator('#critContext').innerText(),groupId==='painsedation'?/^Pain \/ Sedation · Procedural Sedation$/:/^Airway \/ Respiratory · Procedural Sedation$/);
+        assert.equal(await page.locator('#critContext .crit-group-label').innerText(),groupId==='painsedation'?'Pain / Sedation':'Airway / Respiratory');
+        assert.equal(await page.locator('#critContext .crit-condition-label').innerText(),'Procedural Sedation');
         assert.deepEqual(await page.evaluate(()=>critRowsForPath(S.pt,'psed').rows),await page.evaluate(()=>drugCalcs(S.pt).sedation.filter(r=>r.name==='Procedural sedation (post-ETT / TCP)')));
         assert.equal(await page.locator('#crit-treatment .row').count(),1);
         assert.equal(await page.locator('#crit-airway').count(),1);

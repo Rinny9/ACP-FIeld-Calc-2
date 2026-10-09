@@ -2,6 +2,16 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Encounter follow-up — 2026-10-08, build 2026.10.08.1
+
+Implemented the six recommendations from the follow-up review: consistent Critical age displays, retained tool inputs with Reset/New patient and weight-dependent invalidation, focused Peds-to-Calculator medication/route handoff, a related-first compact directive chooser retaining scroll, a collapsed encounter-only BHP read-back panel, and explicit version/update controls without automatic encounter reloads. Existing direct subcategory buttons remain; no Airway/Treatment/Sources shortcut row was restored.
+
+The read-back selector uses only current pathway rows and never substitutes chart weight for patient weight. It does not populate findings, authorize administration, or record BHP orders. Patient edits clear selected treatment references; New patient/reload clears notes. Pediatric chart-reference basis and mandatory patch requirements remain visible. APGAR pauses outside Tools or when hidden; no background alarm guarantee is implied.
+
+New regressions cover 494 age/path/weight combinations per browser, exact 24-hour boundaries, complete tool memory/resets, Peds handoff, related/all-category selection, scroll retention, read-back route/sequence selection, source/age distinctions, and phone/landscape layouts in Chromium and WebKit. Existing Critical, source navigation, dose layout, ETT and dexamethasone tests were rerun. Actual service-worker lifecycle tests in Chromium cover waiting updates, cancel/apply, one explicit reload, offline calculations, legacy migration, unrelated-cache preservation and newer-HTML/older-controller alignment. These checks are not a physical-iPhone or clinical validation.
+
+The official-source cross-check found a separate pre-existing ROSC NaCl age-restriction mismatch; see REFERENCE_AUDIT.md. This release adds a conspicuous source-review warning without silently changing the clinical engine. Do not treat the display-consistency work as full clinical certification.
+
 ## Changes delivered
 
 - Build 2026.10.03.2 pins only Critical's compact patient/condition controls. Back, Change and Aa display settings remain available while scrolling; main/subcategory menus scroll away. Normal and Large text headers measured 112–163 px at 320 px, and 112–120 px at 390 px/landscape in Chrome and WebKit.
