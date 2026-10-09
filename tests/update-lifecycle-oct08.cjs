@@ -4,8 +4,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),currentHTML=fs.readFileSync(path.join(root,'index.html'),'utf8'),currentSW=fs.readFileSync(path.join(root,'sw.js'),'utf8');
-const currentBuild=currentHTML.match(/const APP_BUILD='([^']+)'/)[1],futureBuild='2026.10.08.2';
-assert.equal(currentBuild,'2026.10.08.1');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
+const currentBuild=currentHTML.match(/const APP_BUILD='([^']+)'/)[1],futureBuild='2026.10.08.3';
+assert.equal(currentBuild,'2026.10.08.2');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
 const legacyRef=process.env.LEGACY_REF||'7e896d5';
 const gitFile=file=>execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${legacyRef}:${file}`],{cwd:root,encoding:'utf8'});
 const releases={current:{html:currentHTML,sw:currentSW},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild)},legacy:{html:gitFile('index.html'),sw:gitFile('sw.js')}};
@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
   }
   res.statusCode=404;res.end('Not found');
 });
-function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,caseId:S.caseId,query:S.query,toolFields,gcsSel,apSel,tbsaAge,tbsaOn,tbsaExtra,critical:critScenario,readback:criticalReadback});}
+function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,caseId:S.caseId,query:S.query,toolFields,gcsSel,apSel,tbsaAge,tbsaOn,tbsaExtra,critical:critScenario});}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url=`http://127.0.0.1:${server.address().port}/`;
   const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
@@ -41,22 +41,21 @@ function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,
     await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');await page.evaluate(()=>openTool('drip',true));
     await page.locator('#dvol').fill('250');await page.locator('#dmin').fill('30');await page.evaluate(()=>closeTool());
     await page.evaluate(()=>{selectCase('brady');selectCriticalPath('brady');switchPane('critical');});
-    await page.locator('#critReadbackPanel summary').click();await page.locator('#critReadbackFindings').fill('Synthetic test: observed rhythm and perfusion entered by clinician.');
-    const firstTreatment=await page.locator('#critReadbackTreatment option').nth(1).getAttribute('value');await page.locator('#critReadbackTreatment').selectOption(firstTreatment);
+    assert.equal(await page.locator('#critReadbackPanel').count(),0,'Critical no longer includes the redundant read-back panel');
     const before=await page.evaluate(encounter),loadsBefore=loads;
     release='future';await page.evaluate(()=>offlineRegistration.update());
     await page.waitForFunction(expected=>availableUpdateBuild===expected&&availableUpdateWorker?.state==='installed',futureBuild,{timeout:20000});
-    assert.equal(loads,loadsBefore,'Installing an update never automatically reloads an open encounter');assert.equal(await page.evaluate(encounter),before,'Waiting update preserves patient, tool fields and read-back');
+    assert.equal(loads,loadsBefore,'Installing an update never automatically reloads an open encounter');assert.equal(await page.evaluate(encounter),before,'Waiting update preserves patient, tool fields and selected Critical pathway');
     assert.equal(await page.evaluate(()=>offlineRegistration.waiting?.state),'installed');assert.equal(await page.evaluate(()=>workerBuild(navigator.serviceWorker.controller)),currentBuild,'Waiting version does not replace the active controller');
     assert.equal(await page.locator('#updateNotice').isVisible(),false,'Critical hides update controls until explicitly exited');assert.equal(await page.evaluate(()=>activePane),'critical');
     await page.locator('#critClose').click();assert.equal(await page.locator('#updateNotice').isVisible(),true);assert.match(await page.locator('#updateNoticeText').innerText(),/patient and tool entries will be cleared/);
     await page.locator('#dismissUpdate').click();assert.equal(await page.locator('#updateNotice').isVisible(),false);assert.equal(await page.evaluate(encounter),before);
     await page.locator('#settingsTop').click();await page.locator('#checkUpdate').click();assert.equal(await page.locator('#updateNotice').isVisible(),true,'Check update restores a dismissed pending update');
-    await page.locator('#applyUpdate').click();assert.equal(loads,loadsBefore,'Cancel apply does not reload');assert.equal(await page.evaluate(encounter),before,'Cancel preserves the complete encounter');assert.equal(await page.evaluate(()=>updateApplying),false);assert.match(confirms.at(-1),/clears the current patient, tool entries and read-back notes/);
+    await page.locator('#applyUpdate').click();assert.equal(loads,loadsBefore,'Cancel apply does not reload');assert.equal(await page.evaluate(encounter),before,'Cancel preserves the complete encounter');assert.equal(await page.evaluate(()=>updateApplying),false);assert.match(confirms.at(-1),/clears the current patient.*tool entries/);assert.doesNotMatch(confirms.at(-1),/read-back/i);
     approveReload=true;await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:20000}),page.locator('#applyUpdate').click()]);
     await page.waitForFunction(expected=>APP_BUILD===expected&&offlinePackReady,futureBuild,{timeout:20000});
     assert.equal(loads,loadsBefore+1,'Confirmed update causes exactly one explicit reload');assert.equal(await page.evaluate(()=>APP_BUILD),futureBuild);assert.match(await page.locator('#activeBuild').innerText(),new RegExp(futureBuild.replace(/\./g,'\\.')));
-    assert.equal(await page.evaluate(()=>S.pt?.ageYears),null);assert.equal(await page.evaluate(()=>S.pt?.weightKg),null);assert.equal(await page.evaluate(()=>S.ageVal),null);assert.equal(await page.evaluate(()=>S.wtVal),null);assert.equal(await page.evaluate(()=>hasToolInputs()),false);assert.equal(await page.evaluate(()=>criticalReadback.findings),'');assert.deepEqual(await page.evaluate(()=>criticalReadback.selection),{});assert.equal(await page.locator('#updateNotice').isVisible(),false);
+    assert.equal(await page.evaluate(()=>S.pt?.ageYears),null);assert.equal(await page.evaluate(()=>S.pt?.weightKg),null);assert.equal(await page.evaluate(()=>S.ageVal),null);assert.equal(await page.evaluate(()=>S.wtVal),null);assert.equal(await page.evaluate(()=>hasToolInputs()),false);assert.equal(await page.evaluate(()=>critScenario),null);assert.equal(await page.locator('#updateNotice').isVisible(),false);
     const cacheKeys=await page.evaluate(()=>caches.keys());assert.ok(cacheKeys.includes('unrelated-user-cache'));assert.ok(cacheKeys.some(k=>k.startsWith('acp-field-calc-'+futureBuild)));assert.ok(!cacheKeys.some(k=>k.startsWith('acp-field-calc-'+currentBuild)),'Activation removes only superseded app caches');
     assert.equal(await page.evaluate(async()=>{const cache=await caches.open('unrelated-user-cache');return(await cache.match('/unrelated-sentinel')).text();}),'keep this unrelated cache');
     await context.setOffline(true);await page.reload({waitUntil:'load'});await page.waitForFunction(()=>offlinePackReady,null,{timeout:20000});
@@ -74,7 +73,7 @@ function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,
     await legacyPage.evaluate(async()=>{const cache=await caches.open('unrelated-user-cache');await cache.put('/unrelated-sentinel',new Response('legacy sentinel'));});
     release='current';await legacyPage.reload({waitUntil:'load'});const explicitLegacyLoad=legacyLoads;
     await legacyPage.locator('#ageIn').fill('28');await legacyPage.locator('#wtIn').fill('70');
-    await legacyPage.waitForFunction(()=>APP_BUILD==='2026.10.08.1'&&offlinePackReady,null,{timeout:20000});
+    await legacyPage.waitForFunction(expected=>APP_BUILD===expected&&offlinePackReady,currentBuild,{timeout:20000});
     assert.equal(legacyLoads,explicitLegacyLoad,'Legacy migration does not trigger a second reload');assert.equal(await legacyPage.locator('#wtIn').inputValue(),'70','New encounter survives matching-worker alignment');assert.equal(await legacyPage.evaluate(()=>workerBuild(navigator.serviceWorker.controller)),currentBuild);assert.equal(await legacyPage.locator('#updateNotice').isVisible(),false);
     assert.ok((await legacyPage.evaluate(()=>caches.keys())).includes('unrelated-user-cache'));assert.deepEqual(legacyErrors,[]);await legacyContext.close();
     // Network-first navigation may load newer HTML before its matching worker

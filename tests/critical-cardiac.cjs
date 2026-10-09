@@ -27,10 +27,10 @@ const requiredAirway=['Oral insertion depth','Suction catheter','Laryngoscope bl
       const groups=await page.evaluate(()=>CRIT_GROUPS);
       assert.deepEqual(groups.find(g=>g.id==='rhythm').paths,['brady','tachy','cshock','acpe']);
       assert.equal(groups.find(g=>g.id==='rhythm').label,'Cardiac');
-      assert.deepEqual(groups.find(g=>g.id==='airbreath').paths,['bronch','psed','allergy','croup']);
+      assert.deepEqual(groups.find(g=>g.id==='airbreath').paths,['bronch','allergy','croup']);
       assert.ok(!groups.find(g=>g.id==='airbreath').paths.includes('acpe'),'ACPE belongs to Cardiac, not two groups');
-      const memberships=groups.flatMap(g=>g.paths).filter(id=>id!=='psed');assert.equal(new Set(memberships).size,memberships.length,'Only Procedural Sedation is intentionally shared between categories');
-      assert.deepEqual(groups.filter(g=>g.paths.includes('psed')).map(g=>g.id),['airbreath','painsedation']);
+      const memberships=groups.flatMap(g=>g.paths);assert.equal(new Set(memberships).size,memberships.length,'Each Critical condition appears in one category');
+      assert.deepEqual(groups.filter(g=>g.paths.includes('psed')).map(g=>g.id),['painsedation'],'Procedural Sedation belongs only to Pain / Sedation');
       const cshockCase=await page.evaluate(()=>CASES.find(c=>c.id==='crit-cshock'));
       assert.equal(cshockCase.minAge,18);assert.equal(cshockCase.hidden,true);
 

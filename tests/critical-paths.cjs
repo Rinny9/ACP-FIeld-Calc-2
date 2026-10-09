@@ -40,10 +40,10 @@ const expected={
       };
       await group('airbreath');
       assert.match(await page.locator('#critContext').innerText(),/^Airway \/ Respiratory/);
-      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['bronch','psed','allergy','croup']);
+      assert.deepEqual(await page.locator('#critSubpaths button').evaluateAll(nodes=>nodes.map(el=>el.dataset.path)),['bronch','allergy','croup']);
       assert.equal(await page.evaluate(()=>CRIT_PATHS.some(p=>p.id==='airway')),false,'No standalone Critical Airway pathway remains');
       for(const id of Object.keys(expected)){
-        const groupId=id==='acpe'?'rhythm':['seizure','hypogly','opioid','adrenal'].includes(id)?'neurometab':'airbreath';
+        const groupId=id==='acpe'?'rhythm':id==='psed'?'painsedation':['seizure','hypogly','opioid','adrenal'].includes(id)?'neurometab':'airbreath';
         if(await page.evaluate(()=>critGroup)!==groupId)await group(groupId);
         await click(`#critSubpaths [data-path="${id}"]`);
         assert.deepEqual(await page.evaluate(id=>critRowsForPath(S.pt,id).rows.map(r=>r.name),id),expected[id].rows,id+' shows only the expected treatment cards');

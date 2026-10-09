@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.10.08.2 removes the BHP read-back panel from every Critical pathway, including its selection controls, notes, encounter state and styling. It also removes the duplicate Procedural Sedation subcategory from Airway / Respiratory; Procedural Sedation remains in Pain / Sedation. Existing treatment cards, patch requirements, pediatric consultation references, airway equipment, ROSC checklist and compact directive chooser remain unchanged. The app/offline build is advanced so installed users can receive this update safely.
+
 Build 2026.10.08.1 implements the encounter-usability recommendations:
 
 - Critical targets, treatment rows and notices now agree with the app's existing age gates. Adult-only Brady rows are suppressed for pediatric patients; ROSC DOPamine targets require the existing age condition; unknown-age Tachy no longer inserts the adult maneuver card. Raw doses, formulas, directive text and printed PDC transcription are unchanged.

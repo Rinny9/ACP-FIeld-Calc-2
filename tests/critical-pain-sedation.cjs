@@ -62,6 +62,8 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
       const group=config.groups.find(g=>g.id==='painsedation');assert.ok(group);
       assert.equal(group.label,'Pain / Sedation');assert.deepEqual(group.paths,['pain','combative','psed']);
       assert.equal(config.groups.length,6,'Replacing Trauma does not add another top-level category');
+      assert.deepEqual(config.groups.filter(g=>g.paths.includes('psed')).map(g=>g.id),['painsedation'],'Procedural Sedation appears only in Pain / Sedation');
+      assert.deepEqual(config.groups.find(g=>g.id==='airbreath').paths,['bronch','allergy','croup'],'Airway / Respiratory has no duplicate Procedural Sedation');
       assert.ok(!config.groups.some(g=>g.id==='shocktrauma'||g.label==='Trauma'),'No obsolete Critical Trauma category');
       assert.ok(!config.paths.some(p=>p.id==='trauma'),'No obsolete Critical Trauma pathway');
       for(const [id,directive,calc] of [['pain','analgesia','crit-pain'],['combative','combative','crit-combative']]){
@@ -186,11 +188,11 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
         }
       }
       await page.evaluate(()=>{document.body.classList.remove('large-text','daylight');});
-      // Procedural Sedation is one shared pathway, accessible from both groups.
+      // Procedural Sedation remains complete, with one Pain / Sedation entry.
       const chooseGroup=selectGroup;
-      for(const groupId of ['painsedation','airbreath']){
+      for(const groupId of ['painsedation']){
         await chooseGroup(groupId);await click('#critSubpaths [data-path="psed"]');
-        assert.equal(await page.evaluate(()=>critGroup),groupId,'Shared pathway does not jump categories');
+        assert.equal(await page.evaluate(()=>critGroup),groupId,'Procedural Sedation does not jump categories');
         assert.equal(await page.locator('#critContext .crit-group-label').innerText(),groupId==='painsedation'?'Pain / Sedation':'Airway / Respiratory');
         assert.equal(await page.locator('#critContext .crit-condition-label').innerText(),'Procedural Sedation');
         assert.deepEqual(await page.evaluate(()=>critRowsForPath(S.pt,'psed').rows),await page.evaluate(()=>drugCalcs(S.pt).sedation.filter(r=>r.name==='Procedural sedation (post-ETT / TCP)')));
@@ -204,11 +206,16 @@ const patients=[0,1,11,12,17,18,64,65,null].flatMap(ageYears=>[
         assert.equal(await page.locator('#dirSearch').inputValue(),'Procedural Sedation');
         await click('nav [data-pane="critical"]');assert.equal(await page.evaluate(()=>critGroup),groupId);
         await chooseGroup('rhythm');await chooseGroup(groupId);
-        assert.equal(await page.evaluate(()=>critScenario),'psed','Each category remembers its shared-path selection');
+        assert.equal(await page.evaluate(()=>critScenario),'psed','Pain / Sedation remembers its selected pathway');
       }
       await chooseGroup('painsedation');assert.equal(await page.evaluate(()=>critScenario),'psed');
+      await chooseGroup('airbreath');
+      assert.notEqual(await page.evaluate(()=>critScenario),'psed','Airway / Respiratory never selects the retired duplicate');
+      assert.equal(await page.locator('#critSubpaths [data-path="psed"]').count(),0);
+      await click('#critSubpaths [data-path="allergy"]');
+      await chooseGroup('painsedation');assert.equal(await page.evaluate(()=>critScenario),'psed','Changing respiratory categories preserves the Pain / Sedation choice');
       await click('#critSubpaths [data-path="pain"]');
-      await chooseGroup('airbreath');assert.equal(await page.evaluate(()=>critScenario),'psed','Selections remain independent');
+      await chooseGroup('airbreath');assert.equal(await page.evaluate(()=>critScenario),'allergy','Category selections remain independent');
       await chooseGroup('painsedation');assert.equal(await page.evaluate(()=>critScenario),'pain');
       await click('#critClose');await click('#newPtTop');await click('nav [data-pane="critical"]');
       assert.equal(await page.evaluate(()=>critScenario),null,'New patient clears chosen scenario');

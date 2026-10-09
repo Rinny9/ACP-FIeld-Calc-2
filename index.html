@@ -460,15 +460,6 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
 .crit-picker .crit-subpaths,.crit-picker .crit-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin:0 0 8px}
 .crit-picker button{min-height:48px;overflow-wrap:normal;word-break:normal;line-height:1.35;font-size:calc(14px * var(--clinical-scale))}
 .crit-picker-switch{width:100%;padding:10px;border:1px solid var(--border2);border-radius:10px;color:var(--blue);background:var(--blue-dim);font-weight:800;text-align:left}
-.crit-readback{margin:8px 0;border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:0 10px}
-.crit-readback>summary{min-height:48px;font-size:calc(14px * var(--clinical-scale));color:var(--blue);font-weight:800}
-.crit-readback-body{min-width:0;padding:4px 0 10px;line-height:1.5;font-size:calc(14px * var(--clinical-scale));overflow-wrap:anywhere}
-.crit-readback-body label{display:block;margin:12px 0 5px;color:var(--mut);font-weight:750}
-.crit-readback-body select,.crit-readback-body textarea{display:block;width:100%;max-width:100%;min-width:0;font-size:calc(16px * var(--clinical-scale));min-height:48px;padding:10px;background:var(--surface);border:1px solid var(--border2);border-radius:9px;line-height:1.5;resize:vertical}
-.crit-readback-body select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat}
-.readback-fact{margin:8px 0;overflow-wrap:anywhere}.readback-fact small{display:block;color:var(--mut);font-size:inherit}.readback-fact b{color:var(--text)}
-.readback-selected{border-top:1px solid var(--border);margin-top:12px;padding-top:4px}.readback-selected .row{margin:8px 0 0}
-.readback-reset{min-height:44px;margin-top:10px;padding:8px 10px;border:1px solid var(--border2);border-radius:9px;color:var(--blue);background:var(--surface);font-weight:750;font-size:14px}
 .update-notice{position:fixed;z-index:140;left:12px;right:12px;bottom:calc(82px + env(safe-area-inset-bottom));max-width:700px;margin:auto;padding:12px;border:1px solid var(--border2);border-radius:12px;background:var(--card);box-shadow:0 8px 26px #0007;font-size:14px;line-height:1.45}
 .update-notice strong{display:block;color:var(--text)}.update-notice-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.update-notice button{min-height:44px;padding:8px 12px;border:1px solid var(--border2);border-radius:9px;font-size:14px;color:var(--blue);background:var(--blue-dim);font-weight:800}
 body.critical-open .update-notice{display:none}
@@ -480,7 +471,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.08.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.08.2</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -564,7 +555,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.08.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.08.2</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -579,7 +570,7 @@ body.critical-open .update-notice{display:none}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.08.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.08.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1669,7 +1660,7 @@ function recompute(){
   if(checkedAge!=null&&checkedWeight!=null&&((checkedAge>=18&&checkedWeight<20)||(checkedAge<1&&checkedWeight>30)||(checkedAge>=2&&checkedAge<18&&checkedWeight<5)))S.validation.push('Age/weight combination is unusual — confirm both entries before using calculations.');
   const key=patientKey(),patientChanged=S.patientKey!=null&&key!==S.patientKey;
   if(S.patientKey==null)$('toolPatientNotice')?.remove();
-  if(patientChanged){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};PS.query='';PS.selectorOpen=false;invalidateCriticalReadbackSelection();}
+  if(patientChanged){PS.manual=false;PS.patch=false;PS.pickerOpen=false;PS.sel={};PS.query='';PS.selectorOpen=false;}
   S.patientKey=key;
   S.pt = buildPatient({ ageYears: currentAgeYears(), weightKg: currentWeightKg(), sex: S.sex||null, heightCm: S.ht, suppressWeightEstimate:S.wtVal!=null&&currentWeightKg()==null });
   if(patientChanged)invalidatePatientTool();
@@ -2181,9 +2172,6 @@ function tbsaTotal(){let t=0;for(const [n,v] of T9[tbsaAge]) if(tbsaOn[n]) t+=v;
 
 // ============ CRITICAL MODE ============
 let critScenario=null,critGroup=null,critPickerMode=null;
-const criticalReadback={open:{},selection:{},findings:''};
-function resetCriticalReadback(){for(const key of ['open','selection'])for(const id of Object.keys(criticalReadback[key]))delete criticalReadback[key][id];criticalReadback.findings='';}
-function invalidateCriticalReadbackSelection(){for(const id of Object.keys(criticalReadback.selection))delete criticalReadback.selection[id];}
 const criticalGroupSelection={};
 const CRIT_RESP_PRIORITIES=['Prioritize ventilation and the condition-specific treatment.','Reassess after every intervention and escalate airway support early if fatigue or failure develops.'];
 const CRIT_METAB_PRIORITIES=['Support airway and ventilation; rapidly check glucose when indicated.','Treat the identified toxicologic or metabolic emergency using its specific directive conditions.'];
@@ -2212,7 +2200,7 @@ const CRIT_PATHS=[
 const CRIT_GROUPS=[
   {id:'arrest',icon:'⚡',label:'Arrest / pre-arrest',paths:['arrest','rosc','hyperk']},
   {id:'rhythm',icon:'💓',label:'Cardiac',paths:['brady','tachy','cshock','acpe']},
-  {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['bronch','psed','allergy','croup']},
+  {id:'airbreath',icon:'🫁',label:'Airway / Respiratory',paths:['bronch','allergy','croup']},
   {id:'painsedation',icon:'💊',label:'Pain / Sedation',paths:['pain','combative','psed']},
   {id:'neurometab',icon:'🧠',label:'Neuro / Metabolic',paths:['seizure','hypogly','opioid','adrenal']},
   {id:'obnewborn',icon:'👶',label:'OB / newborn',paths:['newborn','ob']}
@@ -2413,35 +2401,6 @@ document.addEventListener('click',e=>{const route=e.composedPath();if(critPicker
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&critPickerMode){e.preventDefault();closeCriticalPicker();}});
 if('ResizeObserver'in window)new ResizeObserver(entries=>document.documentElement.style.setProperty('--critical-header-height',entries[0].target.getBoundingClientRect().height+'px')).observe(document.querySelector('.crit-sticky'));
 
-// Read-back is encounter-only discussion material, never a treatment recommendation
-// or a record of an order. Only the currently displayed pathway rows are offered.
-function critReadbackChoices(p,path){
-  if(!p||S.validation.length)return[];
-  const data=critRowsForPath(p,path.id),choices=[];
-  for(const r of [...data.rows,...data.electrical]){
-    if(r.needW||(!r.dose&&!r.lines)||/^(Outside directive|Age required|No standing ALS PCS dose)/i.test(r.dose||'')||/threshold|^Sequence|^Preductal SpO₂/i.test(r.name))continue;
-    const add=(key,label,row)=>choices.push({key,label,row});
-    if(r.lines)r.lines.forEach(l=>add(JSON.stringify([r.name,l.l]),`${r.name} · ${l.l}`,{...r,lines:null,dose:l.d,ml:l.m,d2:null,ml2:null,directive:l.l}));
-    else if(r.d2){
-      add(JSON.stringify([r.name,'first']),`${r.name} · 1st reference`,{...r,d2:null,ml2:null,directive:'1st reference dose'});
-      add(JSON.stringify([r.name,'subsequent']),`${r.name} · subsequent reference`,{...r,dose:r.d2,ml:r.ml2,d2:null,ml2:null,directive:'Subsequent reference dose — confirm timing / BHP order'});
-    }else add(JSON.stringify([r.name]),r.name,{...r});
-  }
-  return choices;
-}
-function critPatchReadback(p,path){
-  const choices=critReadbackChoices(p,path),selected=choices.find(x=>x.key===criticalReadback.selection[path.id]);
-  if(!selected)delete criticalReadback.selection[path.id];
-  const facts=`<div class="readback-fact"><small>Patient</small><b>${esc(critAgeLabel(p))} · ${p?.weightKg!=null?esc(fmt(p.weightKg)+' kg · '+(p.weightSrc==='entered'?'entered weight':'ESTIMATED: '+p.weightSrc)):'Weight required'}</b></div><div class="readback-fact"><small>Condition being discussed</small><b>${esc(path.title)}</b></div>`;
-  const chart=path.id==='tachy'&&p?.ageYears!=null&&p.ageYears<18?critPedsBandInfo(p):null;
-  const patch=chart?'<div class="crit-alert patch"><b>MANDATORY BHP PATCH</b><br>Pediatric tachydysrhythmia chart values are for consultation only. Confirm dose, route, concentration and any electrical setting in the BHP order; these are not adult standing-directive doses.</div>':path.directives.map(id=>DIR.find(d=>d.id===id)).filter(d=>d?.patch).map(d=>`<div class="crit-alert patch"><b>${esc(d.n)} · patch requirement</b><br>${referenceHTML(d.patch)}</div>`).join('');
-  const basis=chart?`<div class="crit-alert patch"><b>Chart-reference basis — not an exact patient calculation</b><br>${esc(chart.basis||chart.note||'Chart band unavailable')}${chart.band?` · chart calculation weight ${fmt(chart.band.calcW)} kg`:''}${chart.note?`<br>${esc(chart.note)}`:''}</div>`:'';
-  const eligibility=critAgeEligibility(p,path.id);
-  const unavailable=eligibility&&eligibility.eligible!==true?`<div class="crit-alert red"><b>Outside this standing directive, or age unknown.</b> No standing treatment reference is available for read-back. Confirm the patient and seek BHP direction.</div>`:'';
-  return `<details class="crit-readback" id="critReadbackPanel"${criticalReadback.open[path.id]?' open':''} ontoggle="if(this.isConnected)criticalReadback.open['${path.id}']=this.open"><summary>BHP read-back · patient &amp; treatment reference</summary><div class="crit-readback-body"><div class="p">Discussion aid only — not an administration recommendation, BHP order or treatment record. Confirm the indication, contraindications, concentration and order.</div>${facts}${basis}${unavailable}${patch}<label for="critReadbackTreatment">Treatment reference to discuss · choose one</label><select id="critReadbackTreatment" onchange="chooseCriticalReadback(this.value)"><option value="">Choose medication / therapy reference</option>${choices.map(x=>`<option value="${esc(x.key)}"${x.key===selected?.key?' selected':''}>${esc(x.label)}</option>`).join('')}</select>${!choices.length?'<p class="p">No dose reference is available for the entered patient in this pathway. Verify patient entries, open the full directive and patch as needed.</p>':''}<div class="readback-selected" id="critReadbackSelected">${selected?rowHTML({...selected.row,name:selected.label}):'<p class="p">No treatment is selected. Selecting a reference does not establish eligibility.</p>'}</div><label for="critReadbackFindings">Observed findings / rationale / response to prior measures</label><textarea id="critReadbackFindings" rows="3" maxlength="4000" placeholder="Enter observed vitals, rhythm, perfusion, relevant history and treatment response. No findings are filled in automatically." oninput="criticalReadback.findings=this.value">${esc(criticalReadback.findings)}</textarea><button class="readback-reset" type="button" onclick="clearCriticalReadback()">Clear read-back</button><p class="p">Kept only in this open app; cleared with New patient or reload. Patient edits clear the selected reference.</p></div></details>`;
-}
-window.chooseCriticalReadback=key=>{const path=critPath();if(!path)return;criticalReadback.selection[path.id]=key;criticalReadback.open[path.id]=true;renderCritGrid();$('critReadbackTreatment')?.focus({preventScroll:true});};
-window.clearCriticalReadback=()=>{const path=critPath();if(!path)return;delete criticalReadback.selection[path.id];criticalReadback.findings='';renderCritGrid();$('critReadbackTreatment')?.focus({preventScroll:true});};
 function critPatientCard(p){
   const has=p&&(p.weightKg!=null||p.ageYears!=null);
   if(!has)return`<div class="crit-ptmain"><div class="cpw">Patient not entered</div><div class="cpa">Age and weight are required for the safest pathway-specific output.</div></div><button type="button" class="crit-edit" onclick="criticalEditPatient()">Enter patient</button>`;
@@ -2505,7 +2464,6 @@ function renderCritGrid(){
   let html=critWarnings(p,path.id);
   if(priorities.length||targets)html+=`<div class="crit-overview">${targets?`<div class="crit-targets">${targets}</div>`:''}${priorities.length?`<details data-detail-key="priorities-${path.id}"${cardDetailsOpen['priorities-'+path.id]?' open':''}><summary>Pathway reminders</summary><ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`:''}</div>`;
   if(path.id==='rosc')html+=`<div id="crit-checklist" tabindex="-1">${critRoscChecklist()}</div>`;
-  html+=critPatchReadback(p,path);
   if(!p||(p.weightKg==null&&p.ageYears==null)){
     html+=`<div class="crit-empty"><b>Enter the patient first</b>The hub will then calculate dose, draw-up volume, thresholds and equipment for this pathway.</div>`;
   }else{
@@ -2892,7 +2850,7 @@ $('resetConc').onclick=()=>{if(!confirm('Restore all editable concentrations to 
 function hasActivePatient(){return S.ageVal!=null||S.wtVal!=null||S.sex||S.ht!=null||S.tool||PS.manual||hasToolInputs();}
 function newPatient(){
   if(hasActivePatient()&&!confirm('Start a new patient? This clears patient inputs, manual PDC selections and active tools. Your field profile is kept.'))return;
-  resetAllToolState();resetPedsExact();resetCriticalReadback();critPickerMode=null;critScenario=null;critGroup=null;roscChecklistState={};
+  resetAllToolState();resetPedsExact();critPickerMode=null;critScenario=null;critGroup=null;roscChecklistState={};
   document.querySelectorAll('.display-menu').forEach(el=>el.open=false);
   Object.assign(S,{mode:'age',ageVal:null,ageUnit:'y',wtVal:null,wtUnit:'kg',sex:'',ht:null,pt:null,tool:null,caseId:'all',query:'',patientKey:null,validation:[],entryCollapsed:false,advancedOpen:false,pickerOpen:true});
   Object.assign(PS,{band:null,manual:false,patch:false,pickerOpen:false,sel:{},note:'',query:'',selectorOpen:false});
@@ -2908,7 +2866,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.10.08.1';
+const APP_BUILD='2026.10.08.2';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;
@@ -2973,7 +2931,7 @@ async function initOffline(){
 window.addEventListener('online',()=>{updateOfflineStatus();updateVersionStatus();});window.addEventListener('offline',()=>{updateOfflineStatus();updateVersionStatus();});
 window.applyAppUpdate=()=>{
   if(!availableUpdateWorker&&!availableUpdateBuild)return;
-  if(!confirm('Reload to apply the update? This clears the current patient, tool entries and read-back notes. Reload only when it is safe to interrupt.'))return;
+  if(!confirm('Reload to apply the update? This clears the current patient and tool entries. Reload only when it is safe to interrupt.'))return;
   if(availableUpdateWorker&&availableUpdateWorker.state==='installed'){
     updateApplying=true;$('applyUpdate').disabled=true;$('applyUpdate').textContent='Applying…';
     availableUpdateWorker.postMessage({type:'ACTIVATE_UPDATE'});

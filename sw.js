@@ -1,4 +1,4 @@
-const APP_BUILD = '2026.10.08.1';
+const APP_BUILD = '2026.10.08.2';
 const CACHE = 'acp-field-calc-' + APP_BUILD + '-encounter-usability';
 const APP_SHELL = ['./', './index.html'];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];

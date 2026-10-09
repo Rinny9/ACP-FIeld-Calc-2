@@ -2,6 +2,10 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Critical simplification — 2026-10-08, build 2026.10.08.2
+
+Removed the encounter-only BHP read-back panel at the user's request to reduce high-acuity workload and visual clutter. This also removes its temporary notes and treatment-reference selector; patch requirements remain on the existing treatment cards and pediatric consultation notices. Removed the duplicate Procedural Sedation button from Airway / Respiratory, keeping it in Pain / Sedation. Dose formulas, source data, airway equipment and other encounter improvements are unchanged.
+
 ## Encounter follow-up — 2026-10-08, build 2026.10.08.1
 
 Implemented the six recommendations from the follow-up review: consistent Critical age displays, retained tool inputs with Reset/New patient and weight-dependent invalidation, focused Peds-to-Calculator medication/route handoff, a related-first compact directive chooser retaining scroll, a collapsed encounter-only BHP read-back panel, and explicit version/update controls without automatic encounter reloads. Existing direct subcategory buttons remain; no Airway/Treatment/Sources shortcut row was restored.

@@ -1,4 +1,4 @@
-// Related-condition chooser and encounter-only BHP read-back checks.
+// Related-condition chooser, uncluttered Critical pathways and retained safety cards.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
@@ -14,6 +14,10 @@ const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'te
       page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
       const settle=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
       const click=async s=>{await page.locator(s).click();await settle();};
+      const noReadback=async()=>{
+        assert.equal(await page.locator('#critReadbackPanel,.crit-readback,#critReadbackTreatment,#critReadbackSelected,#critReadbackFindings,.readback-reset').count(),0,'Retired BHP read-back section is absent');
+        assert.equal(await page.evaluate(()=>typeof criticalReadback),'undefined','No retired read-back encounter state remains');
+      };
       await page.goto('http://127.0.0.1:'+server.address().port);
       await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('90');
       await page.evaluate(()=>{S.entryCollapsed=true;renderEntryState();switchPane('critical');});
@@ -34,47 +38,59 @@ const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'te
       assert.equal(await page.locator('#critPicker .crit-paths button').count(),6);
       await click('#critPicker [onclick="selectCriticalGroup(\'painsedation\')"]');
       assert.equal(await page.evaluate(()=>critGroup),'painsedation');assert.equal(await page.locator('#critPicker').isVisible(),false);
-      assert.equal(await page.locator('#critReadbackPanel').getAttribute('open'),null,'Read-back initially collapsed');
-      await click('#critReadbackPanel>summary');
-      const treatment=page.locator('#critReadbackTreatment'),options=await treatment.locator('option').evaluateAll(es=>es.map(e=>({v:e.value,t:e.textContent})));
-      const opioid=options.find(o=>/FentaNYL/.test(o.t));assert.ok(opioid);
-      await treatment.selectOption(opioid.v);await settle();
-      assert.match(await page.locator('#critReadbackSelected').innerText(),/Draw volume/);
-      assert.match(await page.locator('#critReadbackSelected').innerText(),/Conditions/);
-      assert.match(await page.locator('#critReadbackSelected').innerText(),/Contraindications/);
-      await page.locator('#critReadbackFindings').fill('Observed pain; vitals recorded separately. <script>not executed</script>');
-      await page.evaluate(()=>selectCriticalPath('psed'));await settle();
-      await click('#critReadbackPanel>summary');
-      assert.equal(await page.locator('#critReadbackFindings').inputValue(),'Observed pain; vitals recorded separately. <script>not executed</script>');
-      const routeOptions=await page.locator('#critReadbackTreatment option').allTextContents();
-      assert.ok(routeOptions.some(t=>/FentaNYL IV\/IO\/CVAD\/IN/.test(t)));
-      assert.ok(routeOptions.some(t=>/Midazolam IV\/IO\/CVAD\/IN/.test(t)),'Combined card offers each medication / route separately');
+      await click('#critChange');
+      assert.deepEqual(await page.locator('#critPicker .crit-subpaths button').evaluateAll(es=>es.map(e=>e.dataset.path)),['pain','combative','psed'],'Pain / Sedation retains the sole Procedural Sedation entry');
+      await page.keyboard.press('Escape');await settle();
+      await noReadback();
+      const opioid=page.locator('#crit-treatment .row').filter({hasText:'FentaNYL IV/IN'});
+      assert.match(await opioid.innerText(),/Draw volume/);assert.match(await opioid.innerText(),/Conditions/);assert.match(await opioid.innerText(),/Contraindications/);
+      await page.evaluate(()=>selectCriticalPath('psed'));await settle();await noReadback();
+      const sedation=await page.locator('#crit-treatment').innerText();
+      assert.match(sedation,/FentaNYL IV\/IO\/CVAD\/IN/);assert.match(sedation,/Midazolam IV\/IO\/CVAD\/IN/,'Original procedural sedation card retains both medication/route lines');
+      await click('#critChange');await click('#critPicker [onclick="showCriticalPicker(\'all\')"]');await click('#critPicker [onclick="selectCriticalGroup(\'airbreath\')"]');
+      await click('#critChange');
+      assert.deepEqual(await page.locator('#critPicker .crit-subpaths button').evaluateAll(es=>es.map(e=>e.dataset.path)),['bronch','allergy','croup'],'Respiratory related chooser has no duplicate Procedural Sedation');
+      await page.keyboard.press('Escape');await settle();
       await page.evaluate(()=>{switchPane('calc');S.ageVal=2;S.wtVal=14;recompute();switchPane('critical');selectCriticalPath('croup');});await settle();
-      await click('#critReadbackPanel>summary');
-      const dex=await page.locator('#critReadbackTreatment option').evaluateAll(es=>es.find(e=>e.textContent.includes('Dexamethasone')).value);
-      await page.locator('#critReadbackTreatment').selectOption(dex);
-      assert.match(await page.locator('#critReadbackSelected').innerText(),/7 mg/);assert.match(await page.locator('#critReadbackSelected').innerText(),/0.7 mL/);
+      await noReadback();
+      const dex=page.locator('#crit-treatment .row').filter({hasText:'Dexamethasone PO — croup'});
+      assert.match(await dex.innerText(),/7 mg/);assert.match(await dex.innerText(),/0.7 mL/,'Draw amount remains on the original medication card');
       await page.evaluate(()=>{switchPane('calc');S.wtVal=10;recompute();switchPane('critical');});
-      assert.equal(await page.locator('#critReadbackTreatment').inputValue(),'','Patient edits clear selected reference');
+      assert.match(await dex.innerText(),/5 mg/);assert.match(await dex.innerText(),/0.5 mL/,'Original card recalculates after patient edits');
       await page.evaluate(()=>{switchPane('calc');S.ageVal=10;S.wtVal=30;recompute();switchPane('critical');selectCriticalPath('brady');});
-      await click('#critReadbackPanel>summary');
-      assert.equal(await page.locator('#critReadbackTreatment option').count(),1,'No pediatric Brady standing drug reference');
-      await page.evaluate(()=>selectCriticalPath('tachy'));await click('#critReadbackPanel>summary');
-      assert.match(await page.locator('#critReadbackPanel').innerText(),/MANDATORY BHP PATCH/);
-      assert.match(await page.locator('#critReadbackPanel').innerText(),/Chart-reference basis — not an exact patient calculation/);
-      assert.ok(!(await page.locator('#critReadbackPanel').innerText()).includes('MANDATORY ×2'),'No adult Tachy patch instruction in pediatric read-back');
-      const adeno=await page.locator('#critReadbackTreatment option').evaluateAll(es=>es.find(e=>e.textContent.includes('Adenosine')&&e.textContent.includes('1st')).value);
-      await page.locator('#critReadbackTreatment').selectOption(adeno);
-      await click('#critReadbackSelected .card-details summary');
-      assert.match(await page.locator('#critReadbackSelected').innerText(),/PDC p\.\d+ \(PDF \d+\)/);
+      await noReadback();assert.equal(await page.locator('#crit-treatment .row').count(),0,'No pediatric Brady standing drug dose');
+      assert.match(await page.locator('#critContent>.crit-alert.patch').innerText(),/Adult targets and standing treatment doses are suppressed/);
+      await page.evaluate(()=>selectCriticalPath('tachy'));await settle();await noReadback();
+      const tachyWarning=page.locator('#critContent>.crit-alert.patch');
+      assert.equal(await tachyWarning.isVisible(),true,'Pediatric patch requirement remains visible without the retired panel');
+      assert.match(await tachyWarning.innerText(),/MANDATORY BHP PATCH — PEDIATRIC TACHYDYSRHYTHMIA/);
+      assert.match(await tachyWarning.innerText(),/patch-reference data only; treatment requires a BHP order/);
+      assert.ok(!(await tachyWarning.innerText()).includes('MANDATORY ×2'),'No adult Tachy patch instruction in pediatric warning');
+      assert.match(await tachyWarning.innerText(),/PDC v5\.4 p\.\d+ \(PDF \d+\)/,'Pediatric chart source remains available');
+      assert.match(await page.locator('#crit-treatment').innerText(),/Adenosine IV fast push — pediatric patch reference/);
+      assert.match(await page.locator('#crit-treatment').innerText(),/Amiodarone IV — pediatric patch reference/);
+      assert.match(await page.locator('#crit-electrical').innerText(),/Synchronized cardioversion — pediatric patch reference/);
       await page.evaluate(()=>{switchPane('calc');S.ageVal=1;S.wtVal=10;recompute();selectCase('rosc');});
       assert.equal(await page.locator('#results .rosc-age-review').count(),1,'Older fluid-age mismatch flagged in Calculator');
       await page.evaluate(()=>{switchPane('critical');selectCriticalPath('rosc');});
       assert.equal(await page.locator('#critContent>.rosc-age-review').count(),1,'Same source-review flag in Critical');
-      await click('#critReadbackPanel>summary');
-      assert.ok((await page.locator('#critReadbackTreatment option').allTextContents()).every(t=>!t.includes('age <2')&&!t.includes('age <8')),'No age-status placeholders offered as drugs');
+      await noReadback();
+      // Every pathway retains exactly its original visible treatment cards and
+      // airway/electrical sections across adult, pediatric and unknown-age data.
+      const paths=await page.evaluate(()=>CRIT_PATHS.map(path=>path.id));
+      for(const patient of [{age:28,weight:80},{age:10,weight:30},{age:2,weight:14},{age:null,weight:20}]){
+        await page.evaluate(({age,weight})=>{S.ageVal=age;S.wtVal=weight;recompute();},patient);
+        for(const id of paths){
+          const expected=await page.evaluate(id=>{selectCriticalPath(id);const rows=critRowsForPath(S.pt,id);return{treatment:rows.rows.length,electrical:rows.electrical.length};},id);
+          await noReadback();
+          assert.equal(await page.locator('#crit-treatment .row').count(),expected.treatment,`${id}: no treatment cards removed or duplicated`);
+          assert.equal(await page.locator('#crit-electrical .row').count(),expected.electrical,`${id}: electrical references retained`);
+          assert.equal(await page.locator('#crit-airway').count(),1,`${id}: airway equipment retained`);
+          if(!expected.treatment)assert.match(await page.locator('#crit-treatment').innerText(),/No treatment calculation available/);
+        }
+      }
       await page.evaluate(()=>{newPatient();switchPane('critical');selectCriticalPath('pain');});
-      assert.equal(await page.evaluate(()=>criticalReadback.findings),'');assert.deepEqual(await page.evaluate(()=>Object.keys(criticalReadback.selection)),[]);
+      await noReadback();assert.equal(await page.locator('#crit-treatment .row').count(),0,'New patient retains no stale treatment result');
       for(const size of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:844,height:390}])for(const large of [false,true])for(const daylight of [false,true]){
         await page.setViewportSize(size);await page.evaluate(({large,daylight})=>{S.ageVal=28;S.wtVal=80;recompute();document.body.classList.toggle('large-text',large);document.body.classList.toggle('daylight',daylight);selectCriticalPath('brady');document.getElementById('critical').scrollTop=800;},{large,daylight});await settle();
         await click('#critChange');
@@ -87,17 +103,12 @@ const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'te
         assert.ok(all.bottom<=size.height+1&&!all.overflow,'All-category chooser fits viewport');
         if(shots&&daylight===false&&size.width===390&&!large)await page.screenshot({path:path.join(shots,`${engine}-critical-chooser.png`)});
         await page.keyboard.press('Escape');await page.evaluate(()=>{document.getElementById('critical').scrollTop=0;});await settle();
-        await click('#critReadbackPanel>summary');
-        await page.locator('#critReadbackTreatment').scrollIntoViewIfNeeded();
-        const pick=await page.locator('#critReadbackTreatment option').nth(1).getAttribute('value');if(pick)await page.locator('#critReadbackTreatment').selectOption(pick);await settle();
-        // WebKit defers native-form scroll extents until a compositor paint.
-        // Capture the actual rendered page before measuring; do not hide overflow.
-        await page.screenshot(shots?{path:path.join(shots,`${engine}-${size.width}-readback-${large?'large':'normal'}-${daylight?'day':'dark'}.png`)}:{});
-        assert.equal(await page.locator('#critReadbackPanel').evaluate(e=>e.scrollWidth>e.clientWidth+1),false,JSON.stringify({size,large,daylight,bad:await page.locator('#critReadbackPanel').evaluate(e=>[e,...e.querySelectorAll('*')].filter(x=>x.scrollWidth>x.clientWidth+1||x.getBoundingClientRect().right>e.getBoundingClientRect().right+1).map(x=>({tag:x.tagName,id:x.id,cls:x.className,text:x.textContent.slice(0,65),sw:x.scrollWidth,cw:x.clientWidth,rect:x.getBoundingClientRect().width})).slice(0,15))}));
-        if(shots&&size.width===390&&!large)await page.screenshot({path:path.join(shots,`${engine}-readback-${daylight?'day':'dark'}.png`)});
-        await page.evaluate(()=>{criticalReadback.open.brady=false;renderCritGrid();});
+        await noReadback();
+        assert.equal(await page.locator('#critical').evaluate(e=>e.scrollWidth>e.clientWidth+1),false,'Uncluttered Critical content fits phone/landscape width');
+        assert.ok(await page.locator('#crit-treatment .row').count()>0,'Brady treatment cards remain available in every display mode');
+        if(shots&&size.width===390&&!large)await page.screenshot({path:path.join(shots,`${engine}-critical-${daylight?'day':'dark'}.png`)});
       }
-      assert.deepEqual(errors,[]);console.log(`PASS ${engine}: related/all chooser, preserved scroll, BHP read-back, age/chart distinction, resets and phone layout`);
+      assert.deepEqual(errors,[]);console.log(`PASS ${engine}: related/all chooser, preserved scroll/focus, read-back absence across all pathways, retained treatment and pediatric patch references, resets and phone layout`);
     }finally{await browser.close();}
   }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
