@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Directive readability — 2026-10-28, build 2026.10.28.1
+
+Reorganized each opened directive into indication, clearly separated conditions/contraindications, visible patch instructions before treatment, individual unordered treatment items, visible clinical notes/cautions, then compact source links. Titles no longer compete horizontally with category/page metadata and have an expand/collapse chevron with an accessible control target. Notes remain visible because the Companion summaries include essential operational cautions. Known source-review warnings remain immediately beside their affected notes. No clinical strings, treatment order, dose formulas or source-page mappings changed. Phone and Large-text layouts use one safety column; wider standard-text layouts use two.
+
+Validated all 34 directives in Chromium and WebKit at 320/390/430/844 px, both themes and text sizes: clinical text preservation, visible safety content, separated treatment rows, source targets, keyboard disclosure, touch controls and search state. Representative phone screenshots were visually inspected. Existing source-navigation, Critical directive-link and visual-navigation regressions passed; the service-worker migration/update/offline regression passed in Chromium. These are automated browser checks, not a physical-iPhone or clinical validation.
+
 ## Critical simplification — 2026-10-08, build 2026.10.08.2
 
 Removed the encounter-only BHP read-back panel at the user's request to reduce high-acuity workload and visual clutter. This also removes its temporary notes and treatment-reference selector; patch requirements remain on the existing treatment cards and pediatric consultation notices. Removed the duplicate Procedural Sedation button from Airway / Respiratory, keeping it in Pain / Sedation. Dose formulas, source data, airway equipment and other encounter improvements are unchanged.

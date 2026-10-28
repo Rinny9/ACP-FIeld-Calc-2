@@ -188,20 +188,35 @@ body:not(.reference-view) #results .kv .s{display:none}
 .dirgroup{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:var(--dim);margin:14px 4px 9px;display:flex;align-items:center;gap:8px}
 .dirgroup::after{content:'';flex:1;height:1px;background:var(--border)}
 .dcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:11px;overflow:hidden}
-.dhead{width:100%;min-height:52px;text-align:left;padding:14px 15px;display:flex;align-items:center;gap:10px}
-.dhead h3{font-size:15.5px;font-weight:750;flex:1}
-.dhead .pg{font-size:11.5px;color:var(--dim);font-weight:700;flex:none}
+.dhead{width:100%;min-height:60px;text-align:left;padding:14px 15px;display:grid;grid-template-columns:minmax(0,1fr) 24px;align-items:center;gap:12px}
+.dhead-title{min-width:0}.dhead h3{font-size:calc(16px * var(--clinical-scale,1));font-weight:800;line-height:1.4;overflow-wrap:anywhere;word-break:normal}
+.dhead-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:5px}
+.dhead .pg{font-size:12px;color:var(--mut);font-weight:650}
+.dchevron{width:22px;height:22px;color:var(--mut);transition:transform .15s}.dcard.open .dchevron{transform:rotate(180deg)}
 .dtag{font-size:10px;font-weight:800;padding:2.5px 7px;border-radius:6px;letter-spacing:.4px;flex:none}
 .dtag.core{background:var(--blue-dim);color:#7FA3FF}
 .dtag.aux{background:var(--amber-dim);color:var(--amber)}
-.dbody{display:none;padding:0 15px 15px;border-top:1px solid var(--border)}
+.dbody{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
 .dcard.open .dbody{display:block}
-.dsec{margin-top:13px}
-.dsec h4{font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.dsec{margin-top:16px;min-width:0}
+.dsec h4{font-size:calc(14px * var(--clinical-scale,1));line-height:1.4;font-weight:800;margin-bottom:8px}
 .dsec h4.ind{color:var(--green)} .dsec h4.con{color:var(--teal)} .dsec h4.contra{color:var(--red)} .dsec h4.tx{color:#7FA3FF} .dsec h4.pp{color:var(--purple)} .dsec h4.cc{color:var(--mut)}
-.dsec p, .dsec li{font-size:13.5px;line-height:1.55;color:#C6D0E4}
-.dsec ul{padding-left:18px}
-.dsec .patchbox{background:var(--purple-dim);border:1px solid #4A3F79;border-radius:10px;padding:10px 12px;color:#D6C9FF;font-size:13px;line-height:1.5;font-weight:600}
+.dsec p,.dsec li{font-size:15px;line-height:1.65;color:var(--text);overflow-wrap:anywhere;word-break:normal}
+.dsec ul{padding-left:19px}.dsec li+li{margin-top:7px}
+.dir-safety{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:16px}
+.dir-safety .dsec{margin:0;padding:11px 12px;border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:9px;background:var(--surface)}
+.dir-safety .dir-contra{border-left-color:var(--red)}
+.dsec .patchbox{background:var(--purple-dim);border:1px solid var(--border2);border-left:3px solid var(--purple);border-radius:9px;padding:11px 12px;color:#D6C9FF;font-size:calc(15px * var(--clinical-scale,1));line-height:1.65;font-weight:650}
+.dir-treatment{border-top:1px solid var(--border);padding-top:16px}
+.dir-treatment-list{list-style:none;display:grid;gap:9px;padding:0!important}
+.dir-treatment-list>li{margin:0!important;padding:12px;border:1px solid var(--border);border-radius:9px;background:var(--surface)}
+.dir-treatment .hld,.dir-treatment .hlr{white-space:normal;word-break:normal;overflow-wrap:normal}
+.dir-notes{padding-top:14px;border-top:1px solid var(--border)}
+.dir-review{margin-bottom:10px}.dir-review .warnbanner{margin-bottom:0}
+.dir-source{margin-top:16px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;line-height:1.5;color:var(--mut)}
+.dir-source .rlink{display:inline-flex;align-items:center;min-height:44px;padding:5px 0;max-width:100%;white-space:normal}
+@media(min-width:680px){.dir-safety{grid-template-columns:repeat(2,minmax(0,1fr))}}
+body.large-text .dir-safety{grid-template-columns:minmax(0,1fr)}
 
 /* ---------- tools ---------- */
 .toolgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -471,7 +486,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.08.2</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.28.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -555,7 +570,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.08.2</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.28.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -570,7 +585,7 @@ body.critical-open .update-notice{display:none}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.08.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.28.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1964,21 +1979,21 @@ const REFERENCE_REVIEW={
   hypogly:'Reference review needed: the older D50-to-D10 preparation example below was not found in current CD p.40–41. PCS p.148 permits dilution but does not give that recipe. Verify preparation against approved local guidance before use.'
 };
 function dirCardHTML(d,searching=false){
-  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x)}</li>`).join('')}</ul>`:'';
-  const listT=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x,s=>hlTx(esc(s)))}</li>`).join('')}</ul>`:'';
+  const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x,s=>esc(s).replaceAll('/','/<wbr>'))}</li>`).join('')}</ul>`:'';
+  const listT=a=>a&&a.length?`<ul class="dir-treatment-list">${a.map(x=>`<li>${referenceHTML(x,s=>hlTx(esc(s)))}</li>`).join('')}</ul>`:'';
   const open=searching||!!directiveOpen[d.id];
   return `<div class="dcard${open?' open':''}" data-id="${d.id}">
-    <button class="dhead" aria-expanded="${open}" onclick="toggleDirective(this)">
-      <span class="dtag ${d.tag}">${d.tag==='core'?'ACP CORE':'AUXILIARY'}</span><h3>${esc(d.n)}</h3><span class="pg num">${esc(d.pg)}</span>
+    <button class="dhead" type="button" aria-expanded="${open}" aria-controls="directive-${d.id}" onclick="toggleDirective(this)">
+      <span class="dhead-title"><h3>${esc(d.n)}</h3><span class="dhead-meta"><span class="dtag ${d.tag}">${d.tag==='core'?'ACP CORE':'AUXILIARY'}</span><span class="pg num">${esc(d.pg)}</span></span></span>
+      <svg class="dchevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <div class="dbody">
-      <div class="dsec"><h4>Source pages</h4>${srcLink('PCS '+d.pg)}</div>
-      <div class="dsec"><h4 class="ind">Indications</h4><p>${esc(d.ind)}</p></div>
-      <div class="dsec"><h4 class="con">Conditions</h4>${list(d.cond)}</div>
-      <div class="dsec"><h4 class="contra">Contraindications</h4>${list(d.contra)}</div>
-      <div class="dsec"><h4 class="tx">Treatment</h4>${listT(d.tx)}</div>
+    <div class="dbody" id="directive-${d.id}">
+      <div class="dsec dir-indication"><h4 class="ind">Indication</h4><p>${esc(d.ind)}</p></div>
+      <div class="dir-safety"><div class="dsec dir-conditions"><h4 class="con">Conditions</h4>${list(d.cond)}</div><div class="dsec dir-contra"><h4 class="contra">Contraindications</h4>${list(d.contra)}</div></div>
       ${d.patch?`<div class="dsec"><h4 class="pp">Patch point</h4><div class="patchbox">☎ ${esc(d.patch)}</div></div>`:''}
-      ${d.cc?`<div class="dsec"><h4 class="cc">Companion notes</h4>${REFERENCE_REVIEW[d.id]?`<div class="warnbanner red">${referenceHTML(REFERENCE_REVIEW[d.id])}</div>`:''}<p>${referenceHTML(d.cc)}</p></div>`:''}
+      <div class="dsec dir-treatment"><h4 class="tx">Treatment</h4>${listT(d.tx)}</div>
+      ${d.cc?`<div class="dsec dir-notes"><h4 class="cc">Clinical notes &amp; cautions</h4>${REFERENCE_REVIEW[d.id]?`<div class="dir-review"><div class="warnbanner red">${referenceHTML(REFERENCE_REVIEW[d.id])}</div></div>`:''}<p>${referenceHTML(d.cc)}</p></div>`:''}
+      <div class="dir-source"><span>Source</span>${srcLink('PCS '+d.pg)}</div>
     </div></div>`;
 }
 window.toggleDirective=btn=>{const card=btn.parentElement;card.classList.toggle('open');const open=card.classList.contains('open');if(!$('dirSearch').value.trim())directiveOpen[card.dataset.id]=open;btn.setAttribute('aria-expanded',String(open));};
@@ -2866,7 +2881,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.10.08.2';
+const APP_BUILD='2026.10.28.1';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;

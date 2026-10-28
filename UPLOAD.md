@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.10.28.1 reorganizes the Directives tab without changing clinical content. Directive titles have their own line and an explicit expand/collapse chevron. Open cards use readable section headings, separate conditions/contraindications panels, patch instructions before treatment, distinct unordered treatment rows, always-visible clinical notes/cautions, and a compact source-link footer. Existing source-review warnings remain visible beside the affected notes. Phone layouts stack the safety panels; Large text stays single-column. Search/open-state behavior, Critical destinations, source-page mappings, clinical strings, doses and calculations are unchanged.
+
 Build 2026.10.08.2 removes the BHP read-back panel from every Critical pathway, including its selection controls, notes, encounter state and styling. It also removes the duplicate Procedural Sedation subcategory from Airway / Respiratory; Procedural Sedation remains in Pain / Sedation. Existing treatment cards, patch requirements, pediatric consultation references, airway equipment, ROSC checklist and compact directive chooser remain unchanged. The app/offline build is advanced so installed users can receive this update safely.
 
 Build 2026.10.08.1 implements the encounter-usability recommendations:
