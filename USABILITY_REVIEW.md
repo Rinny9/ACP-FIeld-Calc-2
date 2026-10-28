@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Weight-related treatment readability — 2026-10-28, build 2026.10.28.2
+
+Weight-related Directives treatment rows now have medication headings and labelled full-width fields instead of dense paragraphs. Route/age/weight branches keep their associated doses and maxima together. Complex alternatives, sequential doses, ETT routes, shared limits and abbreviated source notation are retained rather than inferred or expanded. All formatting is explicit and source-locked: the display fragments must reconstruct the original treatment text exactly, otherwise the original unstructured text is shown. This is a reading aid, not an administration log or a new calculation. Existing clinical data, safety content, patch requirements and source mappings are unchanged.
+
+Validated all 37 weight-related entries and the full set of 34 directives in Chromium and WebKit across 320/390/430/844 px, both themes and text sizes. Checks include exact rendered clinical text, route/group/max associations, fallback on changed or unknown text, intact number/unit and maximum highlights, visible safety content, no narrow dose columns, and no patient/clinical-state mutation. Representative treatment screenshots were visually inspected. Existing reference navigation, visual navigation, clinical-data comparison and offline-update/migration checks also passed. These remain automated browser checks, not a physical-iPhone or clinical validation.
+
 ## Directive readability — 2026-10-28, build 2026.10.28.1
 
 Reorganized each opened directive into indication, clearly separated conditions/contraindications, visible patch instructions before treatment, individual unordered treatment items, visible clinical notes/cautions, then compact source links. Titles no longer compete horizontally with category/page metadata and have an expand/collapse chevron with an accessible control target. Notes remain visible because the Companion summaries include essential operational cautions. Known source-review warnings remain immediately beside their affected notes. No clinical strings, treatment order, dose formulas or source-page mappings changed. Phone and Large-text layouts use one safety column; wider standard-text layouts use two.

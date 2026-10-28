@@ -26,7 +26,10 @@ function inspectContents(){
     if(plain(card,'.dhead h3')!==norm(d.n))fail('directive name changed');
     if(plain(card,'.dir-indication p')!==norm(d.ind))fail('indication changed');
     for(const [key,selector]of [['cond','.dir-conditions li'],['contra','.dir-contra li'],['tx','.dir-treatment-list>li']]){
-      const actual=[...card.querySelectorAll(selector)].map(el=>norm(el.textContent)),expected=(d[key]||[]).map(referenced);
+      const actual=[...card.querySelectorAll(selector)].map(el=>{
+        const fragments=key==='tx'?[...el.querySelectorAll('.dir-tx-source[data-tx-source]')]:[];
+        return norm(fragments.length?fragments.map(fragment=>fragment.textContent).join(''):el.textContent);
+      }),expected=(d[key]||[]).map(referenced);
       if(JSON.stringify(actual)!==JSON.stringify(expected))fail(key+' text/order changed: '+JSON.stringify({actual,expected}));
     }
     if(d.patch&&plain(card,'.patchbox').replace(/^☎\s*/,'')!==norm(d.patch))fail('patch requirement changed');

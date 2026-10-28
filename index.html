@@ -211,6 +211,12 @@ body:not(.reference-view) #results .kv .s{display:none}
 .dir-treatment-list{list-style:none;display:grid;gap:9px;padding:0!important}
 .dir-treatment-list>li{margin:0!important;padding:12px;border:1px solid var(--border);border-radius:9px;background:var(--surface)}
 .dir-treatment .hld,.dir-treatment .hlr{white-space:normal;word-break:normal;overflow-wrap:normal}
+.dir-tx-structured{display:grid;gap:8px;min-width:0}
+.dir-tx-title{display:block;font-size:calc(16px * var(--clinical-scale,1));line-height:1.45;font-weight:800;color:var(--text);overflow-wrap:anywhere}
+.dir-tx-field{min-width:0;padding-top:8px;border-top:1px solid var(--border)}
+.dir-tx-label{display:block;margin-bottom:4px;font-size:calc(13px * var(--clinical-scale,1));font-weight:750;line-height:1.4;color:var(--mut)}
+.dir-tx-value{display:block;font-size:inherit;line-height:1.65;color:var(--text);overflow-wrap:anywhere;word-break:normal}
+.dir-tx-value .hld,.dir-tx-value .hlr,.dir-tx-title .hld,.dir-tx-title .hlr{display:inline-block;white-space:nowrap;overflow-wrap:normal;word-break:normal;vertical-align:baseline}
 .dir-notes{padding-top:14px;border-top:1px solid var(--border)}
 .dir-review{margin-bottom:10px}.dir-review .warnbanner{margin-bottom:0}
 .dir-source{margin-top:16px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;line-height:1.5;color:var(--mut)}
@@ -486,7 +492,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.28.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.10.28.2</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -570,7 +576,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.28.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.10.28.2</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -585,7 +591,7 @@ body.critical-open .update-notice{display:none}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.28.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.10.28.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -1973,6 +1979,190 @@ window.toggleSec=(id,btn)=>{const el=btn.parentElement;el.classList.toggle('open
 // ============ DIRECTIVES TAB ============
 const HL_RE=/((?:max|cum(?:ulative)?)(?:\s(?:single|total|cumulative|cum))?\s\d[\d,.]*(?:\s?\/\s?\d[\d,.]*)?(?:\s?(?:mg\/kg|mcg\/kg|mL\/kg|mg|mcg|g|mL|units?|J|puffs?|doses?|sprays?|shocks?))?(?![\w])|q\s?\d+(?:[\u2013\u2192-]\d+)?(?:\s?\/\s?\d[\d,.]*)?(?:\s?(?:min|h|s))?(?![\w])|\u00d7\s?\d+|(?:[\u2264\u2265<>~]\s?)?\d[\d,.]*(?:\s?[\u2013\u2192-]\s?\d[\d,.]*)?\s?(?:mcg\/kg\/min|mg\/kg\/min|mcg\/kg|mg\/kg|mL\/kg|g\/kg|J\/kg|mmol\/L|breaths\/min|mL\/hr|gtt\/min|cmH\u2082O|mcg|mg|g|mL|units?|J|puffs?|sprays?|Fr)(?![\w\/]))/g;
 function hlTx(s){return s.replace(HL_RE,m=>`<b class="${/^(?:max|cum|q\s?\d|\u00d7)/.test(m)?'hlr':'hld'}">${m}</b>`);}
+// Display-only slices of existing treatment strings. Never derive a dose, infer
+// omitted units, expand slash notation, or relocate a route/group-specific cap.
+// The title and every part must reconstruct the complete source string exactly;
+// an edited/new source row falls back to the original prose renderer.
+const DIRECTIVE_TREATMENT_LAYOUT={
+  'oti|0':{title:'Topical lidocaine ',parts:[
+    ['Dose / route','10 mg/spray'],
+    ['Maximum',' · max 5 mg/kg · max 20 sprays (hypopharynx)']
+  ]},
+  'bronch|0':{title:'Salbutamol ',parts:[
+    ['Weight group','<25 kg: MDI ≤600 mcg (6 puffs) or NEB 2.5 mg'],
+    ['Weight group',' · ≥25 kg: MDI ≤800 mcg (8 puffs) or NEB 5 mg'],
+    ['Repeat / limit',' · q5–15 min PRN · max 3']
+  ]},
+  'bronch|1':{title:'EPINEPHrine ',parts:[
+    ['Dose / route','IM 0.01 mg/kg (max 0.5 mg) 1:1,000'],
+    ['Repeat / limit',' · ×1'],
+    ['Administration',' · round to 0.05 mg']
+  ]},
+  'bronch|2':{title:'Dexamethasone ',parts:[
+    ['Dose / route','0.5 mg/kg PO/IM/IV · max 8 mg'],
+    ['Repeat / limit',' · ×1']
+  ]},
+  'allergy|0':{title:'EPINEPHrine ',parts:[
+    ['Dose / route','IM 0.01 mg/kg (max 0.5) 1:1,000'],
+    ['Repeat / limit',' · min q5 min · max 2']
+  ]},
+  'allergy|1':{title:'DiphenhydrAMINE IV/IM: ',parts:[
+    ['Weight group','25 mg (25–<50 kg)'],
+    ['Weight group',' / 50 mg (≥50 kg)'],
+    ['Repeat / limit',' · ×1']
+  ]},
+  'croup|0':{title:'EPINEPHrine NEB 1:1,000 — ',parts:[
+    ['Weight group','<10 kg: 2.5 mg'],
+    ['Weight group',' · ≥10 kg: 5 mg'],
+    ['Repeat / limit',' · ×1']
+  ]},
+  'croup|1':{title:'Dexamethasone ',parts:[
+    ['Dose / route','0.5 mg/kg PO · max 8 mg'],
+    ['Repeat / limit',' · ×1']
+  ]},
+  'arrest|0':{title:'Defib ',parts:[
+    ['Age group','<8 y: 2 J/kg → 4 J/kg q2 min'],
+    ['Age group',' · ≥8 y: per RBHP/manufacturer']
+  ]},
+  'arrest|1':{title:'Epi ',parts:[
+    ['Age group','<12 y: 0.01 mg/kg 1:10,000 (0.1 mL/kg, min 0.05 mg)'],
+    ['Age group',' · ≥12 y: 1 mg'],
+    ['Repeat / limit',' · q4 min'],
+    ['Dose / route',' · ETT: 0.1 mg/kg max 2 mg (<12 y) / 2 mg (≥12 y)']
+  ]},
+  'arrest|2':{title:'Amiodarone ',parts:[
+    ['Age group','<12 y: 5 mg/kg (max 300) → 5 mg/kg (max 150)'],
+    ['Age group',' · ≥12 y: 300 → 150'],
+    ['Repeat / limit',' · q4 min · max 2']
+  ]},
+  'arrest|3':{title:'Lidocaine ',parts:[
+    ['Age group','<12 y: 1 mg/kg (ETT 2) ×2'],
+    ['Age group',' · ≥12 y: 1.5 → 0.75 mg/kg (ETT 3/1.5)'],
+    ['Repeat / limit',' · q4 min · max 2']
+  ]},
+  'arrest|4':{title:'Fluid ',parts:[
+    ['Dose / route','20 mL/kg'],
+    ['Reassessment / maximum',' · reassess q100/250 mL · max 2,000']
+  ]},
+  'arrest|5':{title:'Anaphylactic arrest: ',parts:[
+    ['Dose / route','single IM epi 0.01 mg/kg (max 0.5) 1:1,000']
+  ]},
+  'trauma|0':{title:'CPR ',parts:[
+    ['Repeat / limit','q2 min'],
+    ['Dose / route',' · defib ×1 if VF/pVT (peds 2 J/kg / adult RBHP)']
+  ]},
+  'nrp|1':{title:'Epi 1:10,000 ',parts:[
+    ['Dose / route','IV/IO 0.01 mg/kg (0.1 mL/kg) q4 min'],
+    ['Minimum dose',' · min 0.05 mg (0.5 mL)']
+  ]},
+  'nrp|2':{title:'Epi ETT ',parts:[
+    ['Dose / route','0.1 mg/kg (1.0 mL/kg) · max 0.3 mg (3 mL)'],
+    ['Administration',' · single dose, then IV/IO']
+  ]},
+  'rosc|1':{title:'Fluid ',parts:[
+    ['Dose / route','10 mL/kg'],
+    ['Reassessment / maximum',' · reassess q100/250 · max 1,000 mL']
+  ]},
+  'rosc|2':{title:'DOPamine ',parts:[
+    ['Infusion rate / titration','5 mcg/kg/min → +5 q5 min → max 20'],
+    ['Administration',' · target SBP ≥90–<110 · wean over 5–10 min']
+  ]},
+  'cshock|0':{title:'Fluid ',parts:[
+    ['Dose / route','10 mL/kg'],
+    ['Reassessment / maximum',' · reassess q250 · max 1,000 (chest clear)']
+  ]},
+  'cshock|1':{title:'Crackles → skip to DOPamine ',parts:[
+    ['Infusion rate','5→20 mcg/kg/min'],
+    ['Administration',' · target SBP ≥90–<110']
+  ]},
+  'brady|3':{title:'DOPamine ',parts:[
+    ['Infusion rate','5→20 mcg/kg/min'],
+    ['Administration',' · target SBP ≥90–<110']
+  ]},
+  'tachy|2':{title:'Amiodarone ',parts:[
+    ['Dose / route','150 mg IV over 10 min q10 · max 2'],
+    ['Alternative / OR branch',' OR lidocaine 1.5 → 0.75 mg/kg (max single 150) q10 · max 3']
+  ]},
+  'ivft|1':{title:'Bolus ',parts:[
+    ['Dose / route','20 mL/kg'],
+    ['Administration',' · reassess q100 mL (<12 y) / q250 mL (≥12 y)'],
+    ['Repeat / limit',' · max 2,000 mL']
+  ]},
+  'hypogly|0':{title:'D10W ',parts:[
+    ['Dose / route','0.2 g/kg (2 mL/kg)'],
+    ['Maximum by age',' — max <2 y: 5 g (50 mL) · ≥2 y: 25 g (250 mL)'],
+    ['Repeat / limit',' · q10 min · max 2']
+  ]},
+  'hypogly|1':{title:'OR D50W (≥2 y) ',parts:[
+    ['Dose / route','0.5 g/kg (1 mL/kg) · max 25 g (50 mL)']
+  ]},
+  'hypogly|2':{title:'Glucagon IM ',parts:[
+    ['Weight group','<25 kg: 0.5 mg'],
+    ['Weight group',' · ≥25 kg: 1 mg'],
+    ['Repeat / limit',' · q20 min · max 2'],
+    ['Dose / route',' · IN 3 mg if authorized']
+  ]},
+  'seizure|0':{title:'Midazolam ',parts:[
+    ['Dose / route','IV/IO 0.1 mg/kg · max 5 mg'],
+    ['Dose / route',' — IM/IN/buccal 0.2 mg/kg · max 10 mg'],
+    ['Repeat / limit',' · q5 min · max 2']
+  ]},
+  'adrenal|0':{title:'Hydrocortisone ',parts:[
+    ['Dose / route','2 mg/kg · max 100 mg · IM/IV/IO/CVAD'],
+    ['Repeat / limit',' · ×1'],
+    ['Administration',' · round to nearest 10 mg']
+  ]},
+  'analgesia|2':{title:'FentaNYL IV/IN ',parts:[
+    ['Age group','1–17 y: ≤1 mcg/kg (max 75)'],
+    ['Age group',' · ≥18: 25–75 mcg'],
+    ['Repeat / limit',' · q5 · cum 200 mcg']
+  ]},
+  'analgesia|3':{title:'Morphine IV/SC ',parts:[
+    ['Age group','1–17 y: 0.05–0.1 mg/kg (max 5)'],
+    ['Age group',' · ≥18: 2–10 mg (max 10)'],
+    ['Repeat / limit',' · q15 · cum 10/20 mg']
+  ]},
+  'analgesia|4':{title:'Ketamine ',parts:[
+    ['Dose / route','IV 0.25 mg/kg (max 10 peds/20 adult)'],
+    ['Dose / route',' · IN 1 mg/kg (max 30/75)'],
+    ['Repeat / limit',' · q15 · max 2']
+  ]},
+  'combative|0':{title:'Midazolam ',parts:[
+    ['Dose / route','IV/IM/IN up to 0.1 mg/kg · max single 5 mg'],
+    ['Repeat / limit',' · q5 · max total 10 mg']
+  ]},
+  'combative|1':{title:'Ketamine IM ',parts:[
+    ['Age group','18–<65 y: 5 mg/kg · max 500 mg'],
+    ['Age group',' · ≥65 y: 3 mg/kg · max 300 mg'],
+    ['Repeat / limit',' · ×1']
+  ]},
+  'nausea|1':{title:'DimenhyDRINATE ',parts:[
+    ['Weight group','25–<50 kg: 25 mg ×1'],
+    ['Weight group',' · ≥50 kg: 25–50 mg q30 · max 2 · cum 50 mg']
+  ]},
+  'nti|1':{title:'Lidocaine ',parts:[
+    ['Dose / route','10 mg/spray'],
+    ['Maximum',' · max 5 mg/kg · ≤20 sprays']
+  ]},
+  'psed|1':{title:'Midazolam ',parts:[
+    ['Dose / route','up to 0.1 mg/kg IV/IO/CVAD/IN · max single 5'],
+    ['Repeat / limit',' · q5 · max total 10 mg']
+  ]}
+};
+function directiveTreatmentSourceHTML(text){
+  // Protect number + unit tokens on narrow phones without changing the source
+  // text, the shared highlighter, or the interpretation of abbreviated values.
+  const measurement=/(?:[≤≥<>~]\s?)?\d[\d,.]*(?:\s?[–−-]\s?<?\d[\d,.]*)?\s?(?:cmH₂O|mmHg|mcg|mmol|mEq|mL|mg|kg|Fr|g|L|J|units?|puffs?|sprays?|breaths?|bpm|mo|min|y|s)(?:\/(?:kg|min|mL|hr|h|s|spray|nare))*\b/g;
+  // Highlight the complete text first so "max 5 mg" retains its existing amber
+  // context. Wrap only text segments: comparison prefixes must never consume
+  // a generated tag's closing > delimiter.
+  return referenceHTML(text,source=>hlTx(esc(source)).split(/(<[^>]+>)/g).map(part=>part.startsWith('<')?part:part.replace(measurement,token=>`<span class="dose-amount">${token}</span>`)).join(''));
+}
+function directiveTreatmentHTML(id,index,text){
+  const layout=DIRECTIVE_TREATMENT_LAYOUT[`${id}|${index}`];
+  if(!layout||layout.title+layout.parts.map(part=>part[1]).join('')!==text)return referenceHTML(text,s=>hlTx(esc(s)));
+  return `<div class="dir-tx-structured"><div class="dir-tx-title dir-tx-source" data-tx-source>${directiveTreatmentSourceHTML(layout.title)}</div>${layout.parts.map(([label,value])=>`<div class="dir-tx-field"><div class="dir-tx-label">${esc(label)}</div><div class="dir-tx-value dir-tx-source" data-tx-source>${directiveTreatmentSourceHTML(value)}</div></div>`).join('')}</div>`;
+}
 const REFERENCE_REVIEW={
   tension:'Reference mismatch: the older needle-size summary below is not verified for the current edition. CD p.69 specifies different adult-size catheter length guidance. Do not rely on the older summary; check the current document and local/RBHP equipment guidance.',
   ischemia:'Reference review needed: the older blanket rule below about never restarting a drug after vital signs recover was not confirmed in current CD p.27–28 or PCS p.121–123. Follow the current directive conditions and BHP direction.',
@@ -1980,7 +2170,7 @@ const REFERENCE_REVIEW={
 };
 function dirCardHTML(d,searching=false){
   const list=a=>a&&a.length?`<ul>${a.map(x=>`<li>${referenceHTML(x,s=>esc(s).replaceAll('/','/<wbr>'))}</li>`).join('')}</ul>`:'';
-  const listT=a=>a&&a.length?`<ul class="dir-treatment-list">${a.map(x=>`<li>${referenceHTML(x,s=>hlTx(esc(s)))}</li>`).join('')}</ul>`:'';
+  const listT=a=>a&&a.length?`<ul class="dir-treatment-list">${a.map((x,index)=>`<li>${directiveTreatmentHTML(d.id,index,x)}</li>`).join('')}</ul>`:'';
   const open=searching||!!directiveOpen[d.id];
   return `<div class="dcard${open?' open':''}" data-id="${d.id}">
     <button class="dhead" type="button" aria-expanded="${open}" aria-controls="directive-${d.id}" onclick="toggleDirective(this)">
@@ -2881,7 +3071,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.10.28.1';
+const APP_BUILD='2026.10.28.2';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;

@@ -5,7 +5,7 @@ const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),currentHTML=fs.readFileSync(path.join(root,'index.html'),'utf8'),currentSW=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const currentBuild=currentHTML.match(/const APP_BUILD='([^']+)'/)[1],futureBuild=currentBuild.replace(/\.(\d+)$/,(_,n)=>'.'+(Number(n)+1));
-assert.equal(currentBuild,'2026.10.28.1');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
+assert.equal(currentBuild,'2026.10.28.2');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
 const legacyRef=process.env.LEGACY_REF||'7e896d5';
 const gitFile=file=>execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${legacyRef}:${file}`],{cwd:root,encoding:'utf8'});
 const releases={current:{html:currentHTML,sw:currentSW},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild)},legacy:{html:gitFile('index.html'),sw:gitFile('sw.js')}};
