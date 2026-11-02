@@ -5,14 +5,16 @@ const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),currentHTML=fs.readFileSync(path.join(root,'index.html'),'utf8'),currentSW=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const currentBuild=currentHTML.match(/const APP_BUILD='([^']+)'/)[1],futureBuild=currentBuild.replace(/\.(\d+)$/,(_,n)=>'.'+(Number(n)+1));
-assert.equal(currentBuild,'2026.10.28.2');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
-const legacyRef=process.env.LEGACY_REF||'7e896d5';
+assert.equal(currentBuild,'2026.11.02.1');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
+const legacyRef=process.env.LEGACY_REF||'ca05ef4';
 const gitFile=file=>execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${legacyRef}:${file}`],{cwd:root,encoding:'utf8'});
-const releases={current:{html:currentHTML,sw:currentSW},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild)},legacy:{html:gitFile('index.html'),sw:gitFile('sw.js')}};
+const assetNames=['field-ui.css','field-shell.js','field-home.js'];
+const assets=Object.fromEntries(assetNames.map(name=>[name,fs.readFileSync(path.join(root,name),'utf8')]));
+const releases={current:{html:currentHTML,sw:currentSW,assets},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild),assets:Object.fromEntries(Object.entries(assets).map(([name,body])=>[name,body.replaceAll(currentBuild,futureBuild)]))},legacy:{html:gitFile('index.html'),sw:gitFile('sw.js'),assets:{}}};
 let release='current',delayFutureInstall=0;const requests=[];
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
-  requests.push({pathname,release});
+  requests.push({pathname,url:req.url,release});
   res.setHeader('Cache-Control','no-store');
   if(pathname==='/sw.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(releases[release].sw);return;}
   if(pathname==='/'||pathname==='/index.html'){
@@ -22,9 +24,17 @@ const server=http.createServer((req,res)=>{
   if(pathname==='/manifest.webmanifest'||pathname==='/icon.svg'){
     res.setHeader('Content-Type',pathname.endsWith('.svg')?'image/svg+xml':'application/manifest+json');res.end(fs.readFileSync(path.join(root,pathname.slice(1))));return;
   }
+  if(assetNames.includes(pathname.slice(1))&&releases[release].assets[pathname.slice(1)]!=null){
+    res.setHeader('Content-Type',pathname.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');res.end(releases[release].assets[pathname.slice(1)]);return;
+  }
   res.statusCode=404;res.end('Not found');
 });
 function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,caseId:S.caseId,query:S.query,toolFields,gcsSel,apSel,tbsaAge,tbsaOn,tbsaExtra,critical:critScenario});}
+async function enterPatient(page,age,weight){
+  if(await page.locator('#patientDialog').count()&&!await page.locator('#patientDialog').evaluate(el=>el.open))await page.locator('#fieldEditPatient').click();
+  await page.locator('#ageIn').fill(String(age));await page.locator('#wtIn').fill(String(weight));
+  if(await page.locator('#patientDialog').count()){await page.locator('#patientContinue').click();await page.waitForFunction(()=>!document.getElementById('patientDialog').open);}
+}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url=`http://127.0.0.1:${server.address().port}/`;
   const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
@@ -38,7 +48,7 @@ function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,
     assert.equal(await page.evaluate(()=>APP_BUILD),currentBuild);assert.match(await page.locator('#activeBuild').innerText(),new RegExp(currentBuild.replace(/\./g,'\\.')));
     assert.match(await page.locator('#offlineStatus').innerText(),/ready/i);assert.equal(await page.locator('#updateNotice').isVisible(),false);
     await page.evaluate(async()=>{const cache=await caches.open('unrelated-user-cache');await cache.put('/unrelated-sentinel',new Response('keep this unrelated cache'));});
-    await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');await page.evaluate(()=>openTool('drip',true));
+    await enterPatient(page,28,80);await page.evaluate(()=>openTool('drip',true));
     await page.locator('#dvol').fill('250');await page.locator('#dmin').fill('30');await page.evaluate(()=>closeTool());
     await page.evaluate(()=>{selectCase('brady');selectCriticalPath('brady');switchPane('critical');});
     assert.equal(await page.locator('#critReadbackPanel').count(),0,'Critical no longer includes the redundant read-back panel');
@@ -60,19 +70,21 @@ function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,
     assert.equal(await page.evaluate(async()=>{const cache=await caches.open('unrelated-user-cache');return(await cache.match('/unrelated-sentinel')).text();}),'keep this unrelated cache');
     await context.setOffline(true);await page.reload({waitUntil:'load'});await page.waitForFunction(()=>offlinePackReady,null,{timeout:20000});
     assert.equal(await page.evaluate(()=>APP_BUILD),futureBuild,'Offline reload uses the active updated shell');assert.match(await page.locator('#offlineStatus').innerText(),/Offline\s*ready/i);
-    await page.locator('#ageIn').fill('4');await page.locator('#wtIn').fill('18');await page.locator('#calcSearch').fill('midazolam');
-    const seizure=page.locator('#results .row').filter({hasText:'Midazolam — active seizure'});assert.equal(await seizure.count(),1);assert.match(await seizure.innerText(),/mg/,'Offline cached app still calculates patient-specific medication results');
+    for(const name of assetNames)assert.equal(await page.evaluate(async({name,version})=>!!await caches.match('./'+name+'?v='+version),{name,version:futureBuild}),true,'Updated offline pack includes '+name);
+    assert.equal(await page.locator('#fieldNav').isVisible(),true,'New four-tab shell survives offline reload');
+    await enterPatient(page,4,18);await page.evaluate(()=>FIELD_UI.goHome());await page.locator('#homeSearch').fill('midazolam');
+    await page.locator('#homeDirectory [data-home-directive="seizure"]').click();
+    const seizure=page.locator('#homeDirectiveDetail .home-dose-list .row').filter({hasText:'Midazolam — active seizure'});assert.equal(await seizure.count(),1);assert.match(await seizure.innerText(),/mg/,'Offline cached app still calculates patient-specific medication results');
     await page.locator('#settingsTop').click();await page.locator('#checkUpdate').click();assert.match(await page.locator('#updateStatus').innerText(),/Offline.*connect to check/);assert.deepEqual(errors,[]);
     await context.close();
-    // The previously published worker has no version-message protocol and used
-    // automatic activation. Opening the new hosted HTML should safely align its
-    // matching worker without a second automatic reload or losing new inputs.
+    // Opening the new four-tab shell over the previously published worker must
+    // align its matching worker without a second reload or losing new inputs.
     release='legacy';const legacyContext=await browser.newContext({serviceWorkers:'allow'}),legacyPage=await legacyContext.newPage(),legacyErrors=[];let legacyLoads=0;
     legacyPage.on('framenavigated',f=>{if(f===legacyPage.mainFrame())legacyLoads++;});legacyPage.on('pageerror',e=>legacyErrors.push(e.message));
     await legacyPage.goto(url);await legacyPage.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:20000});
     await legacyPage.evaluate(async()=>{const cache=await caches.open('unrelated-user-cache');await cache.put('/unrelated-sentinel',new Response('legacy sentinel'));});
     release='current';await legacyPage.reload({waitUntil:'load'});const explicitLegacyLoad=legacyLoads;
-    await legacyPage.locator('#ageIn').fill('28');await legacyPage.locator('#wtIn').fill('70');
+    await enterPatient(legacyPage,28,70);
     await legacyPage.waitForFunction(expected=>APP_BUILD===expected&&offlinePackReady,currentBuild,{timeout:20000});
     assert.equal(legacyLoads,explicitLegacyLoad,'Legacy migration does not trigger a second reload');assert.equal(await legacyPage.locator('#wtIn').inputValue(),'70','New encounter survives matching-worker alignment');assert.equal(await legacyPage.evaluate(()=>workerBuild(navigator.serviceWorker.controller)),currentBuild);assert.equal(await legacyPage.locator('#updateNotice').isVisible(),false);
     assert.ok((await legacyPage.evaluate(()=>caches.keys())).includes('unrelated-user-cache'));assert.deepEqual(legacyErrors,[]);await legacyContext.close();
@@ -83,13 +95,14 @@ function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,
     racePage.on('framenavigated',f=>{if(f===racePage.mainFrame())raceLoads++;});
     await racePage.goto(url);await racePage.waitForFunction(()=>offlinePackReady&&!!navigator.serviceWorker.controller,null,{timeout:20000});
     release='future';delayFutureInstall=600;await racePage.reload({waitUntil:'load'});const explicitRaceLoad=raceLoads;
-    await racePage.locator('#ageIn').fill('28');await racePage.locator('#wtIn').fill('65');
+    await enterPatient(racePage,28,65);
     await racePage.waitForFunction(expected=>APP_BUILD===expected&&offlinePackReady,futureBuild,{timeout:20000});
     assert.equal(await racePage.evaluate(()=>workerBuild(navigator.serviceWorker.controller)),futureBuild);assert.equal(raceLoads,explicitRaceLoad);assert.equal(await racePage.locator('#wtIn').inputValue(),'65');
     assert.equal(await racePage.locator('#updateNotice').isVisible(),false,'Matching worker activation clears stale older-controller update notices');
     assert.equal(await racePage.evaluate(()=>availableUpdateBuild),null,'Do not advertise an older build after newer HTML aligns with its worker');
     await raceContext.close();delayFutureInstall=0;
     assert.ok(requests.some(r=>r.pathname==='/sw.js'&&r.release==='future'),'Browser fetched the real future worker');
+    for(const name of assetNames)assert.ok(requests.some(r=>r.pathname==='/'+name&&r.release==='future'&&r.url.includes('v='+futureBuild)),'Future install fetches its versioned '+name);
     console.log('PASS: first SW install/current build, real waiting update, Critical protection, Later/Check update, cancel/apply confirmation, one explicit reload/encounter clearing, offline calculation, unrelated-cache preservation, legacy-worker alignment, and newer-HTML/older-controller race without reload.');
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

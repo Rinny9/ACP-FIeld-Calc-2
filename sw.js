@@ -1,6 +1,6 @@
-const APP_BUILD = '2026.10.28.2';
+const APP_BUILD = '2026.11.02.1';
 const CACHE = 'acp-field-calc-' + APP_BUILD + '-encounter-usability';
-const APP_SHELL = ['./', './index.html'];
+const APP_SHELL = ['./', './index.html', './field-ui.css?v='+APP_BUILD, './field-shell.js?v='+APP_BUILD, './field-home.js?v='+APP_BUILD];
 const OPTIONAL_ASSETS = ['./manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
