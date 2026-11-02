@@ -3,14 +3,15 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {execFileSync}=require('node:child_process');
 const {chromium,webkit}=require('playwright');
+const {migrateDrawFixture}=require('./draw-volume-fixture.cjs');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const baseline=execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show','86cd69d:index.html'],{cwd:root,encoding:'utf8'});
+const baseline=migrateDrawFixture(execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show','86cd69d:index.html'],{cwd:root,encoding:'utf8'}),html);
 const clinical=s=>s.slice(s.indexOf('const CONC ='),s.indexOf('// ============ APP STATE')).replace(/\r/g,'');
 const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHTML(')).replace(/\r/g,'');
 assert.equal(clinical(html),clinical(baseline),'Patient presentation does not change clinical data, formulas or directives');
 assert.equal(sources(html),sources(baseline),'Source mappings and reference helpers remain unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Pediatric chart transcription remains unchanged');
-assert.match(html,/const APP_BUILD='2026\.11\.02\.3'/);
+assert.match(html,/const APP_BUILD='2026\.11\.02\.4'/);
 const files=new Map([['/',html],['/index.html',html],...['field-ui.css','field-shell.js','field-home.js','manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname,body=files.get(name);res.writeHead(body?200:404,{'Content-Type':name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.svg')?'image/svg+xml':'text/html; charset=utf-8'});res.end(body||'Not found');});
 const shots=process.env.SCREENSHOT_DIR;if(shots)fs.mkdirSync(shots,{recursive:true});

@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Medication draw-volume display — 2026-11-02, build 2026.11.02.4
+
+All calculated medication draw paths now share nearest-0.05 mL formatting: single draws, both range endpoints, repeated doses, route-specific values and the three dextrose branches that previously rounded to whole millilitres. Changed draws show ≈, their calculated volume and a visible dose-verification reminder. Numerical midpoint handling is independent of the existing mass-dose step rounding. A positive volume below 0.05 mL is retained with a precision-verification message; no positive draw is silently displayed as zero. Rounding that increases the calculated single-dose volume, or leaves an original dose range, also retains the calculated value for verification. Invalid/nonpositive or numerically unsupported draws prompt dose/concentration review. This conservative display rule does not establish a clinical rounding protocol or redefine a directive maximum.
+
+Medication mass, dose formulas, minima/maxima, conditions, contraindications, source mappings, published PDC reference values, infusion rates and fluid-bolus calculations remain unchanged. Calculated-volume notes stay visible and use a full-width layout where needed. A queued Home/detail focus restoration also respects patient inputs already being edited. Verification covers all 53 calculated volume expressions across 1,140 patient/stock combinations, numerical boundaries, precision/range exceptions, clinical/source preservation, phone rendering in Chrome/WebKit and actual offline/update behavior. Prior clinical-source review findings remain unresolved.
+
 ## Structured patient information — 2026-11-02, build 2026.11.02.3
 
 Patient entry now has one framed panel with clearly named age and weight groups. Each numeric value stays beside its unit; phone and Large-text layouts use two full-width rows, with complete groups side by side on wider screens. Critical uses compact labelled rows so the same direct controls occupy less vertical space. Optional sex/height sit beneath a divider and stack on phones. Validation and estimated-weight notices appear immediately after the primary rows, before optional fields.

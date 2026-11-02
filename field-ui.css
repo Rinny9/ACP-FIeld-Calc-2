@@ -1,4 +1,6 @@
 /* ACP Field interface. Presentation only; no clinical data or dose logic. */
+.field-interface .draw-rounding-note{display:block;font-size:13px;font-weight:550;line-height:1.6;letter-spacing:0;color:var(--mut);margin-top:7px;white-space:normal}.field-interface .draw-rounding-warning{color:var(--amber);font-weight:650}.field-interface.large-text .draw-rounding-note{font-size:15px}
+.field-interface .field-dose-pair:has(.draw-rounding-note){grid-template-columns:minmax(0,1fr);row-gap:10px}.field-interface .field-dose-pair:has(.draw-rounding-note) .rlM{grid-column:1;grid-row:3;border-left:0;padding-left:0}
 .field-interface .pane.active{animation:none!important}
 body.field-interface #critChange{flex:none;width:158px;max-width:158px}.field-interface .crit-selection{min-width:0;overflow-wrap:anywhere;word-break:normal}
 @media(max-width:390px){body.field-interface #critChange{width:125px;max-width:125px}}

@@ -485,7 +485,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
 .update-notice strong{display:block;color:var(--text)}.update-notice-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.update-notice button{min-height:44px;padding:8px 12px;border:1px solid var(--border2);border-radius:9px;font-size:14px;color:var(--blue);background:var(--blue-dim);font-weight:800}
 body.critical-open .update-notice{display:none}
 </style>
-<link rel="stylesheet" href="./field-ui.css?v=2026.11.02.3">
+<link rel="stylesheet" href="./field-ui.css?v=2026.11.02.4">
 </head>
 <body>
 
@@ -493,7 +493,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.02.3</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.02.4</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -577,7 +577,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.02.3</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.02.4</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -591,8 +591,9 @@ body.critical-open .update-notice{display:none}
       <div id="concList"></div>
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
+      <p class="p"><b>Draw-volume display:</b> calculated medication draws use the nearest 0.05 mL without increasing a calculated single-dose volume or leaving its original dose range. Changed values show ≈, the calculated volume and a dose-verification reminder. Draws below 0.05 mL, or rounding outside those bounds, keep the calculated value and a precision-verification message. This display aid does not establish that rounding is appropriate for a particular drug or patient. Dose formulas, mg/mcg amounts, infusion rates and published reference tables are not rounded by this display rule.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.02.3 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.02.4 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -665,9 +666,46 @@ const CONC = {
 // ---------- helpers ----------
 function round(x, d) { const f = Math.pow(10, d); return Math.round(x * f) / f; }
 function mlRound(ml) {
-  if (ml < 1) return round(ml, 2);
-  if (ml < 10) return round(ml, 1);
-  return Math.round(ml);
+  if (!Number.isFinite(ml) || ml < 0 || ml * 20 > Number.MAX_SAFE_INTEGER) return NaN;
+  const scaled = ml * 20;
+  return Math.round(scaled + Number.EPSILON * Math.max(1, Math.abs(scaled)) * 4) / 20;
+}
+// Volume rounding is a display aid, separate from directive mass-dose rounding.
+// Keep small/over-limit draws as calculated values rather than actionable zero
+// or an increased calculated single dose. Ranges retain their original bounds.
+function drawInfo(ml, {min = 0, max = ml} = {}) {
+  const nearest = mlRound(ml), result = {calculated: ml, nearest, value: ml, status: 'invalid'};
+  if (!Number.isFinite(ml) || ml <= 0 || !Number.isFinite(nearest) || min < 0 || max < min || Number.isNaN(max) || !Number.isFinite(min)) return result;
+  if (ml < 0.05) { result.status = 'precision'; return result; }
+  const tolerance = Number.EPSILON * Math.max(1, Math.abs(ml), Math.abs(nearest)) * 16;
+  if (nearest < min - tolerance || nearest > max + tolerance) { result.status = 'limit'; return result; }
+  result.value = nearest;
+  result.status = Math.abs(nearest - ml) <= tolerance ? 'exact' : 'rounded';
+  return result;
+}
+function calculatedMlText(ml) {
+  if (ml > 0 && ml < 0.000001) return '<0.000001';
+  return String(Number(ml.toFixed(6)));
+}
+function drawMl(ml, options = {}) {
+  const info = drawInfo(ml, options), suffix = options.suffix || '';
+  if (info.status === 'invalid') return `Verify dose / concentration${suffix}\nNo valid positive draw volume; confirm the dose and vial.`;
+  const exception = info.status === 'precision' || info.status === 'limit';
+  const primary = `${exception ? 'Calculated ' : info.status === 'rounded' ? '≈ ' : ''}${calculatedMlText(info.value)} mL${suffix}`;
+  if (info.status === 'rounded') return primary + `\nCalculated ${calculatedMlText(ml)} mL · nearest 0.05 mL. Verify rounded draw against dose.`;
+  if (info.status === 'precision') return primary + '\nBelow 0.05 mL step — verify measuring precision; do not round to zero.';
+  if (info.status === 'limit') return primary + (options.max != null || options.min > 0 ? '\nNearest 0.05 mL falls outside the selected draw range — verify measuring precision.' : '\nNearest 0.05 mL would exceed the calculated draw — verify measuring precision.');
+  return primary;
+}
+function drawMlRange(low, high) {
+  if (!Number.isFinite(low) || !Number.isFinite(high) || low <= 0 || high < low) return 'Verify dose / concentration\nNo valid positive draw range; confirm the dose and vial.';
+  const options = {min: low, max: high}, first = drawInfo(low, options), last = drawInfo(high, options);
+  if ([first, last].some(info => info.status === 'invalid')) return 'Verify dose / concentration\nNo valid positive draw range; confirm the dose and vial.';
+  const exception = [first, last].some(info => ['precision', 'limit'].includes(info.status));
+  const calculated = `${calculatedMlText(low)}–${calculatedMlText(high)} mL`;
+  if (exception) return 'Calculated ' + calculated + '\nNearest 0.05 mL cannot preserve this dose range — verify measuring precision.';
+  const changed = first.status === 'rounded' || last.status === 'rounded';
+  return `${changed ? '≈ ' : ''}${calculatedMlText(first.value)}–${calculatedMlText(last.value)} mL${changed ? '\nCalculated ' + calculated + ' · nearest 0.05 mL. Verify rounded draw against dose.' : ''}`;
 }
 function fmt(x) {
   if (x == null || isNaN(x)) return '—';
@@ -906,9 +944,9 @@ function drugCalcs(p) {
           raw = Math.max(raw, 0.05);
           const mg = stepRound(raw, 0.05);
           const exact = Math.abs(mg - raw) > 0.0001 ? ` (calc ${fmt(round(raw,3))})` : '';
-          out.arrest.push({ name: 'EPINEPHrine IV/IO/CVAD', when: 'Medical arrest · age ≥24 h', dose: `${fmt(mg)} mg${exact}`, ml: `${fmt(mlRound(mg / 0.1))} mL of 1:10,000`, rep: 'q4 min', sub: `0.01 mg/kg · min 0.05 mg${capped ? ' · capped at adult 1 mg' : ''} · PCS permits rounding to nearest 0.05 mg`, src: 'PCS p.104', tone: 'pcs' });
+          out.arrest.push({ name: 'EPINEPHrine IV/IO/CVAD', when: 'Medical arrest · age ≥24 h', dose: `${fmt(mg)} mg${exact}`, ml: drawMl(mg / 0.1, {suffix: ` of 1:10,000`}), rep: 'q4 min', sub: `0.01 mg/kg · min 0.05 mg${capped ? ' · capped at adult 1 mg' : ''} · PCS permits rounding to nearest 0.05 mg`, src: 'PCS p.104', tone: 'pcs' });
           const ettMg = Math.min(0.1 * w, 2);
-          out.arrest.push({ name: 'EPINEPHrine ETT (if IV/IO ≥5 min delayed)', dose: `${fmt(round(ettMg,2))} mg`, ml: `${fmt(mlRound(ettMg / 1))} mL of 1:1,000`, rep: 'q4 min', sub: '0.1 mg/kg (0.1 mL/kg) · max 2 mg', src: 'PCS p.104', tone: 'pcs' });
+          out.arrest.push({ name: 'EPINEPHrine ETT (if IV/IO ≥5 min delayed)', dose: `${fmt(round(ettMg,2))} mg`, ml: drawMl(ettMg / 1, {suffix: ` of 1:1,000`}), rep: 'q4 min', sub: '0.1 mg/kg (0.1 mL/kg) · max 2 mg', src: 'PCS p.104', tone: 'pcs' });
         } else {
           out.arrest.push({ name: 'EPINEPHrine IV/IO/CVAD', when: 'Medical arrest · age ≥24 h', dose: '0.01 mg/kg (0.1 mL/kg of 1:10,000)', rep: 'q4 min', sub: 'min 0.05 mg', src: 'PCS p.104', tone: 'pcs' });
         }
@@ -920,7 +958,7 @@ function drugCalcs(p) {
       if (hasW) {
         const imRaw = Math.min(0.01 * w, 0.5);
         const im = stepRound(imRaw, 0.05);
-        out.arrest.push({ name: 'EPINEPHrine IM — anaphylactic arrest', when: 'Anaphylaxis as suspected cause of arrest', dose: `${fmt(im)} mg${Math.abs(im-imRaw)>0.0001?` (calc ${fmt(round(imRaw,3))})`:''}`, ml: `${fmt(mlRound(im / 1))} mL of 1:1,000`, rep: '×1 · single dose', sub: '0.01 mg/kg · max 0.5 mg', src: 'PCS p.104', tone: 'pcs' });
+        out.arrest.push({ name: 'EPINEPHrine IM — anaphylactic arrest', when: 'Anaphylaxis as suspected cause of arrest', dose: `${fmt(im)} mg${Math.abs(im-imRaw)>0.0001?` (calc ${fmt(round(imRaw,3))})`:''}`, ml: drawMl(im / 1, {suffix: ` of 1:1,000`}), rep: '×1 · single dose', sub: '0.01 mg/kg · max 0.5 mg', src: 'PCS p.104', tone: 'pcs' });
       } else {
         out.arrest.push({ name: 'EPINEPHrine IM — anaphylactic arrest', when: 'Anaphylaxis as suspected cause of arrest', needW: true, rep: '×1 · single dose', sub: '0.01 mg/kg · max 0.5 mg', src: 'PCS p.104', tone: 'pcs' });
       }
@@ -928,12 +966,12 @@ function drugCalcs(p) {
       if (a < 12) {
         if (hasW) {
           const a1 = Math.min(5 * w, 300), a2 = Math.min(5 * w, 150);
-          out.arrest.push({ name: 'Amiodarone (VF/pVT)', when: 'Medical arrest · VF/pVT', contra: 'Allergy', dose: `${fmt(round(a1,0))} mg`, ml: `${fmt(mlRound(a1 / CONC.amiodarone.v))} mL`, d2: `${fmt(round(a2,0))} mg`, ml2: `${fmt(mlRound(a2 / CONC.amiodarone.v))} mL`, rep: 'q4 min · max 2', sub: `5 mg/kg (max 300/150)`, src: 'PCS p.105', tone: 'pcs' });
+          out.arrest.push({ name: 'Amiodarone (VF/pVT)', when: 'Medical arrest · VF/pVT', contra: 'Allergy', dose: `${fmt(round(a1,0))} mg`, ml: drawMl(a1 / CONC.amiodarone.v), d2: `${fmt(round(a2,0))} mg`, ml2: drawMl(a2 / CONC.amiodarone.v), rep: 'q4 min · max 2', sub: `5 mg/kg (max 300/150)`, src: 'PCS p.105', tone: 'pcs' });
         } else {
           out.arrest.push({ name: 'Amiodarone (VF/pVT)', when: 'Medical arrest · VF/pVT', contra: 'Allergy', dose: '5 mg/kg (max 300)', d2: '5 mg/kg (max 150)', rep: 'q4 min · max 2', src: 'PCS p.105', tone: 'pcs' });
         }
       } else {
-        out.arrest.push({ name: 'Amiodarone (VF/pVT)', when: 'Medical arrest · VF/pVT', contra: 'Allergy', dose: '300 mg', ml: `${fmt(mlRound(300 / CONC.amiodarone.v))} mL`, d2: '150 mg', ml2: `${fmt(mlRound(150 / CONC.amiodarone.v))} mL`, rep: 'q4 min · max 2', src: 'PCS p.105', tone: 'pcs' });
+        out.arrest.push({ name: 'Amiodarone (VF/pVT)', when: 'Medical arrest · VF/pVT', contra: 'Allergy', dose: '300 mg', ml: drawMl(300 / CONC.amiodarone.v), d2: '150 mg', ml2: drawMl(150 / CONC.amiodarone.v), rep: 'q4 min · max 2', src: 'PCS p.105', tone: 'pcs' });
       }
       // Lidocaine
       if (hasW) {
@@ -941,7 +979,7 @@ function drugCalcs(p) {
         const l2 = a < 12 ? 1 * w : 0.75 * w;
         const e1 = a < 12 ? 2 * w : 3 * w;
         const e2 = a < 12 ? 2 * w : 1.5 * w;
-        out.arrest.push({ name: 'Lidocaine (if not amiodarone)', when: 'Medical arrest · VF/pVT · if amiodarone unavailable', contra: 'Allergy', dose: `${fmt(round(l1,0))} mg IV`, ml: `${fmt(mlRound(l1 / CONC.lidocaine.v))} mL of 2%`, d2: `${fmt(round(l2,1))} mg`, ml2: `${fmt(mlRound(l2 / CONC.lidocaine.v))} mL of 2%`, rep: 'q4 min · max 2', sub: `ETT ${fmt(round(e1,0))}/${fmt(round(e2,0))} mg`, src: 'PCS p.105', tone: 'pcs' });
+        out.arrest.push({ name: 'Lidocaine (if not amiodarone)', when: 'Medical arrest · VF/pVT · if amiodarone unavailable', contra: 'Allergy', dose: `${fmt(round(l1,0))} mg IV`, ml: drawMl(l1 / CONC.lidocaine.v, {suffix: ` of 2%`}), d2: `${fmt(round(l2,1))} mg`, ml2: drawMl(l2 / CONC.lidocaine.v, {suffix: ` of 2%`}), rep: 'q4 min · max 2', sub: `ETT ${fmt(round(e1,0))}/${fmt(round(e2,0))} mg`, src: 'PCS p.105', tone: 'pcs' });
       } else {
         out.arrest.push({ name: 'Lidocaine (if not amiodarone)', when: 'Medical arrest · VF/pVT · if amiodarone unavailable', contra: 'Allergy', needW: true, rep: 'q4 min · max 2', sub: a < 12 ? '1 mg/kg → 1 mg/kg · ETT 2 → 2 mg/kg' : '1.5 → 0.75 mg/kg · ETT 3 → 1.5 mg/kg', src: 'PCS p.105', tone: 'pcs' });
       }
@@ -960,9 +998,9 @@ function drugCalcs(p) {
   // Newborn section always computed when age < 24h OR user selects newborn — compute from weight
   if (hasW && hasA && p.ageDays != null && p.ageDays < 1) {
     const nMg = Math.max(0.01 * w, 0.05);
-    out.newborn.push({ name: 'EPINEPHrine IV/IO', dose: `${fmt(round(nMg, 2))} mg`, ml: `${fmt(mlRound(Math.max(0.1 * w, 0.5)))} mL of 1:10,000`, sub: '0.01 mg/kg (0.1 mL/kg) · min 0.05 mg (0.5 mL) · q4 min', src: 'PCS p.114', tone: 'pcs' });
+    out.newborn.push({ name: 'EPINEPHrine IV/IO', dose: `${fmt(round(nMg, 2))} mg`, ml: drawMl(Math.max(0.1 * w, 0.5), {suffix: ` of 1:10,000`}), sub: '0.01 mg/kg (0.1 mL/kg) · min 0.05 mg (0.5 mL) · q4 min', src: 'PCS p.114', tone: 'pcs' });
     const eMg = Math.min(0.1 * w, 0.3);
-    out.newborn.push({ name: 'EPINEPHrine ETT — single dose', dose: `${fmt(round(eMg, 2))} mg`, ml: `${fmt(mlRound(Math.min(1.0 * w, 3.0)))} mL of 1:10,000`, sub: '0.1 mg/kg (1.0 mL/kg) · max 0.3 mg (3 mL) · then IV/IO', src: 'PCS p.114', tone: 'pcs' });
+    out.newborn.push({ name: 'EPINEPHrine ETT — single dose', dose: `${fmt(round(eMg, 2))} mg`, ml: drawMl(Math.min(1.0 * w, 3.0), {suffix: ` of 1:10,000`}), sub: '0.1 mg/kg (1.0 mL/kg) · max 0.3 mg (3 mL) · then IV/IO', src: 'PCS p.114', tone: 'pcs' });
     out.newborn.push({ name: 'Sequence', dose: 'PPV (room air) 30 s → CPR + 100% O₂ 30 s → epi', sub: 'PPV if HR <100 · CPR if HR <60 after 30 s PPV', src: 'PCS p.113–115', tone: 'pcs' });
     out.newborn.push({ name: 'Preductal SpO₂ targets', dose: '1′ 60–65 · 2′ 65–70 · 3′ 70–75 · 4′ 75–80 · 5′ 80–85 · 10′ 85–95%', src: 'PCS p.115', tone: 'pcs' });
   } else if (hasA && p.ageDays != null && p.ageDays < 1) {
@@ -976,21 +1014,21 @@ function drugCalcs(p) {
   if (hasA && a >= 18) {
     out.cardiac.push({ name: 'ASA — cardiac ischemia', dose: '160–162 mg PO chewed', when: '≥18 y · unaltered · able to chew & swallow', contra: 'NSAID allergy · asthmatic without prior ASA use · active bleeding · CVA/TBI in previous 24 h', sub: '×1 · give as if no prior care', src: 'PCS p.122 · CD p.27', tone: 'pcs' });
     out.cardiac.push({ name: 'Nitroglycerin — ischemia', dose: '0.3–0.4 mg SL', rep: 'q5 min', when: 'HR 60–159 · SBP ≥100 · IV access or prior nitro hx', contra: 'Nitrate allergy · PDE-5 inhibitor in previous 48 h · SBP drops ≥⅓ of initial after nitro · RV MI — do V4R in every inferior STEMI first', sub: 'No STEMI: max 6 · STEMI: max 3', src: 'PCS p.123', tone: 'pcs' });
-    out.cardiac.push({ name: 'Morphine — ischemia', contra: 'Allergy · SBP drop ≥⅓ post-dose', dose: '2 mg IV', rep: 'q5 min · max 5 doses', ml: `${fmt(mlRound(2 / CONC.morphine.v))} mL`, when: 'After 3rd nitro OR nitro contraindicated · severe pain · normotension', src: 'PCS p.123', tone: 'pcs' });
+    out.cardiac.push({ name: 'Morphine — ischemia', contra: 'Allergy · SBP drop ≥⅓ post-dose', dose: '2 mg IV', rep: 'q5 min · max 5 doses', ml: drawMl(2 / CONC.morphine.v), when: 'After 3rd nitro OR nitro contraindicated · severe pain · normotension', src: 'PCS p.123', tone: 'pcs' });
     out.cardiac.push({ name: 'Nitroglycerin — ACPE', lines: [
       { l: 'SBP 100–139 + IV/hx', d: '0.3–0.4 mg', m: 'SL' },
       { l: 'SBP ≥140, no IV/hx', d: '0.3–0.4 mg', m: 'SL' },
       { l: 'SBP ≥140 + IV/hx', d: '0.6–0.8 mg', m: 'SL' }
     ], when: 'HR 60–159 · normotension', contra: 'Nitrate allergy · PDE-5 inhibitor in previous 48 h · SBP drops ≥⅓ of initial after nitro', sub: 'q5 min · max 6', src: 'PCS p.125', tone: 'pcs' });
-    out.cardiac.push({ name: 'Atropine — symptomatic bradycardia', dose: '1 mg IV', rep: 'q5 min · max 2', ml: `${fmt(mlRound(1 / CONC.atropine.v))} mL @ ${CONC.atropine.v} mg/mL`, when: 'HR <50 + hypotension', contra: 'Allergy · hypothermia · heart transplant', sub: 'Then TCP (don’t delay for IV) → DOPamine', src: 'PCS p.130–131', tone: 'pcs' });
+    out.cardiac.push({ name: 'Atropine — symptomatic bradycardia', dose: '1 mg IV', rep: 'q5 min · max 2', ml: drawMl(1 / CONC.atropine.v, {suffix: ` @ ${CONC.atropine.v} mg/mL`}), when: 'HR <50 + hypotension', contra: 'Allergy · hypothermia · heart transplant', sub: 'Then TCP (don’t delay for IV) → DOPamine', src: 'PCS p.130–131', tone: 'pcs' });
     out.cardiac.push({ name: 'TCP', dose: 'Rate 80 bpm → ↑ mA to capture', sub: 'Typical capture 80–100 mA · +10% above threshold', src: 'CD p.65, 144', tone: 'pcs' });
-    out.cardiac.push({ name: 'Adenosine — SVT (narrow, regular, ≥150)', when: '≥18 y · unaltered · HR ≥150 · normotension · narrow + regular · after ≤2 Valsalva', contra: 'Allergy · sinus tach / AF / flutter · dipyridamole or carbamazepine · bronchoconstriction on exam', dose: '6 mg', ml: `${fmt(mlRound(6 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, d2: '12 mg IV', ml2: `${fmt(mlRound(12 / CONC.adenosine.v))} mL @ ${CONC.adenosine.v} mg/mL`, sub: 'q2 min · max 2 · rapid push + 20 mL NS flush · after ≤2 Valsalva (10–20 s)', src: 'PCS p.134–135 · CD p.68', tone: 'pcs' });
+    out.cardiac.push({ name: 'Adenosine — SVT (narrow, regular, ≥150)', when: '≥18 y · unaltered · HR ≥150 · normotension · narrow + regular · after ≤2 Valsalva', contra: 'Allergy · sinus tach / AF / flutter · dipyridamole or carbamazepine · bronchoconstriction on exam', dose: '6 mg', ml: drawMl(6 / CONC.adenosine.v, {suffix: ` @ ${CONC.adenosine.v} mg/mL`}), d2: '12 mg IV', ml2: drawMl(12 / CONC.adenosine.v, {suffix: ` @ ${CONC.adenosine.v} mg/mL`}), sub: 'q2 min · max 2 · rapid push + 20 mL NS flush · after ≤2 Valsalva (10–20 s)', src: 'PCS p.134–135 · CD p.68', tone: 'pcs' });
     if (hasW) {
       const lt1 = Math.min(1.5 * w, 150), lt2 = Math.min(0.75 * w, 150);
-      out.cardiac.push({ name: 'Amiodarone — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: '150 mg IV over 10 min', ml: `${fmt(mlRound(150 / CONC.amiodarone.v))} mL in infusion`, rep: 'q10 min · max 2', sub: 'BHP patch required', src: 'PCS p.135', tone: 'patch' });
-      out.cardiac.push({ name: 'Lidocaine — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: `${fmt(round(lt1,0))} mg`, ml: `${fmt(mlRound(lt1 / CONC.lidocaine.v))} mL of 2%`, d2: `${fmt(round(lt2,1))} mg`, ml2: `${fmt(mlRound(lt2 / CONC.lidocaine.v))} mL of 2%`, rep: 'q10 min · max 3', sub: `1.5 → 0.75 mg/kg · max single 150 mg · BHP patch`, src: 'PCS p.135', tone: 'patch' });
+      out.cardiac.push({ name: 'Amiodarone — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: '150 mg IV over 10 min', ml: drawMl(150 / CONC.amiodarone.v, {suffix: ` in infusion`}), rep: 'q10 min · max 2', sub: 'BHP patch required', src: 'PCS p.135', tone: 'patch' });
+      out.cardiac.push({ name: 'Lidocaine — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: `${fmt(round(lt1,0))} mg`, ml: drawMl(lt1 / CONC.lidocaine.v, {suffix: ` of 2%`}), d2: `${fmt(round(lt2,1))} mg`, ml2: drawMl(lt2 / CONC.lidocaine.v, {suffix: ` of 2%`}), rep: 'q10 min · max 3', sub: `1.5 → 0.75 mg/kg · max single 150 mg · BHP patch`, src: 'PCS p.135', tone: 'patch' });
     } else {
-      out.cardiac.push({ name: 'Amiodarone — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: '150 mg IV over 10 min', ml: `${fmt(mlRound(150 / CONC.amiodarone.v))} mL in infusion`, rep: 'q10 min · max 2', sub: 'BHP patch required', src: 'PCS p.135', tone: 'patch' });
+      out.cardiac.push({ name: 'Amiodarone — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', dose: '150 mg IV over 10 min', ml: drawMl(150 / CONC.amiodarone.v, {suffix: ` in infusion`}), rep: 'q10 min · max 2', sub: 'BHP patch required', src: 'PCS p.135', tone: 'patch' });
       out.cardiac.push({ name: 'Lidocaine — wide regular VT (patch first)', when: '≥18 y · unaltered · HR ≥120 · normotension · wide + regular', contra: 'Allergy', needW: true, rep: 'q10 min · max 3', sub: '1.5 → 0.75 mg/kg · max single 150 mg · BHP patch', src: 'PCS p.135', tone: 'patch' });
     }
     out.cardiac.push({ name: 'Synchronized cardioversion (patch first)', dose: 'Up to 3 shocks per BHP', sub: 'Patch failure: 100 J → 200 J → max manufacturer setting', src: 'PCS p.136', tone: 'patch' });
@@ -1041,9 +1079,9 @@ function drugCalcs(p) {
       { l: `NEB (${band ? '<25 kg' : '≥25 kg'})`, d: band ? '2.5 mg' : '5 mg', m: 'if MDI not feasible' }
     ], contra: 'Allergy · NEB route only: known/suspected fever or declared febrile respiratory illness outbreak — use MDI', sub: 'q5–15 min PRN · max 3 doses · MDI 100 mcg/puff', src: 'PCS p.88–89', tone: 'pcs' });
     const epiB = stepRound(Math.min(0.01 * w, 0.5), 0.05);
-    out.resp.push({ name: 'EPINEPHrine IM — severe asthma', when: 'BVM ventilation required + hx of asthma', contra: 'Allergy', dose: `${fmt(epiB)} mg`, ml: `${fmt(mlRound(epiB))} mL of 1:1,000`, sub: '0.01 mg/kg · max 0.5 mg · ×1 · BVM ventilation required + hx asthma · 1st drug if apneic', src: 'PCS p.86–89', tone: 'pcs' });
+    out.resp.push({ name: 'EPINEPHrine IM — severe asthma', when: 'BVM ventilation required + hx of asthma', contra: 'Allergy', dose: `${fmt(epiB)} mg`, ml: drawMl(epiB, {suffix: ` of 1:1,000`}), sub: '0.01 mg/kg · max 0.5 mg · ×1 · BVM ventilation required + hx asthma · 1st drug if apneic', src: 'PCS p.86–89', tone: 'pcs' });
     const dex = Math.min(0.5 * w, 8);
-    out.resp.push({ name: 'Dexamethasone — bronchoconstriction', dose: `${fmt(round(dex,1))} mg PO/IM/IV`, ml: `${fmt(mlRound(dex / CONC.dexamethasone.v))} mL`, when: 'Hx of asthma OR COPD OR 20 pack-year smoking', contra: 'Steroid allergy · currently on PO/parenteral steroids', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.87–88', tone: 'pcs' });
+    out.resp.push({ name: 'Dexamethasone — bronchoconstriction', dose: `${fmt(round(dex,1))} mg PO/IM/IV`, ml: drawMl(dex / CONC.dexamethasone.v), when: 'Hx of asthma OR COPD OR 20 pack-year smoking', contra: 'Steroid allergy · currently on PO/parenteral steroids', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.87–88', tone: 'pcs' });
   } else {
     out.resp.push({ name: 'Salbutamol — bronchoconstriction', needW: true, contra: 'Allergy · NEB route only: known/suspected fever or declared febrile respiratory illness outbreak — use MDI', sub: 'MDI: <25 kg up to 600 mcg (6 puffs) · ≥25 kg up to 800 mcg (8 puffs) · ~1 per 4 breaths · spacer · NEB 2.5 / 5 mg if MDI not feasible · q5–15 min PRN · max 3 · MDI 100 mcg/puff', src: 'PCS p.88–89', tone: 'pcs' });
     out.resp.push({ name: 'EPINEPHrine IM — severe asthma', when: 'BVM ventilation required + hx of asthma', contra: 'Allergy', needW: true, sub: '0.01 mg/kg · max 0.5 mg · ×1 · BVM ventilation required + hx asthma · 1st drug if apneic', src: 'PCS p.86–89', tone: 'pcs' });
@@ -1052,7 +1090,7 @@ function drugCalcs(p) {
   if (hasA && hasW && a >= 0.5 && a < 8) {
     out.resp.push({ name: 'EPINEPHrine NEB — croup (stridor at rest)', when: '≥6 mo to <8 y · HR <200 · stridor at rest', dose: w < 10 ? '2.5 mg (2.5 mL of 1:1,000)' : '5 mg (5 mL of 1:1,000)', sub: `${w < 10 ? '<10 kg' : '≥10 kg'} · ×1 · HR <200 · age ≥6 mo to <8 y`, src: 'PCS p.93', tone: 'pcs' });
     const dexC = Math.min(0.5 * w, 8);
-    out.resp.push({ name: 'Dexamethasone PO — croup', dose: `${fmt(round(dexC,1))} mg`, ml: `${fmt(mlRound(dexC / CONC.dexamethasone.v))} mL`, when: '≥6 mo to <8 y · unaltered · mild/moderate/severe croup', contra: 'Steroid allergy · steroids in last 48 h · unable to tolerate PO', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.93', tone: 'pcs' });
+    out.resp.push({ name: 'Dexamethasone PO — croup', dose: `${fmt(round(dexC,1))} mg`, ml: drawMl(dexC / CONC.dexamethasone.v), when: '≥6 mo to <8 y · unaltered · mild/moderate/severe croup', contra: 'Steroid allergy · steroids in last 48 h · unable to tolerate PO', sub: '0.5 mg/kg · max 8 mg · ×1', src: 'PCS p.93', tone: 'pcs' });
   }
   if (hasA && a >= 18) {
     out.resp.push({ name: 'CPAP', dose: 'Start 5 cmH₂O', rep: '+2.5 q5 min · max 15', when: 'Severe distress + ACPE/COPD · tachypnea · normotension · SpO₂ <90% or accessory use', contra: 'Asthma exacerbation · pneumothorax · unprotected airway · major head/torso trauma or burns · tracheostomy · unable to sit up/cooperate', src: 'PCS p.233–234', tone: 'pcs' });
@@ -1060,9 +1098,9 @@ function drugCalcs(p) {
   // Allergic reaction (all ages)
   if (hasW) {
     const epiA = stepRound(Math.min(0.01 * w, 0.5), 0.05);
-    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', dose: `${fmt(epiA)} mg`, ml: `${fmt(mlRound(epiA))} mL of 1:1,000`, sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.50', tone: 'pcs' });
+    out.resp.push({ name: 'EPINEPHrine IM — anaphylaxis', when: 'Anaphylaxis only (moderate–severe reaction alone does not qualify)', contra: 'Allergy', dose: `${fmt(epiA)} mg`, ml: drawMl(epiA, {suffix: ` of 1:1,000`}), sub: '0.01 mg/kg · max 0.5 mg · q5 min · max 2 · anterolateral thigh · takes priority over IV', src: 'PCS p.91 · CD p.50', tone: 'pcs' });
     if (w >= 25) {
-      out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', dose: w >= 50 ? '50 mg IV/IM' : '25 mg IV/IM', ml: `${fmt(mlRound((w >= 50 ? 50 : 25) / CONC.diphenhydramine.v))} mL`, sub: `${w >= 50 ? '≥50 kg' : '25–49 kg'} · ×1`, src: 'PCS p.91', tone: 'pcs' });
+      out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', dose: w >= 50 ? '50 mg IV/IM' : '25 mg IV/IM', ml: drawMl((w >= 50 ? 50 : 25) / CONC.diphenhydramine.v), sub: `${w >= 50 ? '≥50 kg' : '25–49 kg'} · ×1`, src: 'PCS p.91', tone: 'pcs' });
     } else {
       out.resp.push({ name: 'DiphenhydrAMINE', when: 'Moderate–severe allergic reaction / anaphylaxis · weight ≥25 kg', contra: 'Allergy', dose: '<25 kg — outside conditions', src: 'PCS p.90', tone: 'warn' });
     }
@@ -1076,8 +1114,8 @@ function drugCalcs(p) {
     const ivMg = Math.min(0.1 * w, 5);
     const imMg = Math.min(0.2 * w, 10);
     out.neuro.push({ name: 'Midazolam — active seizure', when: 'Unresponsive · active seizure', contra: 'Midazolam allergy', lines: [
-      { l: 'IV/IO (0.1 mg/kg)', d: `${fmt(round(ivMg,1))} mg`, m: `${fmt(mlRound(ivMg / CONC.midazolam.v))} mL` },
-      { l: 'IM/IN/buccal (0.2 mg/kg)', d: `${fmt(round(imMg,1))} mg`, m: `${fmt(mlRound(imMg / CONC.midazolam.v))} mL` }
+      { l: 'IV/IO (0.1 mg/kg)', d: `${fmt(round(ivMg,1))} mg`, m: drawMl(ivMg / CONC.midazolam.v) },
+      { l: 'IM/IN/buccal (0.2 mg/kg)', d: `${fmt(round(imMg,1))} mg`, m: drawMl(imMg / CONC.midazolam.v) }
     ], sub: 'max 5 mg IV / 10 mg IM-IN · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.62', tone: 'pcs' });
   } else {
     out.neuro.push({ name: 'Midazolam — active seizure', when: 'Unresponsive · active seizure', contra: 'Midazolam allergy', needW: true, sub: 'IV/IO 0.1 mg/kg (max 5 mg) · IM/IN/buccal 0.2 mg/kg (max 10 mg) · q5 min · max 2 doses · IN split between nares', src: 'PCS p.153 · CD p.62', tone: 'pcs' });
@@ -1089,14 +1127,14 @@ function drugCalcs(p) {
       out.metab.push({ name: 'Dextrose', dose: 'Age required', sub: 'D10/D50 concentration, maximum and hypoglycemia threshold are age-gated; no adult default is applied', src: 'PCS p.15, 148', tone: 'warn' });
     } else if (a < 2) {
       const g = Math.min(0.2 * w, 5);
-      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g,1))} g`, ml: `${Math.round(Math.min(2 * w, 50))} mL`, sub: '<2 y · 0.2 g/kg (2 mL/kg) · max 5 g (50 mL) · q10 min · max 2 · over ~3 min, titrate to LOA', src: 'PCS p.148 · CD p.40–41', tone: 'pcs' });
+      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g,1))} g`, ml: drawMl(Math.min(2 * w, 50)), sub: '<2 y · 0.2 g/kg (2 mL/kg) · max 5 g (50 mL) · q10 min · max 2 · over ~3 min, titrate to LOA', src: 'PCS p.148 · CD p.40–41', tone: 'pcs' });
     } else {
       const g10 = Math.min(0.2 * w, 25);
-      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g10,1))} g`, ml: `${Math.round(Math.min(2 * w, 250))} mL`, sub: '0.2 g/kg (2 mL/kg) · max 25 g (250 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
+      out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', dose: `${fmt(round(g10,1))} g`, ml: drawMl(Math.min(2 * w, 250)), sub: '0.2 g/kg (2 mL/kg) · max 25 g (250 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
       const g50 = Math.min(0.5 * w, 25);
-      out.metab.push({ name: 'Dextrose D50W (if not D10)', when: 'Altered LOA + hypoglycemia · ≥2 y', contra: 'Allergy', dose: `${fmt(round(g50,1))} g`, ml: `${Math.round(Math.min(1 * w, 50))} mL`, sub: '≥2 y · 0.5 g/kg (1 mL/kg) · max 25 g (50 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
+      out.metab.push({ name: 'Dextrose D50W (if not D10)', when: 'Altered LOA + hypoglycemia · ≥2 y', contra: 'Allergy', dose: `${fmt(round(g50,1))} g`, ml: drawMl(Math.min(1 * w, 50)), sub: '≥2 y · 0.5 g/kg (1 mL/kg) · max 25 g (50 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
     }
-    out.metab.push({ name: 'Glucagon IM (if no IV dextrose)', dose: w < 25 ? '0.5 mg' : '1 mg', ml: `${fmt(mlRound((w < 25 ? 0.5 : 1) / CONC.glucagon.v))} mL @ ${CONC.glucagon.v} mg/mL`, when: `${w < 25 ? '<25 kg' : '≥25 kg'} · altered + hypoglycemia`, contra: 'Allergy · pheochromocytoma', sub: 'q20 min · max 2 · IN 3 mg (≥4 y, if authorized)', src: 'PCS p.149', tone: 'pcs' });
+    out.metab.push({ name: 'Glucagon IM (if no IV dextrose)', dose: w < 25 ? '0.5 mg' : '1 mg', ml: drawMl((w < 25 ? 0.5 : 1) / CONC.glucagon.v, {suffix: ` @ ${CONC.glucagon.v} mg/mL`}), when: `${w < 25 ? '<25 kg' : '≥25 kg'} · altered + hypoglycemia`, contra: 'Allergy · pheochromocytoma', sub: 'q20 min · max 2 · IN 3 mg (≥4 y, if authorized)', src: 'PCS p.149', tone: 'pcs' });
     if (hasA) out.metab.push({ name: `Hypoglycemia threshold`, dose: `< ${p.hypoglycemia.toFixed(1)} mmol/L`, sub: a < 2 ? '<2 y' : '≥2 y', src: 'PCS p.15', tone: 'pcs' });
   } else {
     out.metab.push({ name: 'Dextrose D10W', when: 'Altered LOA + hypoglycemia', contra: 'Allergy', needW: true, sub: '0.2 g/kg (2 mL/kg) · <2 y max 5 g (50 mL) · ≥2 y max 25 g (250 mL) · q10 min · max 2', src: 'PCS p.148', tone: 'pcs' });
@@ -1128,7 +1166,7 @@ function drugCalcs(p) {
     let hc = Math.min(2 * w, 100);
     hc = stepRound(hc, 10);
     if (hc < 10) hc = 10;
-    out.metab.push({ name: 'Hydrocortisone — adrenal crisis', when: 'Patient’s own vial present + ≥1 of: hypoglycemia · GI sx · syncope · fever ≥38 / fever hx · altered LOA · age-related tachycardia or hypotension', contra: 'Hydrocortisone allergy', dose: `${Math.round(hc)} mg IM/IV/IO/CVAD`, ml: `${fmt(mlRound(hc / CONC.hydrocortisone.v))} mL of ${CONC.hydrocortisone.v} mg/mL`, sub: '2 mg/kg · max 100 mg · ×1 · rounded to nearest 10 mg · patient’s own vial required', src: 'PCS p.160', tone: 'pcs' });
+    out.metab.push({ name: 'Hydrocortisone — adrenal crisis', when: 'Patient’s own vial present + ≥1 of: hypoglycemia · GI sx · syncope · fever ≥38 / fever hx · altered LOA · age-related tachycardia or hypotension', contra: 'Hydrocortisone allergy', dose: `${Math.round(hc)} mg IM/IV/IO/CVAD`, ml: drawMl(hc / CONC.hydrocortisone.v, {suffix: ` of ${CONC.hydrocortisone.v} mg/mL`}), sub: '2 mg/kg · max 100 mg · ×1 · rounded to nearest 10 mg · patient’s own vial required', src: 'PCS p.160', tone: 'pcs' });
   } else {
     out.metab.push({ name: 'Hydrocortisone — adrenal crisis', when: 'Patient’s own vial present + ≥1 of: hypoglycemia · GI sx · syncope · fever ≥38 / fever hx · altered LOA · age-related tachycardia or hypotension', contra: 'Hydrocortisone allergy', needW: true, sub: '2 mg/kg · max 100 mg · ×1 · rounded to nearest 10 mg · patient’s own vial required', src: 'PCS p.160', tone: 'pcs' });
   }
@@ -1145,33 +1183,33 @@ function drugCalcs(p) {
   if (hasA && a >= 12) {
     out.analgesia.push({ name: 'Acetaminophen PO', dose: a >= 18 ? '960–1,000 mg' : '500–650 mg', when: `${a >= 18 ? '≥18 y' : '12–17 y'} · unaltered`, contra: 'Acetaminophen in last 4 h · allergy · hx liver disease · active vomiting · unable to tolerate PO · suspected ischemic CP', sub: '×1 · consider co-administration with ibuprofen', src: 'PCS p.164', tone: 'pcs' });
     out.analgesia.push({ name: 'Ibuprofen PO', dose: '400 mg', when: '≥12 y · unaltered', contra: 'NSAID in last 6 h · ASA/NSAID allergy · anticoagulated · active bleeding · hx PUD/GI bleed · pregnancy · asthmatic without prior ASA/NSAID use · CVA/TBI in 24 h · renal impairment · active vomiting · unable to tolerate PO · suspected ischemic CP', sub: '×1 · consider co-administration with acetaminophen', src: 'PCS p.164', tone: 'pcs' });
-    out.analgesia.push({ name: 'Ketorolac IM/IV', dose: '10–15 mg', ml: `${fmt(mlRound(10 / CONC.ketorolac.v))}–${fmt(mlRound(15 / CONC.ketorolac.v))} mL`, when: '≥12 y · unaltered', contra: 'NSAID in last 6 h · ASA/NSAID allergy or sensitivity · anticoagulated · active bleeding · hx PUD/GI bleed · pregnancy · asthmatic without prior ASA/NSAID use · CVA/TBI in 24 h · renal impairment · suspected ischemic CP · do not give with ibuprofen', sub: '×1 · routinely consider NSAID for renal colic', src: 'PCS p.163–164', tone: 'pcs' });
+    out.analgesia.push({ name: 'Ketorolac IM/IV', dose: '10–15 mg', ml: drawMlRange(10 / CONC.ketorolac.v, 15 / CONC.ketorolac.v), when: '≥12 y · unaltered', contra: 'NSAID in last 6 h · ASA/NSAID allergy or sensitivity · anticoagulated · active bleeding · hx PUD/GI bleed · pregnancy · asthmatic without prior ASA/NSAID use · CVA/TBI in 24 h · renal impairment · suspected ischemic CP · do not give with ibuprofen', sub: '×1 · routinely consider NSAID for renal colic', src: 'PCS p.163–164', tone: 'pcs' });
   }
   if (hasA && hasW && a >= 1) {
     if (a >= 18) {
-      out.analgesia.push({ name: 'FentaNYL IV/IN', dose: '25–75 mcg', ml: `${fmt(mlRound(25 / CONC.fentanyl.v))}–${fmt(mlRound(75 / CONC.fentanyl.v))} mL`, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q5 min · max cumulative 200 mcg · aliquots q3 min for 50–75 mcg', src: 'PCS p.165', tone: 'pcs' });
-      out.analgesia.push({ name: 'Morphine IV/SC', dose: '2–10 mg', ml: `${fmt(mlRound(2 / CONC.morphine.v))}–${fmt(mlRound(10 / CONC.morphine.v))} mL`, when: '≥18 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q15 min · max single 10 mg · max cumulative 20 mg', src: 'PCS p.165', tone: 'pcs' });
+      out.analgesia.push({ name: 'FentaNYL IV/IN', dose: '25–75 mcg', ml: drawMlRange(25 / CONC.fentanyl.v, 75 / CONC.fentanyl.v), when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q5 min · max cumulative 200 mcg · aliquots q3 min for 50–75 mcg', src: 'PCS p.165', tone: 'pcs' });
+      out.analgesia.push({ name: 'Morphine IV/SC', dose: '2–10 mg', ml: drawMlRange(2 / CONC.morphine.v, 10 / CONC.morphine.v), when: '≥18 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q15 min · max single 10 mg · max cumulative 20 mg', src: 'PCS p.165', tone: 'pcs' });
       const kIV = Math.min(0.25 * w, 20), kIN = Math.min(1 * w, 75);
       out.analgesia.push({ name: 'Ketamine — analgesia', lines: [
-        { l: 'IV (0.25 mg/kg)', d: `${fmt(round(kIV,1))} mg`, m: `${fmt(mlRound(kIV / CONC.ketamine.v))} mL · over 2–3 min` },
-        { l: 'IN (1 mg/kg)', d: `${fmt(round(kIN,0))} mg`, m: `${fmt(mlRound(kIN / CONC.ketamine.v))} mL` }
+        { l: 'IV (0.25 mg/kg)', d: `${fmt(round(kIV,1))} mg`, m: drawMl(kIV / CONC.ketamine.v, {suffix: ` · over 2–3 min`}) },
+        { l: 'IN (1 mg/kg)', d: `${fmt(round(kIN,0))} mg`, m: drawMl(kIN / CONC.ketamine.v) }
       ], when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'max 20 mg IV / 75 mg IN · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.23–24', tone: 'pcs' });
     } else {
       const f = Math.min(1 * w, 75);
-      out.analgesia.push({ name: 'FentaNYL IV/IN (1–17 y)', dose: `up to ${fmt(round(f,0))} mcg`, ml: `${fmt(mlRound(f / CONC.fentanyl.v))} mL`, when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `up to 1 mcg/kg · max single 75 mcg · q5 min · cum 200 mcg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
+      out.analgesia.push({ name: 'FentaNYL IV/IN (1–17 y)', dose: `up to ${fmt(round(f,0))} mcg`, ml: drawMl(f / CONC.fentanyl.v), when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `up to 1 mcg/kg · max single 75 mcg · q5 min · cum 200 mcg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
       const m1 = Math.min(0.05 * w, 5), m2 = Math.min(0.1 * w, 5);
-      out.analgesia.push({ name: 'Morphine IV/SC (1–17 y)', dose: `${fmt(round(m1,1))}–${fmt(round(m2,1))} mg`, ml: `${fmt(mlRound(m1 / CONC.morphine.v))}–${fmt(mlRound(m2 / CONC.morphine.v))} mL`, when: '≥1 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `0.05–0.1 mg/kg · max single 5 mg · q15 min · cum 10 mg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
+      out.analgesia.push({ name: 'Morphine IV/SC (1–17 y)', dose: `${fmt(round(m1,1))}–${fmt(round(m2,1))} mg`, ml: drawMlRange(m1 / CONC.morphine.v, m2 / CONC.morphine.v), when: '≥1 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `0.05–0.1 mg/kg · max single 5 mg · q15 min · cum 10 mg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
       const kIV = Math.min(0.25 * w, 10), kIN = Math.min(1 * w, 30);
       out.analgesia.push({ name: 'Ketamine (1–17 y) — PATCH first', lines: [
-        { l: 'IV (0.25 mg/kg)', d: `${fmt(round(kIV,1))} mg`, m: `${fmt(mlRound(kIV / CONC.ketamine.v))} mL` },
-        { l: 'IN (1 mg/kg)', d: `${fmt(round(kIN,0))} mg`, m: `${fmt(mlRound(kIN / CONC.ketamine.v))} mL` }
+        { l: 'IV (0.25 mg/kg)', d: `${fmt(round(kIV,1))} mg`, m: drawMl(kIV / CONC.ketamine.v) },
+        { l: 'IN (1 mg/kg)', d: `${fmt(round(kIN,0))} mg`, m: drawMl(kIN / CONC.ketamine.v) }
       ], when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'max 10 mg IV / 30 mg IN · q15 min · max 2 doses · BHP + dosage verification required <18 y', src: 'PCS p.165–166', tone: 'patch' });
     }
   }
   if (hasA && !hasW && a >= 1) {
     if (a >= 18) {
-      out.analgesia.push({ name: 'FentaNYL IV/IN', dose: '25–75 mcg', ml: `${fmt(mlRound(25 / CONC.fentanyl.v))}–${fmt(mlRound(75 / CONC.fentanyl.v))} mL`, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q5 min · max cumulative 200 mcg · aliquots q3 min for 50–75 mcg', src: 'PCS p.165', tone: 'pcs' });
-      out.analgesia.push({ name: 'Morphine IV/SC', dose: '2–10 mg', ml: `${fmt(mlRound(2 / CONC.morphine.v))}–${fmt(mlRound(10 / CONC.morphine.v))} mL`, when: '≥18 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q15 min · max single 10 mg · max cumulative 20 mg', src: 'PCS p.165', tone: 'pcs' });
+      out.analgesia.push({ name: 'FentaNYL IV/IN', dose: '25–75 mcg', ml: drawMlRange(25 / CONC.fentanyl.v, 75 / CONC.fentanyl.v), when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q5 min · max cumulative 200 mcg · aliquots q3 min for 50–75 mcg', src: 'PCS p.165', tone: 'pcs' });
+      out.analgesia.push({ name: 'Morphine IV/SC', dose: '2–10 mg', ml: drawMlRange(2 / CONC.morphine.v, 10 / CONC.morphine.v), when: '≥18 y · unaltered · normotension · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: 'q15 min · max single 10 mg · max cumulative 20 mg', src: 'PCS p.165', tone: 'pcs' });
       out.analgesia.push({ name: 'Ketamine — analgesia', needW: true, when: '≥18 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour', sub: 'IV 0.25 mg/kg (max 20 mg) · IN 1 mg/kg (max 75 mg) · q15 min · max 2 doses · sequential with opioids, not co-administered', src: 'PCS p.166 · CD p.23–24', tone: 'pcs' });
     } else {
       out.analgesia.push({ name: 'FentaNYL IV/IN (1–17 y)', needW: true, when: '≥1 y · unaltered · pain', contra: 'Allergy · headache as chief complaint · chronic pain as chief complaint · suspected ischemic chest pain · active labour · stop if SBP drops ≥⅓ of initial', sub: `up to 1 mcg/kg · max single 75 mcg · q5 min · cum 200 mcg${a < 12 ? ' · PATCH: BHP + dosage verification required <12 y' : ''}`, src: 'PCS p.165', tone: a < 12 ? 'patch' : 'pcs' });
@@ -1183,9 +1221,9 @@ function drugCalcs(p) {
   // ===== SEDATION =====
   if (hasA && a >= 18 && hasW) {
     const mz = Math.min(0.1 * w, 5);
-    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', dose: `up to ${fmt(round(mz,1))} mg IV/IM/IN`, ml: `${fmt(mlRound(mz / CONC.midazolam.v))} mL`, sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Midazolam — combative', when: '≥18 y', contra: 'Allergy', dose: `up to ${fmt(round(mz,1))} mg IV/IM/IN`, ml: drawMl(mz / CONC.midazolam.v), sub: 'up to 0.1 mg/kg · max single 5 mg · q5 min · max total 10 mg · consider 0.05 mg/kg if frail/hypoxia suspected', src: 'PCS p.168 · CD p.31', tone: 'pcs' });
     const kd = a >= 65 ? Math.min(3 * w, 300) : Math.min(5 * w, 500);
-    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: `${fmt(mlRound(kd / CONC.ketamine.v))} mL${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`, contra: 'Allergy or sensitivity to ketamine · Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.167–169 · CD p.31', tone: 'pcs' });
+    out.sedation.push({ name: 'Ketamine IM — severe agitation', when: '≥18 y · suspected severe agitation with violent psychosis', dose: `${fmt(round(kd,0))} mg`, ml: drawMl(kd / CONC.ketamine.v, {suffix: `${kd / CONC.ketamine.v > 5 ? ' — split ≥2 sites (max 5 mL/site vastus lateralis)' : ''}`}), contra: 'Allergy or sensitivity to ketamine · Co-administration with midazolam without BHP order', sub: `${a >= 65 ? '≥65 y: 3 mg/kg · max 300' : '18–64 y: 5 mg/kg · max 500'} · ×1 · EtCO₂ once sedated`, src: 'PCS p.167–169 · CD p.31', tone: 'pcs' });
     out.sedation.push({ name: 'Procedural sedation (post-ETT / TCP)', lines: [
       { l: 'FentaNYL IV/IO/CVAD/IN', d: '25–75 mcg', m: 'q5 min · max total 150 mcg' },
       { l: 'Midazolam IV/IO/CVAD/IN', d: `up to ${fmt(round(mz,1))} mg`, m: 'max single 5 · q5 min · max total 10 mg' }
@@ -1203,7 +1241,7 @@ function drugCalcs(p) {
     if (hasA && a < 12) out.fluids.push({ name: 'DKA <12 y — MANDATORY PATCH', dose: 'BHP before any bolus', sub: 'Cerebral edema risk', src: 'PCS p.142', tone: 'patch' });
     out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.43', tone: hasA ? 'pcs' : 'warn' });
     if (hasA && a >= 16) {
-      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
+      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: drawMl(1000 / CONC.txa.v, {suffix: ` @ ${CONC.txa.v} mg/mL`}), when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
     }
     // Parkland (EXT)
     out.fluids.push({ name: 'Parkland (burns) — reference only', dose: `4 mL × kg × %TBSA = ${hasW ? Math.round(4 * w) : '—'} mL × %TBSA /24 h (½ in first 8 h)`, sub: 'NOT an ALS PCS directive — hospital planning reference', src: 'EXT: Parkland formula', tone: 'ext' });
@@ -1211,14 +1249,14 @@ function drugCalcs(p) {
     out.fluids.push({ name: 'Bolus — hypotension', when: 'Hypotension', contra: 'Fluid overload', needW: true, sub: hasA ? `20 mL/kg · reassess q${a < 12 ? '100' : '250'} mL · max 2,000 mL · 2 BPs (1 manual) before bolus · min ${a < 12 ? '100' : '250'} mL once started even if normotensive` : '20 mL/kg · max 2,000 mL · age required for reassessment/minimum-volume branch', src: 'PCS p.143 · CD p.43–44', tone: hasA ? 'pcs' : 'warn' });
     out.fluids.push({ name: 'Maintenance', dose: !hasA ? 'Age required — rate suppressed' : a < 12 ? '15 mL/hr' : '30–60 mL/hr', sub: !hasA ? 'No adult default is applied' : 'Rate control device required <12 y', src: 'PCS p.142 · CD p.43', tone: hasA ? 'pcs' : 'warn' });
     if (hasA && a >= 16) {
-      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: `${fmt(mlRound(1000 / CONC.txa.v))} mL @ ${CONC.txa.v} mg/mL`, when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
+      out.fluids.push({ name: 'TXA — traumatic hemorrhage (auxiliary)', dose: '1,000 mg (1 g)', ml: drawMl(1000 / CONC.txa.v, {suffix: ` @ ${CONC.txa.v} mg/mL`}), when: '≥16 y · HR ≥110 or hypotension', contra: 'Injury >3 h ago or unknown time · isolated head injury', sub: 'IV over ≥5 min (may dilute in 50 mL bag) or IM · ×1 · never delays transport', src: 'PCS p.235–236 · CD p.72', tone: 'pcs' });
     }
     out.fluids.push({ name: 'Parkland (burns) — reference only', dose: '4 mL × kg × %TBSA per 24 h (½ in first 8 h)', sub: 'NOT an ALS PCS directive — hospital planning reference', src: 'EXT: Parkland formula', tone: 'ext' });
   }
 
   // ===== OB =====
   if (hasA && a >= 14 && a <= 50) {
-    out.ob.push({ name: 'Oxytocin — post-delivery', dose: '10 units IM', ml: `${fmt(mlRound(10 / CONC.oxytocin.v))} mL @ ${CONC.oxytocin.v} units/mL`, when: 'Childbearing years · SBP <160 mmHg · after delivery of all fetuses and/or placenta', contra: 'Allergy · undelivered fetus · suspected/known preeclampsia with current pregnancy · eclampsia (seizures) with current pregnancy · ≥4 h post placental delivery', sub: '×1 · monitor BP (vasoconstriction)', src: 'PCS p.175, 177 · CD p.37', tone: 'pcs' });
+    out.ob.push({ name: 'Oxytocin — post-delivery', dose: '10 units IM', ml: drawMl(10 / CONC.oxytocin.v, {suffix: ` @ ${CONC.oxytocin.v} units/mL`}), when: 'Childbearing years · SBP <160 mmHg · after delivery of all fetuses and/or placenta', contra: 'Allergy · undelivered fetus · suspected/known preeclampsia with current pregnancy · eclampsia (seizures) with current pregnancy · ≥4 h post placental delivery', sub: '×1 · monitor BP (vasoconstriction)', src: 'PCS p.175, 177 · CD p.37', tone: 'pcs' });
   }
   out.ob.push({ name: 'Shoulder dystocia', dose: 'ALARM — 8 min from head delivery', sub: 'Ask help · Legs (McRoberts) · Adduct (suprapubic) · Roll (Gaskin) · Manual posterior arm', src: 'CD p.117', tone: 'pcs' });
   out.ob.push({ name: 'Breech', dose: 'Hands off to umbilicus · 4 min head window · MSV if >3 min', src: 'CD p.111 · PCS p.176', tone: 'pcs' });
@@ -1238,7 +1276,7 @@ function pushDoseEpi() {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { buildPatient, airway, drugCalcs, shockIndex, ivDrip, parkland, dopamineRate, pushDoseEpi, CONC, stepRound, mlRound };
+  module.exports = { buildPatient, airway, drugCalcs, shockIndex, ivDrip, parkland, dopamineRate, pushDoseEpi, CONC, stepRound, mlRound, drawInfo, drawMl, drawMlRange };
 }
 // ============ DIRECTIVE QUICK REFERENCE (ALS PCS v5.4) ============
 const DIR = [
@@ -1620,7 +1658,10 @@ function doseTextHTML(value){
   }
   return html+esc(text.slice(start));
 }
-function drawHTML(value){return (drawLabel(value)?`<span class="draw-label">${drawLabel(value)}</span>`:'')+doseTextHTML(value);}
+function drawHTML(value){
+  const [primary,...notes]=String(value??'').split('\n');
+  return (drawLabel(value)?`<span class="draw-label">${drawLabel(value)}</span>`:'')+doseTextHTML(primary)+notes.map(note=>`<span class="draw-rounding-note${/verify|no valid/i.test(note)?' draw-rounding-warning':''}">${doseTextHTML(note)}</span>`).join('');
+}
 function rowHTML(r){
   const subParts=String(r.sub||'').split(/\s*·\s*/),schedule=[],notes=[];
   for(const part of subParts){
@@ -3077,7 +3118,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.11.02.3';
+const APP_BUILD='2026.11.02.4';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;
@@ -3166,7 +3207,7 @@ $('calcDisplay').innerHTML=displayControlHTML('calc');$('critDisplay').innerHTML
 document.addEventListener('click',e=>document.querySelectorAll('.display-menu[open]').forEach(el=>{if(!el.contains(e.target))el.open=false;}));
 loadFieldProfile();renderDirectives('');renderToolHome();renderConc();renderEntryState();renderCaseChips();recompute();initOffline();
 </script>
-<script src="./field-shell.js?v=2026.11.02.3"></script>
-<script src="./field-home.js?v=2026.11.02.3"></script>
+<script src="./field-shell.js?v=2026.11.02.4"></script>
+<script src="./field-home.js?v=2026.11.02.4"></script>
 </body>
 </html>
