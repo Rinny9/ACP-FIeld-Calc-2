@@ -14,15 +14,21 @@
   // Keep one live set of the original inputs. Moving these nodes preserves
   // their input handlers, focus and validation without duplicate patient state.
   const patientControls=document.createElement('section');patientControls.id='fieldPatientControls';patientControls.setAttribute('aria-labelledby','fieldPatientTitle');
-  patientControls.innerHTML='<div class="field-patient-heading"><h2 id="fieldPatientTitle">Patient</h2><span>Updates as you type</span></div>';
-  patientControls.append($('patientEntry'));header.after(patientControls);
+  patientControls.innerHTML='<div class="field-patient-panel"><div class="field-patient-heading"><h2 id="fieldPatientTitle">Patient information</h2><span>Updates as you type</span></div></div>';
+  patientControls.firstElementChild.append($('patientEntry'));header.after(patientControls);
   $('patientEntry').querySelector('.inputintro').hidden=true;$('patientContinue').hidden=true;
   $('wtOpt').hidden=true;$('ageIn').placeholder='Age';$('wtIn').placeholder='Weight';
   $('ageUnit').setAttribute('aria-label','Age unit');$('ageUnit').previousElementSibling.textContent='Age unit';
   $('wtRow').querySelector('.field:last-child label').textContent='Weight unit';
+  for(const [rowId,labelId]of [['ageRow','patientAgeLabel'],['wtRow','patientWeightLabel']]){const row=$(rowId);row.querySelector('label').id=labelId;row.setAttribute('role','group');row.setAttribute('aria-labelledby',labelId);}
+  $('wtRow').querySelector('.unitseg').setAttribute('role','group');
+  $('advancedToggle').setAttribute('aria-controls','advancedPatient');
+  $('sexIn').previousElementSibling.textContent='Sex (adult airway)';$('htIn').previousElementSibling.textContent='Height (cm)';
+  $('patientEntry').insertBefore($('estNote'),$('advancedToggle'));
+  for(const input of [$('ageIn'),$('wtIn')])input.setAttribute('aria-describedby','estNote');
   $('newPtTop').textContent='New patient';
   const patientReset=document.createElement('div');patientReset.className='settingsrow';patientReset.innerHTML='<div class="sl">New patient<small>Clear this encounter; keep your service stock and display settings.</small></div>';patientReset.append($('newPtTop'));$('pane-info').querySelector('.inputcard').append(patientReset);
-  const baseEntryState=renderEntryState;renderEntryState=function(){S.entryCollapsed=false;baseEntryState();};
+  const baseEntryState=renderEntryState;renderEntryState=function(){S.entryCollapsed=false;baseEntryState();$('advancedToggle').innerHTML=`<span>Airway details (optional)<small>Adult ETT and ideal body weight</small></span><span class="field-airway-toggle-mark" aria-hidden="true">${S.advancedOpen?'−':'+'}</span>`;};
   const baseEstNote=renderEstNote;renderEstNote=function(){baseEstNote();if($('estNote').textContent==='Doses recompute live as you type.')$('estNote').style.display='none';};
   function placePatientControls(){
     if(activePane==='critical'){
@@ -40,13 +46,14 @@
   renderPtBar=function(){
     const p=S.pt,has=p&&(p.weightKg!=null||p.ageYears!=null),weight=p?.weightKg!=null?`${fmt(p.weightKg)}<span>kg</span>`:'—';
     const age=p?.ageYears!=null?critAgeLabel(p):'Age not entered';
-    const kind=p?.isPeds==null?'Age required':p.isPeds?'Pediatric':'Adult',source=p?.weightKg!=null?(p.weightSrc==='entered'?'Entered weight':`ESTIMATED · ${p.weightSrc}`):'Weight not entered';
-    const markup=`<div class="field-patient-main"><div class="field-weight num">${weight}</div><div class="field-patient-meta">${has?esc(age)+' · '+esc(kind):'Patient not entered'}<small>${esc(source)}</small></div></div><button id="fieldEditPatient" type="button" class="ptedit" onclick="editPatient()">${has?'Edit patient':'Enter patient'}</button>`;
+    const kind=p?.isPeds==null?'Age required':p.isPeds?'Pediatric':'Adult',source=p?.weightKg!=null?(p.weightSrc==='entered'?(S.wtUnit==='lb'?'Entered in lbs · converted to kg':'Entered weight'):`ESTIMATED · ${p.weightSrc}`):'Weight not entered';
+    const markup=`<div class="field-patient-main"><div class="field-weight"><small class="field-summary-label">Weight used</small><div class="num">${weight}</div></div><div class="field-patient-meta">${has?esc(age)+' · '+esc(kind):'Patient not entered'}<small>${esc(source)}</small></div></div><button id="fieldEditPatient" type="button" class="ptedit" onclick="editPatient()">${has?'Edit patient':'Enter patient'}</button>`;
     // Stock input blur can recompute between pointerdown and click. Keep an
     // unchanged patient strip (and its actual button) alive through that event.
     if($('ptcard').innerHTML!==markup)$('ptcard').innerHTML=markup;
     $('ptcard').classList.toggle('field-estimated',!!p?.weightKg&&p.weightSrc!=='entered');
   };
+  const baseCriticalPatient=critPatientCard;critPatientCard=function(p){const template=document.createElement('template');template.innerHTML=baseCriticalPatient(p);template.content.querySelector('.cpw')?.insertAdjacentHTML('afterbegin','<small class="field-summary-label">Weight used</small>');return template.innerHTML;};
   const baseRow=rowHTML;
   rowHTML=function(r){
     const template=document.createElement('template');template.innerHTML=baseRow(r).replace('✓ Conditions','Conditions').replace('✗ Contraindications','Contraindications');

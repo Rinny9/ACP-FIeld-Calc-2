@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.11.02.3 structures the directly editable Patient information panel into clearly labelled age/unit and weight/unit rows. Optional airway details are separated below; validation and estimated-weight notices remain beside the main inputs. The persistent read-only summary labels Weight used and retains provenance, including pounds-to-kg conversion. Critical uses a compact version of the same labelled rows. Original input handlers, clinical data, formulas and source mappings are unchanged. Publish the versioned UI files, index.html and sw.js together.
+
 Build 2026.11.02.2 restores the original concept's six problem-category Home, search and Open Critical care. All 34 alphabetical directives remain available through Browse all directives A–Z. Age and weight are editable directly at the top of every view, including Critical, without a dialog; the compact summary remains visible while scrolling. Optional airway details stay secondary. New patient is in Settings and keeps its confirmation. Clinical content, calculations, validation, references and offline update behavior are retained. Publish index.html, field-ui.css, field-shell.js, field-home.js and sw.js together.
 
 Build 2026.11.02.1 turns the approved interface concept into the working app:

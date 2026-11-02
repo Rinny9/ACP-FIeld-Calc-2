@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Structured patient information — 2026-11-02, build 2026.11.02.3
+
+Patient entry now has one framed panel with clearly named age and weight groups. Each numeric value stays beside its unit; phone and Large-text layouts use two full-width rows, with complete groups side by side on wider screens. Critical uses compact labelled rows so the same direct controls occupy less vertical space. Optional sex/height sit beneath a divider and stack on phones. Validation and estimated-weight notices appear immediately after the primary rows, before optional fields.
+
+The persistent summary explicitly labels Weight used, retains entered/estimated provenance and explains conversion when entered in pounds. The editor reuses all original controls and handlers; live calculations, conversion, validation, patient resets, Critical focus and handoffs retain the preceding behavior. Clinical formulas, directive/PDC data and source mappings are unchanged. Targeted phone-layout and interaction checks in Chrome/WebKit and the real update/offline lifecycle cover this presentation change.
+
 ## Problem-based Home and inline patient entry — 2026-11-02, build 2026.11.02.2
 
 Restored the original concept's six problem categories, condition/medication search and Open Critical care action. The complete 34-directive A–Z directory remains a secondary browse option with its existing patient-specific calculations and original references. Searching a condition or medication shows matching real directives directly; returning from a detail preserves the originating browse/search view. Generic Critical entry and patient edits never select a condition automatically.
