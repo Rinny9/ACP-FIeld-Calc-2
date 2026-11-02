@@ -485,7 +485,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
 .update-notice strong{display:block;color:var(--text)}.update-notice-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.update-notice button{min-height:44px;padding:8px 12px;border:1px solid var(--border2);border-radius:9px;font-size:14px;color:var(--blue);background:var(--blue-dim);font-weight:800}
 body.critical-open .update-notice{display:none}
 </style>
-<link rel="stylesheet" href="./field-ui.css?v=2026.11.02.1">
+<link rel="stylesheet" href="./field-ui.css?v=2026.11.02.2">
 </head>
 <body>
 
@@ -493,7 +493,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.02.1</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.02.2</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -577,7 +577,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.02.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.02.2</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -592,7 +592,7 @@ body.critical-open .update-notice{display:none}
       <div class="h3">Notes &amp; scope</div>
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.02.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.02.2 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -2656,6 +2656,8 @@ function renderCritGrid(){
   const focused=document.activeElement,focusInCritical=$('critical').contains(focused),focusKey=focusInCritical?{id:focused.id,onclick:focused.getAttribute('onclick'),path:focused.dataset.path}:null;
   const restoreFocus=()=>{
     if(!focusKey)return;
+    // Inline patient inputs survive this render; keep typing in the same field.
+    if(focused.isConnected&&$('critical').contains(focused))return;
     const candidates=[...$('critical').querySelectorAll('button,summary,a[href],select,textarea')].filter(el=>el.getClientRects().length);
     const match=candidates.find(el=>focusKey.id&&el.id===focusKey.id||focusKey.path&&el.dataset.path===focusKey.path||focusKey.onclick&&el.getAttribute('onclick')===focusKey.onclick);
     (match||$('critSubpaths').querySelector('[aria-pressed="true"]'))?.focus({preventScroll:true});
@@ -2670,7 +2672,9 @@ function renderCritGrid(){
   let html=critWarnings(p,path.id);
   if(priorities.length||targets)html+=`<div class="crit-overview">${targets?`<div class="crit-targets">${targets}</div>`:''}${priorities.length?`<details data-detail-key="priorities-${path.id}"${cardDetailsOpen['priorities-'+path.id]?' open':''}><summary>Pathway reminders</summary><ol aria-label="Rapid priorities">${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`:''}</div>`;
   if(path.id==='rosc')html+=`<div id="crit-checklist" tabindex="-1">${critRoscChecklist()}</div>`;
-  if(!p||(p.weightKg==null&&p.ageYears==null)){
+  if(S.validation.length){
+    html+='<section class="crit-empty" id="crit-treatment" data-patient-validation="blocked" role="alert"><b>Verify patient details before using calculations.</b>Correct the highlighted patient values above. Calculated treatment, electrical therapy and equipment values are withheld until the entries are valid.</section>';
+  }else if(!p||(p.weightKg==null&&p.ageYears==null)){
     html+=`<div class="crit-empty"><b>Enter the patient first</b>The hub will then calculate dose, draw-up volume, thresholds and equipment for this pathway.</div>`;
   }else{
     const data=critRowsForPath(p,path.id);
@@ -3073,7 +3077,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.11.02.1';
+const APP_BUILD='2026.11.02.2';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;
@@ -3162,7 +3166,7 @@ $('calcDisplay').innerHTML=displayControlHTML('calc');$('critDisplay').innerHTML
 document.addEventListener('click',e=>document.querySelectorAll('.display-menu[open]').forEach(el=>{if(!el.contains(e.target))el.open=false;}));
 loadFieldProfile();renderDirectives('');renderToolHome();renderConc();renderEntryState();renderCaseChips();recompute();initOffline();
 </script>
-<script src="./field-shell.js?v=2026.11.02.1"></script>
-<script src="./field-home.js?v=2026.11.02.1"></script>
+<script src="./field-shell.js?v=2026.11.02.2"></script>
+<script src="./field-home.js?v=2026.11.02.2"></script>
 </body>
 </html>

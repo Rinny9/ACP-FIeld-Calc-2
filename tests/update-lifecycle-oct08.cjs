@@ -5,12 +5,13 @@ const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),currentHTML=fs.readFileSync(path.join(root,'index.html'),'utf8'),currentSW=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const currentBuild=currentHTML.match(/const APP_BUILD='([^']+)'/)[1],futureBuild=currentBuild.replace(/\.(\d+)$/,(_,n)=>'.'+(Number(n)+1));
-assert.equal(currentBuild,'2026.11.02.1');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
-const legacyRef=process.env.LEGACY_REF||'ca05ef4';
+assert.equal(currentBuild,'2026.11.02.2');assert.match(currentSW,new RegExp(currentBuild.replace(/\./g,'\\.')));
+const legacyRef=process.env.LEGACY_REF||'90e6ff4';
 const gitFile=file=>execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${legacyRef}:${file}`],{cwd:root,encoding:'utf8'});
 const assetNames=['field-ui.css','field-shell.js','field-home.js'];
 const assets=Object.fromEntries(assetNames.map(name=>[name,fs.readFileSync(path.join(root,name),'utf8')]));
-const releases={current:{html:currentHTML,sw:currentSW,assets},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild),assets:Object.fromEntries(Object.entries(assets).map(([name,body])=>[name,body.replaceAll(currentBuild,futureBuild)]))},legacy:{html:gitFile('index.html'),sw:gitFile('sw.js'),assets:{}}};
+const legacyHTML=gitFile('index.html'),legacyAssets=Object.fromEntries(assetNames.filter(name=>legacyHTML.includes(name+'?')).map(name=>[name,gitFile(name)]));
+const releases={current:{html:currentHTML,sw:currentSW,assets},future:{html:currentHTML.replaceAll(currentBuild,futureBuild),sw:currentSW.replaceAll(currentBuild,futureBuild),assets:Object.fromEntries(Object.entries(assets).map(([name,body])=>[name,body.replaceAll(currentBuild,futureBuild)]))},legacy:{html:legacyHTML,sw:gitFile('sw.js'),assets:legacyAssets}};
 let release='current',delayFutureInstall=0;const requests=[];
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -31,9 +32,9 @@ const server=http.createServer((req,res)=>{
 });
 function encounter(){return JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,caseId:S.caseId,query:S.query,toolFields,gcsSel,apSel,tbsaAge,tbsaOn,tbsaExtra,critical:critScenario});}
 async function enterPatient(page,age,weight){
-  if(await page.locator('#patientDialog').count()&&!await page.locator('#patientDialog').evaluate(el=>el.open))await page.locator('#fieldEditPatient').click();
+  assert.equal(await page.locator('#ageIn').isVisible(),true,'Age is available directly in the primary patient controls');
+  assert.equal(await page.locator('#wtIn').isVisible(),true,'Weight is available directly in the primary patient controls');
   await page.locator('#ageIn').fill(String(age));await page.locator('#wtIn').fill(String(weight));
-  if(await page.locator('#patientDialog').count()){await page.locator('#patientContinue').click();await page.waitForFunction(()=>!document.getElementById('patientDialog').open);}
 }
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url=`http://127.0.0.1:${server.address().port}/`;
@@ -72,7 +73,7 @@ async function enterPatient(page,age,weight){
     assert.equal(await page.evaluate(()=>APP_BUILD),futureBuild,'Offline reload uses the active updated shell');assert.match(await page.locator('#offlineStatus').innerText(),/Offline\s*ready/i);
     for(const name of assetNames)assert.equal(await page.evaluate(async({name,version})=>!!await caches.match('./'+name+'?v='+version),{name,version:futureBuild}),true,'Updated offline pack includes '+name);
     assert.equal(await page.locator('#fieldNav').isVisible(),true,'New four-tab shell survives offline reload');
-    await enterPatient(page,4,18);await page.evaluate(()=>FIELD_UI.goHome());await page.locator('#homeSearch').fill('midazolam');
+    await enterPatient(page,4,18);await page.evaluate(()=>FIELD_UI.browseDirectives());await page.locator('#homeSearch').fill('midazolam');
     await page.locator('#homeDirectory [data-home-directive="seizure"]').click();
     const seizure=page.locator('#homeDirectiveDetail .home-dose-list .row').filter({hasText:'Midazolam — active seizure'});assert.equal(await seizure.count(),1);assert.match(await seizure.innerText(),/mg/,'Offline cached app still calculates patient-specific medication results');
     await page.locator('#settingsTop').click();await page.locator('#checkUpdate').click();assert.match(await page.locator('#updateStatus').innerText(),/Offline.*connect to check/);assert.deepEqual(errors,[]);

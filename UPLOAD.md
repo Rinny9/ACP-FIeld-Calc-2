@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.11.02.2 restores the original concept's six problem-category Home, search and Open Critical care. All 34 alphabetical directives remain available through Browse all directives A–Z. Age and weight are editable directly at the top of every view, including Critical, without a dialog; the compact summary remains visible while scrolling. Optional airway details stay secondary. New patient is in Settings and keeps its confirmation. Clinical content, calculations, validation, references and offline update behavior are retained. Publish index.html, field-ui.css, field-shell.js, field-home.js and sw.js together.
+
 Build 2026.11.02.1 turns the approved interface concept into the working app:
 
 - Calculator Home is a single searchable A–Z directory of all 34 medical directives, mixing core and auxiliary entries alphabetically. Each opens its full original reference and available patient calculations; reference-only skills stay usable without inventing calculated doses. All calculations remains available as a secondary destination.

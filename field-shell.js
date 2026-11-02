@@ -4,8 +4,6 @@
   document.body.classList.add('field-interface');
   const svg=content=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${content}</svg>`;
   const icons={settings:svg('<circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 4 2 2v4l4 2 3-1 3 1 4-2v-4l2-2-2-4-3-1-1-3H9Z"/>'),close:svg('<path d="m6 6 12 12M18 6 6 18"/>'),arrow:svg('<path d="m14 6-6 6 6 6"/>'),heart:svg('<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c0 6-8 11-8 11Z"/><path d="M4 11h4l2-4 3 8 2-4h5"/>')};
-  let opener=null,openerAction=null,clickTrigger=null;
-  document.addEventListener('click',e=>{const trigger=e.target.closest('button');clickTrigger=trigger;setTimeout(()=>{if(clickTrigger===trigger)clickTrigger=null;},0);},true);
   const UI=window.FIELD_UI={icons,sync,editPatient:openPatient};
   const header=document.querySelector('body>header');header.classList.add('field-header');
   header.querySelector('h1').textContent='ACP Field';header.querySelector('.subtitle').textContent='Ontario ALS PCS 5.4';header.querySelector('.logo').innerHTML=icons.heart;
@@ -13,18 +11,31 @@
   $('settingsTop').innerHTML=icons.settings;$('settingsTop').setAttribute('aria-label','Settings, service stock and app information');
   const offlineRow=document.createElement('div');offlineRow.className='settingsrow';offlineRow.innerHTML='<div class="sl">Offline pack<small>Source PDFs need internet or downloaded copies</small></div>';offlineRow.append($('offlineStatus'));$('pane-info').querySelector('.inputcard').prepend(offlineRow);
 
-  const dialog=document.createElement('dialog');dialog.id='patientDialog';dialog.setAttribute('aria-labelledby','patientDialogTitle');
-  dialog.innerHTML=`<div class="field-dialog-head"><h2 id="patientDialogTitle">Patient details</h2><button type="button" id="closePatientDialog" aria-label="Close patient details">${icons.close}</button></div><div id="patientDialogBody"></div><div class="field-dialog-footer"></div>`;
-  document.body.append(dialog);$('patientDialogBody').append($('patientEntry'));dialog.querySelector('.field-dialog-footer').append($('newPtTop'));
-  $('newPtTop').textContent='New patient';$('patientContinue').textContent='Done';
-  $('patientContinue').onclick=()=>{if(!S.pt||(S.pt.ageYears==null&&S.pt.weightKg==null)||S.validation.length){$(S.mode==='wt'?'wtIn':'ageIn').focus();return;}S.entryCollapsed=true;renderEntryState();renderResults();closePatient();};
-  $('closePatientDialog').onclick=closePatient;dialog.addEventListener('cancel',e=>{e.preventDefault();closePatient();});
-  dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closePatient();}});
-  document.addEventListener('keydown',e=>{if(dialog.open&&e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closePatient();}},true);
-  function openPatient(){if(dialog.open)return;opener=clickTrigger?.isConnected?clickTrigger:document.activeElement;if(opener===document.body||opener===document.documentElement)opener=null;openerAction=activePane==='critical'?'critical':'normal';S.entryCollapsed=false;renderEntryState();renderEstNote();dialog.showModal();$(S.mode==='wt'?'wtIn':'ageIn').focus({preventScroll:true});}
-  function closePatient(){if(!dialog.open)return;dialog.close();S.entryCollapsed=true;renderEntryState();const target=opener?.isConnected?opener:openerAction==='critical'?$('critical').querySelector('.crit-edit'):$('fieldEditPatient');target?.focus({preventScroll:true});}
+  // Keep one live set of the original inputs. Moving these nodes preserves
+  // their input handlers, focus and validation without duplicate patient state.
+  const patientControls=document.createElement('section');patientControls.id='fieldPatientControls';patientControls.setAttribute('aria-labelledby','fieldPatientTitle');
+  patientControls.innerHTML='<div class="field-patient-heading"><h2 id="fieldPatientTitle">Patient</h2><span>Updates as you type</span></div>';
+  patientControls.append($('patientEntry'));header.after(patientControls);
+  $('patientEntry').querySelector('.inputintro').hidden=true;$('patientContinue').hidden=true;
+  $('wtOpt').hidden=true;$('ageIn').placeholder='Age';$('wtIn').placeholder='Weight';
+  $('ageUnit').setAttribute('aria-label','Age unit');$('ageUnit').previousElementSibling.textContent='Age unit';
+  $('wtRow').querySelector('.field:last-child label').textContent='Weight unit';
+  $('newPtTop').textContent='New patient';
+  const patientReset=document.createElement('div');patientReset.className='settingsrow';patientReset.innerHTML='<div class="sl">New patient<small>Clear this encounter; keep your service stock and display settings.</small></div>';patientReset.append($('newPtTop'));$('pane-info').querySelector('.inputcard').append(patientReset);
+  const baseEntryState=renderEntryState;renderEntryState=function(){S.entryCollapsed=false;baseEntryState();};
+  const baseEstNote=renderEstNote;renderEstNote=function(){baseEstNote();if($('estNote').textContent==='Doses recompute live as you type.')$('estNote').style.display='none';};
+  function placePatientControls(){
+    if(activePane==='critical'){
+      const sticky=$('critical').querySelector('.crit-sticky');if(patientControls.previousElementSibling!==sticky)sticky.after(patientControls);
+    }else if(patientControls.previousElementSibling!==header)header.after(patientControls);
+  }
+  function openPatient(){
+    placePatientControls();renderEntryState();renderEstNote();
+    if(activePane==='critical')$('critical').scrollTo({top:0,behavior:'instant'});else window.scrollTo({top:0,behavior:'instant'});
+    const input=$(S.mode==='wt'?'wtIn':'ageIn');input.focus({preventScroll:true});
+  }
   window.editPatient=openPatient;window.criticalEditPatient=openPatient;
-  $('newPtTop').onclick=()=>{const before=S.pt;newPatient();if(S.pt!==before){closePatient();UI.goHome?.();}};
+  $('newPtTop').onclick=()=>{const before=S.pt;newPatient();if(S.pt!==before){UI.goHome?.();requestAnimationFrame(openPatient);}};
 
   renderPtBar=function(){
     const p=S.pt,has=p&&(p.weightKg!=null||p.ageYears!=null),weight=p?.weightKg!=null?`${fmt(p.weightKg)}<span>kg</span>`:'—';
@@ -89,6 +100,7 @@
     sync();
   };
   function sync(){
+    placePatientControls();
     document.body.dataset.fieldPane=activePane;
     for(const b of nav.querySelectorAll('[data-pane]')){const on=b.dataset.pane===(activePane==='peds'?'dir':activePane);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');}
     for(const b of document.querySelectorAll('[data-reference-pane]'))b.setAttribute('aria-pressed',String(b.dataset.referencePane===activePane));
@@ -96,5 +108,5 @@
   }
   if('ResizeObserver'in window)new ResizeObserver(()=>document.documentElement.style.setProperty('--field-header-height',header.getBoundingClientRect().height+'px')).observe(header);
   if(readFieldProfile().daylight==null)applyDaylight(true);
-  S.entryCollapsed=true;renderEntryState();renderPtBar();renderPeds();syncDisplayControls();sync();
+  S.entryCollapsed=false;renderEntryState();renderPtBar();renderEstNote();renderPeds();syncDisplayControls();sync();
 })();

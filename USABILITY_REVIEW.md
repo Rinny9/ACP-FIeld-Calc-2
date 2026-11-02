@@ -2,6 +2,14 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Problem-based Home and inline patient entry — 2026-11-02, build 2026.11.02.2
+
+Restored the original concept's six problem categories, condition/medication search and Open Critical care action. The complete 34-directive A–Z directory remains a secondary browse option with its existing patient-specific calculations and original references. Searching a condition or medication shows matching real directives directly; returning from a detail preserves the originating browse/search view. Generic Critical entry and patient edits never select a condition automatically.
+
+Age and weight are directly editable at the top without opening a patient dialog. The same original input nodes move into Critical, retaining their event handlers and patient state. Optional sex/height remain in the secondary Airway details disclosure. The editor scrolls with the page; the compact patient summary stays visible. Edit patient focuses the inline entry without leaving the current condition. New patient is available in Settings, away from routine typing controls, and retains the existing confirmation and encounter-reset behavior. Existing validation and estimated-weight notices remain in place. Critical now also withholds its calculated treatment, electrical and equipment cards while patient validation errors are present, matching the other calculation views; correcting the inputs restores them without losing the condition or typing focus. This is a display guard, with no formula or eligibility changes.
+
+Validation covers the restored Home, secondary directory, live inline edits, Critical typing focus, phone/landscape touch targets, patient/Peds handoffs, unchanged clinical/source output, all Critical/PDC/tool layouts and the actual update/offline lifecycle from the preceding working-interface build. Chrome and WebKit checks supplement the visually inspected phone screenshots; these are not physical-iPhone or clinical-certification results.
+
 ## Working field interface — 2026-11-02, build 2026.11.02.1
 
 The concept is now a working presentation layer over the existing clinical engine and full content. Home lists all 34 directives in one searchable alphabetical directory rather than call-type categories. Directive details include original full references and supported patient-specific cards; unsupported calculations are labelled reference-only. Age-dependent cardiac destinations reuse Critical's safeguards, while complete opioid and arrest branches remain mapped. Patient entry is a single validated dialog, including from Critical and missing-patient Peds handoffs. Peds chart references never receive an inline service-stock label.
