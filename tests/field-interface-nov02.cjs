@@ -11,7 +11,7 @@ const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHT
 assert.equal(clinical(html),clinical(baseline),'Clinical formulas, concentrations and all 34 directive strings unchanged');
 assert.equal(sources(html),sources(baseline),'Existing source URLs, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart data unchanged');
-const build='2026.11.02.4',assets=['field-ui.css','field-shell.js','field-home.js'];
+const build='2026.11.03.1',assets=['field-ui.css','field-shell.js','field-home.js'];
 for(const name of assets)assert.ok(html.includes(name+'?v='+build),'Versioned asset linked: '+name);
 const files=new Map([['/index.html',html],['/',html],['/baseline.html',baseline],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')]),...['manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,body=files.get(pathname);res.writeHead(body?200:404,{'Content-Type':pathname.endsWith('.css')?'text/css; charset=utf-8':pathname.endsWith('.js')?'text/javascript; charset=utf-8':pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(body||'Not found');});
@@ -24,7 +24,21 @@ const renderedRows=page=>page.evaluate(inputs=>{
     const pt=buildPatient(input),rows=[...Object.values(drugCalcs(pt)).flat(),...airway(pt).map(row=>({name:row.k,dose:row.v,ml:null,sub:row.sub,rep:row.rep,src:row.src,tone:row.tone,needW:row.needW}))];
     return rows.map((row,index)=>{
       const element=document.createElement('div');element.innerHTML=rowHTML(row);element.querySelectorAll('.field-stock,.field-dose-label').forEach(el=>el.remove());
-      return{input,index,name:row.name,components:Object.fromEntries(selectors.map(selector=>[selector,[...element.querySelectorAll(selector)].map(el=>norm(el.textContent))])),sources:[...element.querySelectorAll('a[href]')].map(el=>el.href)};
+      // The approved Lidocaine presentation expands the original ETT numbers
+      // and vascular labels, and excludes the unrelated amiodarone stock.
+      // Its full wording, numbers and new PCS citations are tested separately
+      // in tools-clarity-nov03; all other clinical DOM remains exact here.
+      if(row.name==='Lidocaine (if not amiodarone)'&&/ETT/.test(row.sub||'')){
+        const alternative=element.querySelector('.field-ett-route');
+        if(alternative){
+          const doses=row.sub.match(/^ETT ([\d.,]+)\/([\d.,]+) mg$/),formula=row.sub.match(/ETT ([\d.]+) → ([\d.]+) mg\/kg/),expected=(doses||formula).slice(1).map(value=>value+(doses?' mg':' mg/kg'));
+          if(JSON.stringify([...alternative.querySelectorAll('dd')].map(el=>el.textContent))!==JSON.stringify(expected))throw new Error('Expanded Lidocaine ETT quantities changed');
+          alternative.innerHTML='<b>Administration / cautions</b><br>'+referenceHTML(row.sub);
+          const labels=element.querySelectorAll('.rseq .rsv>small');if(labels[0])labels[0].textContent='1st dose';if(labels[1])labels[1].textContent='then dose';
+        }
+        const details=element.querySelector('.card-details>div');if(details?.textContent.includes('Concentration / formulation used'))details.innerHTML='<b>Concentration / formulation used</b><br>'+esc('lidocaine: '+fmt(CONC.lidocaine.v)+' mg/mL');
+      }
+      return{input,index,name:row.name,components:Object.fromEntries(selectors.map(selector=>[selector,[...element.querySelectorAll(selector)].map(el=>{let value=norm(el.textContent);if(row.name==='Lidocaine (if not amiodarone)'&&selector==='.rseq')value=value.replaceAll(' @ '+fmt(CONC.lidocaine.v)+' mg/mL',' of 2%');return value;})])),sources:[...element.querySelectorAll('a[href]')].map(el=>el.href)};
     });
   });
 },patients);
@@ -115,6 +129,7 @@ function inspectToolsLayout(){
       const currentRows=await renderedRows(page),oldRows=await renderedRows(old);assert.equal(currentRows.length,oldRows.length);
       for(let i=0;i<oldRows.length;i++)assert.deepEqual(currentRows[i],oldRows[i],`Clinical row DOM preserved: patient${JSON.stringify(oldRows[i].input)} ${oldRows[i].name} #${oldRows[i].index}`);
       await old.close();
+      if(process.env.FIELD_MODELS_ONLY){console.log(`PASS ${name}: exact clinical/source models and medication/equipment DOM, allowing only the independently tested Lidocaine route labels and corrected stock display.`);await context.close();continue;}
       const expected=await page.evaluate(()=>[...DIR].sort((a,b)=>a.n.localeCompare(b.n)).map(d=>({id:d.id,name:d.n})));
       await browse();assert.equal(expected.length,34);assert.deepEqual(await page.locator('#homeDirectory [data-home-directive]').evaluateAll(es=>es.map(e=>e.dataset.homeDirective)),expected.map(d=>d.id),'Secondary directory is strictly A–Z across core and auxiliary directives');
       await page.evaluate(()=>editPatient());await settle();assert.equal(await page.evaluate(()=>document.activeElement.id),'ageIn','Edit patient focuses the existing inline Age input');

@@ -11,7 +11,7 @@ const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHT
 assert.equal(clinical(html),clinical(baseline),'Patient presentation does not change clinical data, formulas or directives');
 assert.equal(sources(html),sources(baseline),'Source mappings and reference helpers remain unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Pediatric chart transcription remains unchanged');
-assert.match(html,/const APP_BUILD='2026\.11\.02\.4'/);
+assert.match(html,/const APP_BUILD='2026\.11\.03\.1'/);
 const files=new Map([['/',html],['/index.html',html],...['field-ui.css','field-shell.js','field-home.js','manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname,body=files.get(name);res.writeHead(body?200:404,{'Content-Type':name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.svg')?'image/svg+xml':'text/html; charset=utf-8'});res.end(body||'Not found');});
 const shots=process.env.SCREENSHOT_DIR;if(shots)fs.mkdirSync(shots,{recursive:true});

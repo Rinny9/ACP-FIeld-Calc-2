@@ -485,7 +485,7 @@ body.large-text .crit-air-grid{grid-template-columns:1fr}
 .update-notice strong{display:block;color:var(--text)}.update-notice-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.update-notice button{min-height:44px;padding:8px 12px;border:1px solid var(--border2);border-radius:9px;font-size:14px;color:var(--blue);background:var(--blue-dim);font-weight:800}
 body.critical-open .update-notice{display:none}
 </style>
-<link rel="stylesheet" href="./field-ui.css?v=2026.11.02.4">
+<link rel="stylesheet" href="./field-ui.css?v=2026.11.03.1">
 </head>
 <body>
 
@@ -493,7 +493,7 @@ body.critical-open .update-notice{display:none}
   <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 5 6.2 5c2.2 0 3.6 1.2 4.4 2.4h2.8c.8-1.2 2.2-2.4 4.4-2.4 3.6 0 5.4 3.6 3.9 6.8C19.5 16.4 12 21 12 21z" fill="#fff" opacity=".95"/><path d="M4 12h4l1.5-3 2.5 6 2-4 1 1h5" stroke="#3D63D8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div>
     <h1>ACP Field Calc</h1>
-    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.02.4</div>
+    <div class="subtitle">Ontario ALS PCS v5.4 · in force Jun 2, 2025 · build 2026.11.03.1</div>
   </div>
   <div class="hdr-right">
     <button id="offlineStatus" class="statusbtn" type="button" aria-live="polite">Checking<br>offline pack</button>
@@ -577,7 +577,7 @@ body.critical-open .update-notice{display:none}
       <div class="settingsrow"><div class="sl">Profile name<small>Stored only on this device</small></div><input id="profileName" class="num" type="text" value="My service" maxlength="40"></div>
       <div class="settingsrow"><div class="sl">Display mode<small>Use daylight mode for bright scenes</small></div><button id="dayBtn" type="button">Daylight</button></div>
       <div class="settingsrow"><div class="sl">Large text<small>Larger doses, clinical labels and cautions</small></div><button id="largeTextBtn" type="button" aria-pressed="false">Large text off</button></div>
-      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.02.4</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
+      <div class="settingsrow"><div class="sl">App version<small id="activeBuild">Active build 2026.11.03.1</small><small id="updateStatus">Checking offline pack…</small></div><button id="checkUpdate" type="button">Check update</button></div>
       <div class="settingsrow"><div class="sl">Reset stock concentrations<small>Restores the bundled defaults</small></div><button id="resetConc" type="button">Reset</button></div>
       <div class="h3" style="margin-top:0">Provenance legend</div>
       <div class="legend">
@@ -593,7 +593,7 @@ body.critical-open .update-notice{display:none}
       <p class="p"><b>Offline scope:</b> once the offline pack is ready, calculations and in-app summaries work offline. Linked source PDFs require an internet connection or separately downloaded copies.</p>
       <p class="p"><b>Draw-volume display:</b> calculated medication draws use the nearest 0.05 mL without increasing a calculated single-dose volume or leaving its original dose range. Changed values show ≈, the calculated volume and a dose-verification reminder. Draws below 0.05 mL, or rounding outside those bounds, keep the calculated value and a precision-verification message. This display aid does not establish that rounding is appropriate for a particular drug or patient. Dose formulas, mg/mcg amounts, infusion rates and published reference tables are not rounded by this display rule.</p>
       <p class="p">Covers the ACP core directive set (ALS PCS §2) plus ACP auxiliary CPAP, TXA, NTI, cricothyrotomy, adult IO and procedural sedation (§4). Adult defibrillation energies are deliberately shown as “per RBHP / manufacturer” — the PCS joule table is intentionally blank (p.107). Voice input is omitted because on-device speech recognition is not reliably available offline.</p>
-      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.02.4 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
+      <div class="footer">Sources: MOH ALS PCS v5.4 (2025-04-23; in force 2025-06-02) · OBHG Companion Document v5.4 (August 2026, v26.08.27) · Pediatric Dosing Charts v5.4 (Sunnybrook, rppeo.ca, printed p.56–69)<br>Build 2026.11.03.1 · Reference pages audited; older clinical summaries needing review are flagged · install the offline pack before field use</div>
     </div>
   </section>
 </main>
@@ -2284,7 +2284,7 @@ function renderActiveTool(id){
 }
 window.resetCurrentTool=()=>{if(!S.tool)return;resetToolState(S.tool);renderActiveTool(S.tool);$('toolReset')?.focus({preventScroll:true});};
 function renderToolHome(message=''){
-  $('toolHome').innerHTML=(message?`<div id="toolPatientNotice" class="warnbanner" role="status" style="margin-bottom:12px">${esc(message)}</div>`:'')+`<div class="toolgrid">${TOOLS.map(t=>`<button class="tool" onclick="openTool('${t.id}')"><div class="ti">${t.i}</div><div class="tn">${t.n}</div><div class="td">${t.d}</div></button>`).join('')}</div>`;
+  $('toolHome').innerHTML=(message?`<div id="toolPatientNotice" class="warnbanner" role="status" style="margin-bottom:12px">${esc(message)}</div>`:'')+`<div class="toolgrid">${TOOLS.map(t=>`<button type="button" class="tool" data-tool-id="${t.id}" onclick="openTool('${t.id}')"><div class="ti">${t.i}</div><div class="tn">${t.n}</div><div class="td">${t.d}</div></button>`).join('')}</div>`;
   $('toolView').innerHTML='';
 }
 function invalidatePatientTool(){
@@ -2306,7 +2306,7 @@ window.openTool=(id,fromChip)=>{
 window.closeTool=()=>{saveToolFields();stopApgarTimer();S.tool=null;$('toolHome').classList.remove('hide');$('toolView').innerHTML='';};
 
 function toolPanel(id){
-  const back=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px"><button class="backbtn" style="margin-bottom:0;min-height:44px" onclick="closeTool()">‹ All tools</button>${['gcs','apgar','tbsa','drip','shock'].includes(id)?'<button id="toolReset" style="min-height:44px;padding:8px 14px;background:var(--blue-dim);border:1px solid var(--border2);border-radius:10px;color:var(--blue);font-size:14px;font-weight:750" onclick="resetCurrentTool()">Reset tool</button>':''}</div>`;
+  const back=`<div class="field-tool-nav" role="group" aria-label="Tool navigation"><button type="button" id="allToolsBack" class="backbtn" onclick="closeTool()"><span aria-hidden="true">‹</span> All tools</button>${['gcs','apgar','tbsa','drip','shock'].includes(id)?'<button id="toolReset" type="button" onclick="resetCurrentTool()">Reset tool</button>':''}</div>`;
   if(id==='pushdose'){const pd=pushDoseEpi();return `${back}<div class="toolpanel"><h3>Push-Dose EPINEPHrine</h3><div class="tsrc">${esc(pd.src)}</div>
     <div class="warnbanner red">⚠ <b>Not an ALS PCS 5.4 treatment.</b> In Ontario this requires a BHP order. Reference for patch discussion only.</div>
     ${rowHTML({name:'Mix',dose:pd.mix,tone:'ext',src:'EXT: common push-dose preparation'})}
@@ -3118,7 +3118,7 @@ function newPatient(){
 $('newPtTop').onclick=newPatient;
 $('settingsTop').onclick=()=>switchPane('info');
 
-const APP_BUILD='2026.11.02.4';
+const APP_BUILD='2026.11.03.1';
 let offlinePackReady=false,offlineRegistration=null,availableUpdateWorker=null,availableUpdateBuild=null,updateDismissed=false,updateApplying=false;
 function updateVersionStatus(message){
   $('activeBuild').textContent=`Active build ${APP_BUILD}`;
@@ -3207,7 +3207,7 @@ $('calcDisplay').innerHTML=displayControlHTML('calc');$('critDisplay').innerHTML
 document.addEventListener('click',e=>document.querySelectorAll('.display-menu[open]').forEach(el=>{if(!el.contains(e.target))el.open=false;}));
 loadFieldProfile();renderDirectives('');renderToolHome();renderConc();renderEntryState();renderCaseChips();recompute();initOffline();
 </script>
-<script src="./field-shell.js?v=2026.11.02.4"></script>
-<script src="./field-home.js?v=2026.11.02.4"></script>
+<script src="./field-shell.js?v=2026.11.03.1"></script>
+<script src="./field-home.js?v=2026.11.03.1"></script>
 </body>
 </html>

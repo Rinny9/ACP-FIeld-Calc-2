@@ -56,13 +56,30 @@
   const baseCriticalPatient=critPatientCard;critPatientCard=function(p){const template=document.createElement('template');template.innerHTML=baseCriticalPatient(p);template.content.querySelector('.cpw')?.insertAdjacentHTML('afterbegin','<small class="field-summary-label">Weight used</small>');return template.innerHTML;};
   const baseRow=rowHTML;
   rowHTML=function(r){
-    const template=document.createElement('template');template.innerHTML=baseRow(r).replace('✓ Conditions','Conditions').replace('✗ Contraindications','Contraindications');
+    const lidocaineAlternative=r.name==='Lidocaine (if not amiodarone)';
+    const lidocaineStock=`lidocaine: ${fmt(CONC.lidocaine.v)} mg/mL`;
+    const displayRow=lidocaineAlternative?{...r,ml:r.ml?.replace(' of 2%',` @ ${fmt(CONC.lidocaine.v)} mg/mL`),ml2:r.ml2?.replace(' of 2%',` @ ${fmt(CONC.lidocaine.v)} mg/mL`),concentrationDetails:r.ml?lidocaineStock:''}:r;
+    const template=document.createElement('template');template.innerHTML=baseRow(displayRow).replace('✓ Conditions','Conditions').replace('✗ Contraindications','Contraindications');
     const hasVolume=!!r.ml||(r.lines||[]).some(l=>/mL\b/.test(l.m||''));
-    const stockText=hasVolume&&!/^PDC/.test(r.src||'')?[r.name,...(r.lines||[]).map(l=>l.l)].join(' ').toLowerCase():'';
-    const stock=[...new Set(Object.entries(STOCK_NAMES).filter(([name])=>stockText.includes(name)).map(([,key])=>`${CONC[key].label}: ${fmt(CONC[key].v)} ${CONC[key].unit}`))].join(' · ');
+    const stockText=hasVolume&&!/^PDC/.test(r.src||'')?[lidocaineAlternative?'Lidocaine':r.name,...(r.lines||[]).map(l=>l.l)].join(' ').toLowerCase():'';
+    const stock=lidocaineAlternative&&hasVolume?lidocaineStock:[...new Set(Object.entries(STOCK_NAMES).filter(([name])=>stockText.includes(name)).map(([,key])=>`${CONC[key].label}: ${fmt(CONC[key].v)} ${CONC[key].unit}`))].join(' · ');
     if(String(r.dose||'').length>18||String(r.ml||'').length>20||/\/kg/.test(r.dose||''))template.content.querySelector('.rmain')?.classList.add('field-long-dose');
     if(stock&&!/epinephrine/i.test(r.name||'')){const line=document.createElement('div');line.className='field-stock';line.textContent='Concentration used · '+stock;template.content.querySelector('.rname')?.after(line);}
     for(const route of template.content.querySelectorAll('.rline'))if(route.querySelector('.rlM .draw-label')){const label=document.createElement('span');label.className='field-dose-label';label.textContent='Dose';route.querySelector('.rlD')?.prepend(label);route.classList.add('field-dose-pair');}
+    if(lidocaineAlternative){
+      const doses=String(r.sub||'').match(/^ETT ([\d.,]+)\/([\d.,]+) mg$/),formula=String(r.sub||'').match(/ETT ([\d.]+) → ([\d.]+) mg\/kg/),vascular=String(r.sub||'').match(/^([\d.]+)(?: mg\/kg)? → ([\d.]+) mg\/kg/),section=template.content.querySelector('.rsub');
+      if((doses||formula)&&section){
+        const values=doses||formula,unit=doses?' mg':' mg/kg';
+        section.classList.add('field-ett-route');section.innerHTML=`<b>Alternative route · endotracheal tube (ETT)</b>${!doses&&vascular?`<p>IV/IO/CVAD: first ${doseTextHTML(vascular[1]+' mg/kg')}; second ${doseTextHTML(vascular[2]+' mg/kg')}. Enter weight for patient-specific doses.</p>`:''}<p>ETT may be used when vascular access (IV/IO/CVAD) is delayed, e.g. ≥5 min.</p><dl><div><dt>1st ETT dose</dt><dd class="num">${doseTextHTML(values[1]+unit)}</dd></div><div><dt>2nd ETT dose</dt><dd class="num">${doseTextHTML(values[2]+unit)}</dd></div></dl><p>Second dose after 4 min if indicated. These are alternative-route doses, not additional doses.</p>${srcLink('PCS p.105, 107')}`;
+        const labels=template.content.querySelectorAll('.rseq .rsv>small');if(labels[0])labels[0].textContent='1st vascular dose · IV/IO/CVAD';if(labels[1])labels[1].textContent='2nd vascular dose · IV/IO/CVAD';
+      }
+    }
+    const dopamineContext=r.directive?['Symptomatic Bradycardia','Cardiogenic Shock'].includes(r.directive):activePane==='critical'&&['brady','cshock'].includes(critScenario);
+    if(/^DOPamine infusion\b/.test(r.name||'')&&dopamineContext){
+      for(const [index,line]of [...template.content.querySelectorAll('.rline')].entries()){
+        const rate=String(r.lines?.[index]?.l||'').match(/^(5|10|15|20) mcg\/kg\/min$/);if(rate){line.classList.add('field-infusion-step');line.dataset.infusionRate=rate[1];}
+      }
+    }
     return template.innerHTML;
   };
   const basePeds=renderPeds;
@@ -81,7 +98,14 @@
     const tabs=document.createElement('div');tabs.className='field-reference-header';tabs.innerHTML=`<div class="field-page-kicker">REFERENCE LIBRARY</div><h1>Find the source.</h1><div id="${tabId}" class="field-reference-tabs" role="group" aria-label="Reference collection"><button type="button" data-reference-pane="dir">Directives</button><button type="button" data-reference-pane="peds">Pediatric charts</button></div>`;$(paneId).prepend(tabs);tabs.querySelectorAll('[data-reference-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.referencePane));
   }
   const toolsTitle=document.createElement('div');toolsTitle.className='field-page-intro';toolsTitle.innerHTML='<div class="field-page-kicker">PRACTICAL FIELD TOOLS</div><h1>Tools, not clutter.</h1><p>Assessment, infusion and equipment references.</p>';$('pane-tools').prepend(toolsTitle);
-  const baseSwitch=switchPane;switchPane=function(id){baseSwitch(id);sync();};
+  const pedsToolsNav=document.createElement('div');pedsToolsNav.id='pedsToolsNav';pedsToolsNav.className='field-tool-nav';pedsToolsNav.hidden=true;pedsToolsNav.innerHTML='<button type="button" id="pedsToolsBack" class="backbtn"><span aria-hidden="true">‹</span> Back to Tools</button>';$('pane-peds').prepend(pedsToolsNav);
+  let toolHomeScroll=0;
+  const baseToolHome=renderToolHome;renderToolHome=function(...args){baseToolHome(...args);const shortcut=document.createElement('button');shortcut.type='button';shortcut.id='pediatricChartsTool';shortcut.className='tool';shortcut.innerHTML='<div class="ti" aria-hidden="true">📖</div><div class="tn">Pediatric charts</div><div class="td">Weight bands · PDC v5.4 reference</div>';shortcut.onclick=()=>{toolHomeScroll=window.scrollY;pedsToolsNav.hidden=false;switchPane('peds');requestAnimationFrame(()=>{if(activePane!=='peds'||pedsToolsNav.hidden)return;window.scrollTo(0,0);if(!$('pane-peds').contains(document.activeElement)&&!document.activeElement?.closest('#fieldPatientControls'))$('pedsToolsBack').focus({preventScroll:true});});};$('toolHome').querySelector('.toolgrid').prepend(shortcut);};
+  $('pedsToolsBack').onclick=()=>{pedsToolsNav.hidden=true;switchPane('tools');requestAnimationFrame(()=>{if(activePane!=='tools')return;window.scrollTo(0,toolHomeScroll);$('pediatricChartsTool')?.focus({preventScroll:true});});};
+  const baseOpenTool=openTool;openTool=function(id,fromChip){if(!S.tool&&activePane==='tools')toolHomeScroll=window.scrollY;baseOpenTool(id,fromChip);requestAnimationFrame(()=>{if(activePane!=='tools'||S.tool!==id)return;const bar=$('toolView').querySelector('.field-tool-nav');if(bar){const offset=header.getBoundingClientRect().height+$('ptbar').getBoundingClientRect().height;window.scrollTo({top:Math.max(0,bar.getBoundingClientRect().top+window.scrollY-offset),behavior:'instant'});if(!$('toolView').contains(document.activeElement)&&!document.activeElement?.closest('#fieldPatientControls'))$('allToolsBack')?.focus({preventScroll:true});}});};
+  const baseCloseTool=closeTool;closeTool=function(){const id=S.tool;baseCloseTool();requestAnimationFrame(()=>{if(activePane!=='tools'||S.tool)return;window.scrollTo(0,toolHomeScroll);($('toolHome').querySelector(`[data-tool-id="${id}"]`)||$('pediatricChartsTool'))?.focus({preventScroll:true});});};
+  const baseSwitch=switchPane;switchPane=function(id){if(activePane==='peds'&&id!=='peds')pedsToolsNav.hidden=true;baseSwitch(id);sync();};
+  renderToolHome();
   scrollToCalculations=function(){requestAnimationFrame(()=>{
     const target=$('results').querySelector('.pathway-notice,.sec:not([data-sec="summary"])')||$('workflow');
     const offset=header.getBoundingClientRect().height+$('ptbar').getBoundingClientRect().height+12;

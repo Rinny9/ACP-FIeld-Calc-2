@@ -125,7 +125,7 @@ for(const stockScale of [1,.73,2.4]){
 }
 for(const key of Object.keys(current.engine.CONC))current.engine.CONC[key].v=old.engine.CONC[key].v;
 assert.ok(drawsChecked>15000&&roundedChecked>1000&&precisionChecked>100,'Rounding sweep exercises medication draws, changed results and tiny positive draws');
-assert.match(html,/const APP_BUILD='2026\.11\.02\.4'/);
+assert.match(html,/const APP_BUILD='2026\.11\.03\.1'/);
 
 const assets=['field-ui.css','field-shell.js','field-home.js','manifest.webmanifest','icon.svg'];
 const files=new Map([['/',html],['/index.html',html],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
