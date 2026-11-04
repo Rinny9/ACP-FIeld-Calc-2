@@ -11,7 +11,7 @@ const engine=source=>{const context=vm.createContext({module:{exports:{}}});vm.r
 assert.equal(clinical(html),clinical(baseline),'All clinical constants, doses, formulas, gates and directive strings are unchanged');
 assert.equal(html.slice(html.indexOf('const SRC_LINKS='),html.indexOf('function rowHTML(')),baseline.slice(baseline.indexOf('const SRC_LINKS='),baseline.indexOf('function rowHTML(')),'All source links, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart values remain exact');
-assert.match(html,/const APP_BUILD='2026\.11\.03\.1'/);
+assert.match(html,/const APP_BUILD='2026\.11\.03\.2'/);
 const current=engine(html),previous=engine(baseline);
 for(const ageYears of [0,1/365.25,2,8,12,18,28,65,null])for(const weightKg of [4,18,33.3,40,80,125,null]){
   const input={ageYears,weightKg,suppressWeightEstimate:weightKg==null},pt=current.buildPatient(input);
@@ -68,6 +68,21 @@ function inspectClinicalCards(selector){
   }
   return [...new Set(issues)];
 }
+async function assertInfusionPresentation(page,region,daylight,weight,description){
+  const rows=page.locator(region+' .field-infusion-step');
+  assert.deepEqual(await rows.evaluateAll(elements=>elements.map(element=>element.dataset.infusionRate)),['5','10','15','20'],description+': four existing infusion rates');
+  const lineData=await rows.evaluateAll(elements=>elements.map(element=>({l:element.querySelector('.rlL').textContent.trim(),d:element.querySelector('.rlD').textContent.trim(),m:element.querySelector('.rlM').textContent.trim()})));
+  assert.deepEqual(lineData,plain(previous.dopamineLines(weight)),description+': all original rates and drop timings unchanged');
+  const expectedDose=daylight?'rgb(0, 108, 99)':'rgb(129, 219, 203)',expectedFlow=daylight?'rgb(23, 46, 60)':'rgb(255, 255, 255)';
+  const colors=await rows.evaluateAll(elements=>elements.map(element=>({dose:getComputedStyle(element.querySelector('.rlL')).color,flow:getComputedStyle(element.querySelector('.rlD')).color,rail:getComputedStyle(element).borderLeftColor})));
+  assert.deepEqual(colors.map(color=>color.dose),Array(4).fill(expectedDose),description+': all dosage labels use one teal color');
+  assert.deepEqual(colors.map(color=>color.flow),Array(4).fill(expectedFlow),description+': all flow quantities use neutral white/navy');
+  assert.notEqual(expectedDose,expectedFlow,description+': dosage and flow have distinct semantic colors');
+  assert.equal(new Set(colors.map(color=>color.rail)).size,4,description+': original four rail colors remain distinct');
+  const heading=page.locator(region+' .row:has(.field-infusion-step) .rdose');assert.equal(await heading.count(),1);assert.equal((await heading.textContent()).trim(),'Start 5 mcg/kg/min');assert.equal(await heading.evaluate(element=>getComputedStyle(element).color),expectedDose,description+': starting-dose heading uses the same teal');
+  const contrasts=await page.evaluate(contrastInspection,region+' .field-infusion-step,'+region+' .field-infusion-step .rlL,'+region+' .field-infusion-step .rlD,'+region+' .field-infusion-step .rlM,'+region+' .row:has(.field-infusion-step) .rdose');
+  for(const item of contrasts)assert.ok(item.ratio>=(item.strip?3:4.5)-.01,description+': contrast '+item.ratio.toFixed(2)+' for '+item.text);
+}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   for(const name of process.env.TEST_WEBKIT?['chromium','webkit']:['chromium']){
@@ -81,6 +96,21 @@ function inspectClinicalCards(selector){
       const open=async id=>{await page.evaluate(id=>openTool(id),id);await settle();};
       const back=async()=>{await page.getByRole('button',{name:/All tools/}).click();await settle();assert.equal(await page.evaluate(()=>S.tool),null);};
       await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.waitForFunction(()=>!!window.FIELD_UI?.openDirective);
+      if(process.env.INFUSION_ONLY){
+        await page.locator('#ageIn').fill('28');
+        for(const weight of [80,90]){
+          await page.locator('#wtIn').fill(String(weight));await settle();
+          for(const size of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:844,height:390}])for(const daylight of [false,true])for(const large of [false,true]){
+            await page.setViewportSize(size);await page.evaluate(({daylight,large})=>{document.body.classList.toggle('daylight',daylight);document.body.classList.toggle('large-text',large);},{daylight,large});
+            for(const id of ['brady','cshock'])for(const view of ['home','calculator','critical']){
+              await page.evaluate(({id,view})=>{if(view==='home')FIELD_UI.openDirective(id);else if(view==='critical'){switchPane('critical');selectCriticalPath(id);}else{FIELD_UI.showAllCalculations();selectCase(id==='brady'?'brady':'crit-cshock');}},{id,view});await settle();
+              const region=view==='home'?'#homeDirectiveDetail':view==='calculator'?'#results':'#crit-treatment',description=JSON.stringify({name,weight,size,daylight,large,id,view});
+              await assertInfusionPresentation(page,region,daylight,weight,description);assert.deepEqual(await page.evaluate(inspectClinicalCards,region),[],description+': dose/flow layout fits');
+            }
+          }
+        }
+        assert.deepEqual(errors,[]);console.log(`PASS ${name}: one teal dosage color, white/navy flow values, distinct rails, starting-dose heading, contrast and unchanged80/90kg rates across Home/Calculator/Critical at320–844px in normal/Large themes.`);await page.close();continue;
+      }
       await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');await settle();await tools();
       await open('gcs');await page.locator('#gcsRows .gcsrow').first().locator('button').first().click();
       await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));await settle();assert.deepEqual(await page.evaluate(inspectTools),[],'All tools remains usable after scrolling a long GCS panel');
@@ -103,6 +133,7 @@ function inspectClinicalCards(selector){
           const region=view==='home'?'#homeDirectiveDetail':view==='calculator'?'#results':'#crit-treatment',rows=page.locator(region+' .field-infusion-step');assert.deepEqual(await rows.evaluateAll(elements=>elements.map(element=>element.dataset.infusionRate)),['5','10','15','20'],view+' '+id+': four distinct labeled infusion rates');
           const lineData=await rows.evaluateAll(elements=>elements.map(element=>({l:element.querySelector('.rlL').textContent.trim(),d:element.querySelector('.rlD').textContent.trim(),m:element.querySelector('.rlM').textContent.trim()})));assert.deepEqual(lineData,await page.evaluate(()=>dopamineLines(80)),view+' '+id+': all numeric rates/drop timing unchanged');
           assert.equal(await rows.evaluateAll(elements=>new Set(elements.map(element=>getComputedStyle(element).borderLeftColor)).size),4,'Color strips distinguish all four existing dose labels');
+          await assertInfusionPresentation(page,region,daylight,80,view+' '+id);
           const issues=await page.evaluate(inspectClinicalCards,region);if(issues.length)geometry.push({size,daylight,large,id,view,issues});
           const colors=await page.evaluate(contrastInspection,region+' .field-infusion-step,'+region+' .field-infusion-step .rlL,'+region+' .field-infusion-step .rlD,'+region+' .field-infusion-step .rlM');for(const item of colors)if(item.ratio<(item.strip?3:4.5)-.01)contrasts.push({size,daylight,large,id,view,...item});
         }

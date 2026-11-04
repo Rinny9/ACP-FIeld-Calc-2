@@ -11,7 +11,7 @@ const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHT
 assert.equal(clinical(html),clinical(baseline),'Clinical formulas, concentrations and all 34 directive strings unchanged');
 assert.equal(sources(html),sources(baseline),'Existing source URLs, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart data unchanged');
-const build='2026.11.03.1',assets=['field-ui.css','field-shell.js','field-home.js'];
+const build='2026.11.03.2',assets=['field-ui.css','field-shell.js','field-home.js'];
 for(const name of assets)assert.ok(html.includes(name+'?v='+build),'Versioned asset linked: '+name);
 const files=new Map([['/index.html',html],['/',html],['/baseline.html',baseline],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')]),...['manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,body=files.get(pathname);res.writeHead(body?200:404,{'Content-Type':pathname.endsWith('.css')?'text/css; charset=utf-8':pathname.endsWith('.js')?'text/javascript; charset=utf-8':pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(body||'Not found');});

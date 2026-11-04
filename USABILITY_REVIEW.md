@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## DOPamine dose and flow distinction — 2026-11-03, build 2026.11.03.2
+
+The Bradycardia and Cardiogenic Shock infusion cards use consistent teal text for all dose labels and the starting dose. Flow values in mL/hr are white at night and dark navy in daylight, separating dose from flow by meaning. The existing row tints and rails are retained. This is a scoped CSS change; numeric values, units, drop timing, clinical content and calculations are unchanged.
+
+Focused Chromium/WebKit checks passed at 320/390/430/844 px, both themes and text sizes, across Home, All calculations and Critical. Dose/flow text meets 4.5:1 contrast, row rails meet 3:1, quantities and drop timings remain exact at 80/90 kg, and source/model invariants remain exact. The actual offline-update lifecycle check passed from build 2026.11.03.1. These are automated checks, not a physical-iPhone test.
+
 ## Tools navigation and medication clarity — 2026-11-03, build 2026.11.03.1
 
 The existing All tools action is now a large, bordered button in a toolbar that stays beneath the compact patient summary while a tool scrolls. Reset remains a separate secondary action. Returning restores the tool-list position and focus to the original tile while retaining the original tool-input and timer behavior. A Pediatric charts tile opens the existing PDC reference view with a contextual Back to Tools action; it reuses the same patient/band/reference state and clears that return context when another destination is chosen. The patient-summary background is opaque in daylight, preventing scrolled text from showing through above the tool navigation.
