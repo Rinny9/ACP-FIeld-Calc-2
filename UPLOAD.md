@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.11.05.1 splits the Calculator's Browse all 34 directives directory into Core directives first, followed by Auxiliary directives. Each section is alphabetical, and directory search retains the same grouping while hiding empty sections. Home search remains alphabetical across all matches. Directive content, classifications, calculations and patient state are unchanged. Publish index.html, the versioned UI assets and sw.js together.
+
 Build 2026.11.03.2 gives the Bradycardia and Cardiogenic Shock DOPamine cards one consistent teal colour for dose text, including the starting dose, and white mL/hr flow values in night mode. Daylight uses dark flow text for contrast. Existing row tints, clinical values and calculations are retained. Publish index.html, the versioned UI assets and sw.js together.
 
 Build 2026.11.03.1 makes All tools a prominent sticky return button, restores the original Tools tile on return and adds a Pediatric charts shortcut with a contextual Back to Tools. DOPamine rows under Bradycardia/Cardiogenic Shock use distinct day/night colours while retaining every numeric value. Lidocaine's ETT alternative-route doses are labelled first/second, with PCS105/107 references, and the card shows only the relevant lidocaine stock concentration. No clinical formulas, dose values, chart data or infusion rates change. Publish the versioned UI assets, index.html and sw.js together.

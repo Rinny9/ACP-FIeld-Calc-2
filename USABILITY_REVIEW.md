@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Core and auxiliary directory — 2026-11-05, build 2026.11.05.1
+
+The Calculator's secondary directory has two labelled sections: Core directives, then Auxiliary directives, each sorted alphabetically using the existing directive classifications. Letter headings sit beneath their section heading and have unique IDs. Directory search retains this order and omits empty groups; Home search keeps its existing alphabetical results. All 34 directives, clinical data and calculations remain unchanged.
+
+Focused Chromium/WebKit checks passed for all 28 core and 6 auxiliary entries, search/clear/no results, opening and returning with query/scroll/focus retained, unchanged patient state and 320/390/430/844 px layouts in both themes and text sizes. Clinical/source invariants remain exact, and the actual offline-update lifecycle passed from build 2026.11.03.2. Phone-width previews were visually reviewed; this is not a physical-iPhone test.
+
 ## DOPamine dose and flow distinction — 2026-11-03, build 2026.11.03.2
 
 The Bradycardia and Cardiogenic Shock infusion cards use consistent teal text for all dose labels and the starting dose. Flow values in mL/hr are white at night and dark navy in daylight, separating dose from flow by meaning. The existing row tints and rails are retained. This is a scoped CSS change; numeric values, units, drop timing, clinical content and calculations are unchanged.

@@ -11,7 +11,7 @@ const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHT
 assert.equal(clinical(html),clinical(baseline),'Clinical formulas, concentrations and all 34 directive strings unchanged');
 assert.equal(sources(html),sources(baseline),'Existing source URLs, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart data unchanged');
-const build='2026.11.03.2',assets=['field-ui.css','field-shell.js','field-home.js'];
+const build='2026.11.05.1',assets=['field-ui.css','field-shell.js','field-home.js'];
 for(const name of assets)assert.ok(html.includes(name+'?v='+build),'Versioned asset linked: '+name);
 const files=new Map([['/index.html',html],['/',html],['/baseline.html',baseline],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')]),...['manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,body=files.get(pathname);res.writeHead(body?200:404,{'Content-Type':pathname.endsWith('.css')?'text/css; charset=utf-8':pathname.endsWith('.js')?'text/javascript; charset=utf-8':pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(body||'Not found');});
@@ -106,6 +106,59 @@ function inspectToolsLayout(){
   }
   return [...new Set(failures)];
 }
+async function assertDirectoryGroups(page,entries,description){
+  const tags=['core','aux'].filter(tag=>entries.some(entry=>entry.tag===tag));
+  assert.deepEqual(await page.locator('#homeDirectiveList [data-home-directive-group]').evaluateAll(elements=>elements.map(element=>element.dataset.homeDirectiveGroup)),tags,description+': core precedes auxiliary and empty groups are omitted');
+  for(const tag of tags){
+    const group=page.locator(`#homeDirectiveList [data-home-directive-group="${tag}"]`),expected=entries.filter(entry=>entry.tag===tag);
+    assert.equal(await group.evaluate(element=>element.tagName),'SECTION');assert.equal(await group.locator('h2.home-directive-group-title').textContent(),tag==='core'?'Core directives':'Auxiliary directives');
+    assert.deepEqual(await group.locator('[data-home-directive]').evaluateAll(elements=>elements.map(element=>element.dataset.homeDirective)),expected.map(entry=>entry.id),description+': '+tag+' is alphabetical');
+    assert.deepEqual(await group.locator('h3.home-letter').allTextContents(),[...new Set(expected.map(entry=>entry.name.slice(0,1).toLocaleUpperCase()))],description+': '+tag+' has level-three letter headings');
+    const metadata=await group.locator('[data-home-directive]').evaluateAll(elements=>elements.map(element=>({id:element.dataset.homeDirective,name:element.querySelector('span').textContent,source:element.querySelector('small').textContent})));
+    assert.deepEqual(metadata,expected.map(entry=>({id:entry.id,name:entry.name,source:(tag==='core'?'ACP core':'Auxiliary')+' · '+entry.pg})),description+': source tags and pages agree with DIR');
+  }
+  const ids=await page.locator('#homeDirectiveList [data-home-directive]').evaluateAll(elements=>elements.map(element=>element.dataset.homeDirective));assert.equal(new Set(ids).size,ids.length,description+': no directive duplicates');assert.equal(ids.length,entries.length,description+': no directive omissions');
+  assert.deepEqual(ids,tags.flatMap(tag=>entries.filter(entry=>entry.tag===tag).map(entry=>entry.id)));
+  const headingIds=await page.locator('#homeDirectiveList [id]').evaluateAll(elements=>elements.map(element=>element.id));assert.equal(new Set(headingIds).size,headingIds.length,description+': group/letter IDs are unique');
+}
+function inspectDirectoryLayout(){
+  const region=document.getElementById('homeDirectiveList'),box=region.getBoundingClientRect(),issues=[];
+  if(document.documentElement.scrollWidth>innerWidth+1||region.scrollWidth>region.clientWidth+1)issues.push('Directory horizontal overflow');
+  for(const element of region.querySelectorAll('h2,h3,button>span,button>small')){
+    if(!element.getClientRects().length)continue;const range=document.createRange();range.selectNodeContents(element);if([...range.getClientRects()].some(r=>r.left<box.left-.5||r.right>box.right+.5))issues.push('Clipped directory heading/label '+element.textContent.slice(0,60));
+  }
+  for(const element of document.querySelectorAll('#homeDirectiveList button,#homeClearSearch')){if(!element.getClientRects().length)continue;const r=element.getBoundingClientRect();if(r.width<43.5||r.height<43.5)issues.push('Small directory touch target '+element.textContent.slice(0,45));}
+  return [...new Set(issues)];
+}
+async function runDirectoryChecks(page,settle,name){
+  await page.locator('#ageIn').fill('28');await page.locator('#wtIn').fill('80');await settle();
+  const patient=await page.evaluate(()=>JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,mode:S.mode,ageUnit:S.ageUnit,weightUnit:S.wtUnit,validation:S.validation,drugs:drugCalcs(S.pt),critical:critScenario}));
+  const expected=await page.evaluate(()=>DIR.slice().sort((a,b)=>a.n.localeCompare(b.n,'en',{sensitivity:'base'})).map(d=>({id:d.id,name:d.n,tag:d.tag,pg:d.pg})));assert.equal(expected.length,34);
+  await page.evaluate(()=>FIELD_UI.browseDirectives());await settle();await assertDirectoryGroups(page,expected,'All directives');assert.equal(expected.filter(entry=>entry.tag==='core').length,28);assert.equal(expected.filter(entry=>entry.tag==='aux').length,6);
+  const cases=await page.evaluate(()=>{
+    const all=DIR.slice().sort((a,b)=>a.n.localeCompare(b.n,'en',{sensitivity:'base'}));
+    const matches=value=>{const raw=value.toLocaleLowerCase().trim(),query=SEARCH_ALIASES[raw]||raw;return all.filter(d=>[d.n,d.ind,...(d.tx||[]),d.cc||''].join(' ').toLocaleLowerCase().includes(query));};
+    const describe=query=>({query,entries:matches(query).map(d=>({id:d.id,name:d.n,tag:d.tag,pg:d.pg}))});
+    const mixed=['midazolam','CPAP','IV','sedation'].find(query=>new Set(matches(query).map(d=>d.tag)).size===2);
+    const only=tag=>all.filter(d=>d.tag===tag).map(d=>d.n).find(query=>matches(query).length&&matches(query).every(d=>d.tag===tag));
+    return{mixed:mixed&&describe(mixed),core:only('core')&&describe(only('core')),aux:only('aux')&&describe(only('aux'))};
+  });assert.ok(cases.mixed&&cases.core&&cases.aux,'Source data supplies mixed and single-group searches');
+  for(const [type,data]of Object.entries(cases)){await page.locator('#homeSearch').fill(data.query);await settle();await assertDirectoryGroups(page,data.entries,type+' search');}
+  await page.locator('#homeSearch').fill('zzzz-no-such-directive');await settle();await assertDirectoryGroups(page,[],'No results');assert.equal(await page.locator('#homeDirectiveList .home-empty').isVisible(),true);assert.match(await page.locator('#homeDirectoryCount').textContent(),/^0 of 34/);
+  await page.locator('#homeClearSearch').click();await settle();assert.equal(await page.locator('#homeSearch').inputValue(),'');await assertDirectoryGroups(page,expected,'Clear search');
+  for(const query of [cases.mixed.query,'']){
+    await page.locator('#homeSearch').fill(query);await settle();const rows=page.locator('#homeDirectiveList [data-home-directive]'),target=rows.last(),id=await target.getAttribute('data-home-directive');await target.scrollIntoViewIfNeeded();await settle();const scroll=await page.evaluate(()=>window.scrollY);if(!query)assert.ok(scroll>100,'Unfiltered auxiliary entry is below the first screen');await target.click();await settle();
+    assert.equal(await page.locator(`#homeDirectiveDetail .dcard[data-id="${id}"]`).count(),1);await page.locator('[data-home-back]').click();await settle();assert.equal(await page.evaluate(()=>FIELD_UI.directoryState.mode),'directory');assert.equal(await page.locator('#homeSearch').inputValue(),query,'Back preserves directory search');assert.ok(Math.abs(await page.evaluate(()=>window.scrollY)-scroll)<=1,'Back preserves directory scroll');assert.equal(await page.locator(`#homeDirectiveList [data-home-directive="${id}"]`).evaluate(element=>element===document.activeElement),true,'Back returns focus to selected directive');
+  }
+  const geometry=[];
+  for(const size of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:844,height:390}])for(const daylight of [false,true])for(const large of [false,true]){
+    await page.setViewportSize(size);await page.evaluate(({daylight,large})=>{document.body.classList.toggle('daylight',daylight);document.body.classList.toggle('large-text',large);},{daylight,large});await settle();
+    for(const query of ['',cases.mixed.query]){await page.locator('#homeSearch').fill(query);await settle();const issues=await page.evaluate(inspectDirectoryLayout);if(issues.length)geometry.push({size,daylight,large,query,issues});}
+  }
+  assert.deepEqual(geometry,[],name+': grouped headings and entries fit phone/landscape themes and text sizes');
+  await page.evaluate(()=>FIELD_UI.goHome());await settle();await page.locator('#homeSearch').fill(cases.mixed.query);await settle();assert.equal(await page.locator('#homeDirectiveList [data-home-directive-group]').count(),0,'Start-screen search retains its flat presentation');assert.deepEqual(await page.locator('#homeDirectiveList [data-home-directive]').evaluateAll(elements=>elements.map(element=>element.dataset.homeDirective)),cases.mixed.entries.map(entry=>entry.id),'Start-screen search remains globally alphabetical across both tags');
+  assert.equal(await page.evaluate(()=>JSON.stringify({pt:S.pt,age:S.ageVal,weight:S.wtVal,mode:S.mode,ageUnit:S.ageUnit,weightUnit:S.wtUnit,validation:S.validation,drugs:drugCalcs(S.pt),critical:critScenario})),patient,'Directory grouping/browsing leaves the patient and clinical results unchanged');
+}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url=`http://127.0.0.1:${server.address().port}`;
   for(const name of process.env.TEST_WEBKIT?['chromium','webkit']:['chromium']){
@@ -119,6 +172,7 @@ function inspectToolsLayout(){
       const browse=async()=>{await page.evaluate(()=>FIELD_UI.browseDirectives());await settle();assert.equal(await page.evaluate(()=>FIELD_UI.directoryState.mode),'directory');};
       const patient=async(age,weight)=>{assert.equal(await page.locator('#ageIn').isVisible(),true,'Age is a primary visible control');assert.equal(await page.locator('#wtIn').isVisible(),true,'Weight is a primary visible control');await page.locator('#ageIn').fill(String(age));if(!await page.locator('#ageIn').evaluate(el=>el===document.activeElement))focusFailures.push('Age input lost focus during recompute');await page.locator('#wtIn').fill(String(weight));if(!await page.locator('#wtIn').evaluate(el=>el===document.activeElement))focusFailures.push('Weight input lost focus during recompute');await settle();assert.equal(await page.locator('#patientDialog').count(),0);};
       await page.goto(url);await page.waitForFunction(()=>typeof FIELD_UI!=='undefined'&&typeof FIELD_UI.browseDirectives==='function'&&document.querySelectorAll('#homeProblemGrid [data-home-group]').length===6);
+      if(process.env.DIRECTORY_ONLY){await runDirectoryChecks(page,settle,name);assert.deepEqual(errors,[]);console.log(`PASS ${name}: all34 directives grouped Core then Auxiliary, alphabetical within groups, source tags, search/no-results/clear, return query/scroll/focus, unchanged patient and320–844px theme/text layouts; Home search remains globally alphabetical.`);await context.close();continue;}
       assert.equal(await page.locator('#patientDialog').count(),0,'Patient controls no longer require a popup');assert.equal(await page.locator('#patientEntry').count(),1);const patientEntry=await page.locator('#patientEntry').elementHandle();
       assert.equal(await page.evaluate(()=>FIELD_UI.directoryState.mode),'start','Calculator opens on the category start screen');assert.equal(await page.locator('#ageIn').isVisible(),true);assert.equal(await page.locator('#wtIn').isVisible(),true);
       assert.deepEqual(await page.locator('#homeProblemGrid [data-home-group]').evaluateAll(es=>es.map(e=>e.dataset.homeGroup)),await page.evaluate(()=>CRIT_GROUPS.map(group=>group.id)),'Home retains all six clinical categories');
@@ -130,8 +184,8 @@ function inspectToolsLayout(){
       for(let i=0;i<oldRows.length;i++)assert.deepEqual(currentRows[i],oldRows[i],`Clinical row DOM preserved: patient${JSON.stringify(oldRows[i].input)} ${oldRows[i].name} #${oldRows[i].index}`);
       await old.close();
       if(process.env.FIELD_MODELS_ONLY){console.log(`PASS ${name}: exact clinical/source models and medication/equipment DOM, allowing only the independently tested Lidocaine route labels and corrected stock display.`);await context.close();continue;}
-      const expected=await page.evaluate(()=>[...DIR].sort((a,b)=>a.n.localeCompare(b.n)).map(d=>({id:d.id,name:d.n})));
-      await browse();assert.equal(expected.length,34);assert.deepEqual(await page.locator('#homeDirectory [data-home-directive]').evaluateAll(es=>es.map(e=>e.dataset.homeDirective)),expected.map(d=>d.id),'Secondary directory is strictly A–Z across core and auxiliary directives');
+      const expected=await page.evaluate(()=>[...DIR].sort((a,b)=>a.n.localeCompare(b.n,'en',{sensitivity:'base'})).map(d=>({id:d.id,name:d.n,tag:d.tag,pg:d.pg})));
+      await browse();assert.equal(expected.length,34);await assertDirectoryGroups(page,expected,'Secondary directory');
       await page.evaluate(()=>editPatient());await settle();assert.equal(await page.evaluate(()=>document.activeElement.id),'ageIn','Edit patient focuses the existing inline Age input');
       await patient(28,80);assert.equal(await page.evaluate(()=>critScenario),null,'Patient entry never assigns a Critical condition');
       await page.locator('#homeSearch').fill('Symptomatic Bradycardia');assert.equal(await page.locator('#homeDirectory [data-home-directive="brady"]').isVisible(),true);await page.locator('#homeSearch').fill('');

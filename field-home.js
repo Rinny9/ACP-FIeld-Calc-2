@@ -68,12 +68,22 @@
       else if(button.hasAttribute('data-home-edit'))editPatient();
     });
   }
+  function directoryEntries(items,group=''){
+    let last='',html='';
+    const heading=group?'h3':'h2';
+    for(const d of items){
+      const letter=d.n.slice(0,1).toLocaleUpperCase();
+      if(letter!==last){html+=`<${heading} class="home-letter" id="home-letter-${group?group+'-':''}${esc(letter)}">${esc(letter)}</${heading}>`;last=letter;}
+      html+=`<button type="button" class="home-directive-row" data-home-directive="${esc(d.id)}"><span>${esc(d.n)}</span><small>${d.tag==='core'?'ACP core':'Auxiliary'} · ${esc(d.pg)}</small><span aria-hidden="true">›</span></button>`;
+    }
+    return html;
+  }
   function renderDirectory(){
     if(!directoryList)return;
     const raw=state.query.toLocaleLowerCase().trim(),query=SEARCH_ALIASES[raw]||raw;
     const directory=state.mode==='directory',showResults=directory||!!raw;
     container.querySelector('#homeBrowseTitle').textContent=directory?'Medical directives':'What do you need?';
-    container.querySelector('#homeBrowseDescription').textContent=directory?'All medical directives, A–Z.':'Choose the problem. Keep the patient context.';
+    container.querySelector('#homeBrowseDescription').textContent=directory?'Core directives first, then auxiliary. Each section is A–Z.':'Choose the problem. Keep the patient context.';
     container.querySelector('#homeBrowseKicker').textContent=directory?'DIRECTIVE DIRECTORY':'FIELD WORKSPACE';
     container.querySelector('#homeProblemStart').hidden=directory;
     container.querySelector('#homeSearchResults').hidden=!showResults;
@@ -82,12 +92,13 @@
     container.querySelector('#homeClearSearch').hidden=!state.query;
     if(!showResults){directoryList.innerHTML='';count.textContent='';return;}
     const matches=directives.filter(d=>!query||[d.n,d.ind,...(d.tx||[]),d.cc||''].join(' ').toLocaleLowerCase().includes(query));
-    let last='',html='';
-    for(const d of matches){
-      const letter=d.n.slice(0,1).toLocaleUpperCase();
-      if(letter!==last){html+=`<h2 class="home-letter" id="home-letter-${esc(letter)}">${esc(letter)}</h2>`;last=letter;}
-      html+=`<button type="button" class="home-directive-row" data-home-directive="${esc(d.id)}"><span>${esc(d.n)}</span><small>${d.tag==='core'?'ACP core':'Auxiliary'} · ${esc(d.pg)}</small><span aria-hidden="true">›</span></button>`;
-    }
+    const html=directory?[
+      {tag:'core',label:'Core directives'},
+      {tag:'aux',label:'Auxiliary directives'}
+    ].map(group=>{
+      const items=matches.filter(d=>d.tag===group.tag);
+      return items.length?`<section class="home-directive-group" data-home-directive-group="${group.tag}" aria-labelledby="home-${group.tag}-title"><h2 id="home-${group.tag}-title" class="home-directive-group-title">${group.label}</h2>${directoryEntries(items,group.tag)}</section>`:'';
+    }).join(''):directoryEntries(matches);
     directoryList.innerHTML=html||'<p class="home-empty">No directive matches. Try another condition or medication.</p>';
     count.textContent=`${matches.length} of ${directives.length} directives${raw?' · searching all directives':''}`;
   }

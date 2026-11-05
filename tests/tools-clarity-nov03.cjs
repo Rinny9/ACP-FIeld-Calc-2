@@ -11,7 +11,7 @@ const engine=source=>{const context=vm.createContext({module:{exports:{}}});vm.r
 assert.equal(clinical(html),clinical(baseline),'All clinical constants, doses, formulas, gates and directive strings are unchanged');
 assert.equal(html.slice(html.indexOf('const SRC_LINKS='),html.indexOf('function rowHTML(')),baseline.slice(baseline.indexOf('const SRC_LINKS='),baseline.indexOf('function rowHTML(')),'All source links, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart values remain exact');
-assert.match(html,/const APP_BUILD='2026\.11\.03\.2'/);
+assert.match(html,/const APP_BUILD='2026\.11\.05\.1'/);
 const current=engine(html),previous=engine(baseline);
 for(const ageYears of [0,1/365.25,2,8,12,18,28,65,null])for(const weightKg of [4,18,33.3,40,80,125,null]){
   const input={ageYears,weightKg,suppressWeightEstimate:weightKg==null},pt=current.buildPatient(input);
