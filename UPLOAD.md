@@ -1,5 +1,7 @@
 # GitHub upload
 
+Build 2026.11.17.1 replaces Emergency Childbirth's contraindication placeholder with the five oxytocin contraindications verified against ALS PCS5.4 printed page175. The adjacent timing summary now reads <4 h, consistent with the source's ≥4-hour contraindication. The shared directive summary updates in Reference, Calculator and Critical; doses, draw volumes and calculation logic are unchanged. Publish index.html, the versioned UI assets and sw.js together.
+
 Build 2026.11.05.1 splits the Calculator's Browse all 34 directives directory into Core directives first, followed by Auxiliary directives. Each section is alphabetical, and directory search retains the same grouping while hiding empty sections. Home search remains alphabetical across all matches. Directive content, classifications, calculations and patient state are unchanged. Publish index.html, the versioned UI assets and sw.js together.
 
 Build 2026.11.03.2 gives the Bradycardia and Cardiogenic Shock DOPamine cards one consistent teal colour for dose text, including the starting dose, and white mL/hr flow values in night mode. Daylight uses dark flow text for contrast. Existing row tints, clinical values and calculations are retained. Publish index.html, the versioned UI assets and sw.js together.

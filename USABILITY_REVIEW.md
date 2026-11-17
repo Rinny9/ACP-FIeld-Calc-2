@@ -2,6 +2,12 @@
 
 Scope: source-code review of Calculator, Critical, Directives, Tools, Peds and Settings/offline behavior, with automated phone-size browser checks. This is not a clinical certification or a test on the user's physical phone. Existing source-review warnings remain in place.
 
+## Emergency Childbirth oxytocin contraindications — 2026-11-17, build 2026.11.17.1
+
+Replaced the shared directive's See directive text placeholder with five oxytocin-specific bullets: allergy/sensitivity, undelivered fetus, suspected/known pre-eclampsia with the current pregnancy, eclampsia with the current pregnancy, and ≥4 hours after placental delivery. Verified the complete table visually against ALS PCS5.4 printed page175 (local PDF187); the adjacent External Uterine Massage contraindication is not attributed to oxytocin. Corrected the nearby summary's ≤4 h to <4 h to avoid contradicting the explicit ≥4-hour contraindication. This changes only those two Emergency Childbirth summary fields; treatment calculations, dose values, stock, source mappings and other clinical content are retained.
+
+Focused Chromium/WebKit checks passed across Reference, Calculator detail and Critical's full-directive entry, including all five visible bullets, source-link preservation, 320–844 px layouts, both themes and text sizes, and unchanged calculations. Historical model comparisons allow only these two exact summary fields; negative checks reject unapproved fixture changes. The offline-update lifecycle passed from build 2026.11.05.1, and night/day phone-width previews were visually inspected. These checks are not a physical-iPhone test or clinical certification.
+
 ## Core and auxiliary directory — 2026-11-05, build 2026.11.05.1
 
 The Calculator's secondary directory has two labelled sections: Core directives, then Auxiliary directives, each sorted alphabetically using the existing directive classifications. Letter headings sit beneath their section heading and have unique IDs. Directory search retains this order and omits empty groups; Home search keeps its existing alphabetical results. All 34 directives, clinical data and calculations remain unchanged.

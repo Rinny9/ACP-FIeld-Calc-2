@@ -3,15 +3,16 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const {chromium,webkit}=require('playwright');
+const {normalizeChildbirthSummaryFixture}=require('./childbirth-summary-fixture.cjs');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const baseline=execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show','ef95168:index.html'],{cwd:root,encoding:'utf8'});
+const baseline=normalizeChildbirthSummaryFixture(execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show','ef95168:index.html'],{cwd:root,encoding:'utf8'}));
 const clinical=source=>source.slice(source.indexOf('const CONC ='),source.indexOf('// ============ APP STATE')).replace(/\r/g,'');
 const plain=value=>JSON.parse(JSON.stringify(value));
 const engine=source=>{const context=vm.createContext({module:{exports:{}}});vm.runInContext(clinical(source)+'\nglobalThis.engine={...module.exports,DIR,dopamineLines};',context);return context.engine;};
-assert.equal(clinical(html),clinical(baseline),'All clinical constants, doses, formulas, gates and directive strings are unchanged');
+assert.equal(clinical(html),clinical(baseline),'Clinical constants/doses/formulas/gates and directive text match outside the two fixed, audited Childbirth summary fields');
 assert.equal(html.slice(html.indexOf('const SRC_LINKS='),html.indexOf('function rowHTML(')),baseline.slice(baseline.indexOf('const SRC_LINKS='),baseline.indexOf('function rowHTML(')),'All source links, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart values remain exact');
-assert.match(html,/const APP_BUILD='2026\.11\.05\.1'/);
+assert.match(html,/const APP_BUILD='2026\.11\.17\.1'/);
 const current=engine(html),previous=engine(baseline);
 for(const ageYears of [0,1/365.25,2,8,12,18,28,65,null])for(const weightKg of [4,18,33.3,40,80,125,null]){
   const input={ageYears,weightKg,suppressWeightEstimate:weightKg==null},pt=current.buildPatient(input);

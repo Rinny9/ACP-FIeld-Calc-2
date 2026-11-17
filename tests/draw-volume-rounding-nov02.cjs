@@ -5,8 +5,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {chromium,webkit}=require('playwright');
 const {migrateDrawFixture}=require('./draw-volume-fixture.cjs');
+const {normalizeChildbirthSummaryFixture}=require('./childbirth-summary-fixture.cjs');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const baseline=execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${process.env.COMPARE_REF||'721bc4a'}:index.html`],{cwd:root,encoding:'utf8'});
+const baseline=normalizeChildbirthSummaryFixture(execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${process.env.COMPARE_REF||'721bc4a'}:index.html`],{cwd:root,encoding:'utf8'}));
 const plain=value=>JSON.parse(JSON.stringify(value));
 const clinical=s=>s.slice(s.indexOf('const CONC ='),s.indexOf('// ============ APP STATE'));
 const block=(s,start,end)=>s.slice(s.indexOf(start),s.indexOf(end));
@@ -32,9 +33,9 @@ function replaceFormattedDraws(source,replacement){
 }
 const old=model(baseline),current=model(html);
 const migratedBaseline=migrateDrawFixture(baseline,html);
-assert.equal(clinical(html).replace(/\r/g,''),clinical(migratedBaseline).replace(/\r/g,''),'Clinical source differs only in tested draw helpers and original volume wrappers');
+assert.equal(clinical(html).replace(/\r/g,''),clinical(migratedBaseline).replace(/\r/g,''),'Clinical source differs only in tested draw wrappers and the two fixed, audited Childbirth summary fields');
 assert.deepEqual(plain(current.engine.CONC),plain(old.engine.CONC),'Stock concentrations unchanged');
-assert.deepEqual(plain(current.engine.DIR),plain(old.engine.DIR),'Every directive, dose, condition and caution unchanged');
+assert.deepEqual(plain(current.engine.DIR),plain(old.engine.DIR),'All directives match after normalizing only the two fixed, audited Childbirth summary fields');
 assert.equal(block(html,'const SRC_LINKS=','function drawHTML(').replace(/\r/g,''),block(baseline,'const SRC_LINKS=','function drawHTML(').replace(/\r/g,''),'Source URLs, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart transcription unchanged');
 for(const key of ['buildPatient','airway','shockIndex','ivDrip','parkland','dopamineRate','dopamineLines','pushDoseEpi'])assert.equal(current.engine[key].toString(),old.engine[key].toString(),key+' source/formula unchanged');
@@ -125,7 +126,7 @@ for(const stockScale of [1,.73,2.4]){
 }
 for(const key of Object.keys(current.engine.CONC))current.engine.CONC[key].v=old.engine.CONC[key].v;
 assert.ok(drawsChecked>15000&&roundedChecked>1000&&precisionChecked>100,'Rounding sweep exercises medication draws, changed results and tiny positive draws');
-assert.match(html,/const APP_BUILD='2026\.11\.05\.1'/);
+assert.match(html,/const APP_BUILD='2026\.11\.17\.1'/);
 
 const assets=['field-ui.css','field-shell.js','field-home.js','manifest.webmanifest','icon.svg'];
 const files=new Map([['/',html],['/index.html',html],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);

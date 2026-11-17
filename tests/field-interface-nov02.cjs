@@ -4,14 +4,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {chromium,webkit}=require('playwright');
 const {migrateDrawFixture}=require('./draw-volume-fixture.cjs');
+const {normalizeChildbirthSummaryFixture}=require('./childbirth-summary-fixture.cjs');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const baseline=migrateDrawFixture(execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${process.env.COMPARE_REF||'ca05ef4'}:index.html`],{cwd:root,encoding:'utf8'}),html);
+const baseline=normalizeChildbirthSummaryFixture(migrateDrawFixture(execFileSync('git',['-c',`safe.directory=${root.replace(/\\/g,'/')}`,'show',`${process.env.COMPARE_REF||'ca05ef4'}:index.html`],{cwd:root,encoding:'utf8'}),html));
 const clinical=s=>s.slice(s.indexOf('const CONC ='),s.indexOf('// ============ APP STATE')).replace(/\r/g,'');
 const sources=s=>s.slice(s.indexOf('const SRC_LINKS='),s.indexOf('function rowHTML(')).replace(/\r/g,'');
-assert.equal(clinical(html),clinical(baseline),'Clinical formulas, concentrations and all 34 directive strings unchanged');
+assert.equal(clinical(html),clinical(baseline),'Clinical source unchanged except the two fixed, audited Emergency Childbirth summary fields');
 assert.equal(sources(html),sources(baseline),'Existing source URLs, page mappings and reference helpers unchanged');
 assert.equal(html.match(/const PEDS54\s*=([^\n]+)/)[1],baseline.match(/const PEDS54\s*=([^\n]+)/)[1],'Published pediatric chart data unchanged');
-const build='2026.11.05.1',assets=['field-ui.css','field-shell.js','field-home.js'];
+const build='2026.11.17.1',assets=['field-ui.css','field-shell.js','field-home.js'];
 for(const name of assets)assert.ok(html.includes(name+'?v='+build),'Versioned asset linked: '+name);
 const files=new Map([['/index.html',html],['/',html],['/baseline.html',baseline],...assets.map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')]),...['manifest.webmanifest','icon.svg'].map(name=>['/'+name,fs.readFileSync(path.join(root,name),'utf8')])]);
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname,body=files.get(pathname);res.writeHead(body?200:404,{'Content-Type':pathname.endsWith('.css')?'text/css; charset=utf-8':pathname.endsWith('.js')?'text/javascript; charset=utf-8':pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(body||'Not found');});
@@ -179,7 +180,7 @@ async function runDirectoryChecks(page,settle,name){
       await click('#homeOpenCritical');assert.equal(await page.evaluate(()=>activePane),'critical');assert.equal(await page.evaluate(()=>critScenario),null,'Generic Critical entry does not invent a scenario');await nav('calc');
       await page.locator('#homeSearch').fill('midazolam');await click('#homeDirectory [data-home-directive="seizure"]');await click('[data-home-back]');assert.equal(await page.evaluate(()=>FIELD_UI.directoryState.mode),'start');assert.equal(await page.locator('#homeSearch').inputValue(),'midazolam','Detail Back restores the category-start search');await page.locator('#homeSearch').fill('');assert.equal(await page.locator('#homeDirectory [data-home-directive]').count(),0,'Empty start search does not append the A–Z directory');
       assert.deepEqual(await page.locator('#fieldNav button[data-pane]').evaluateAll(es=>es.map(e=>e.dataset.pane)),['calc','critical','dir','tools']);
-      const old=await context.newPage();await old.goto(url+'/baseline.html');assert.deepEqual(await snapshot(page),await snapshot(old),'All clinical engine results and references match the published baseline');
+      const old=await context.newPage();await old.goto(url+'/baseline.html');assert.deepEqual(await snapshot(page),await snapshot(old),'Clinical engine/results match the historical baseline with only the two approved Childbirth summary fields normalized');
       const currentRows=await renderedRows(page),oldRows=await renderedRows(old);assert.equal(currentRows.length,oldRows.length);
       for(let i=0;i<oldRows.length;i++)assert.deepEqual(currentRows[i],oldRows[i],`Clinical row DOM preserved: patient${JSON.stringify(oldRows[i].input)} ${oldRows[i].name} #${oldRows[i].index}`);
       await old.close();
